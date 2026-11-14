@@ -472,3 +472,4 @@ class AutoQaService
         return $run;
     }
 }
+

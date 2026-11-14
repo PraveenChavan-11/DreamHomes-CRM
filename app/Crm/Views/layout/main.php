@@ -10,13 +10,19 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#070D0E">
+<meta name="theme-color" content="#1D6A34">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="csrf-token" content="<?= csrf_hash() ?>"><meta name="csrf-name" content="<?= csrf_token() ?>">
-<title><?= esc($title ? $title . ' · ' : '') ?>DHIS Sales CRM</title>
+<title><?= esc($title ? $title . ' · ' : '') ?>DHIS Sales CRM · TalentHub</title>
 <link rel="icon" href="<?= base_url('favicon.png') ?>">
 <link rel="manifest" href="<?= base_url('manifest-crm.json') ?>">
+
+<!-- Google Fonts: Inter & Plus Jakarta Sans (TalentHub Design System) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="<?= base_url('assets/crm/css/crm.css' . $v('assets/crm/css/crm.css')) ?>">
 </head>
 <body>

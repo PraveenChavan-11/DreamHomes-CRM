@@ -80,3 +80,4 @@ class QaController extends CrmController
         return $this->response->setJSON(['status' => 'ok']);
     }
 }
+

@@ -88,7 +88,7 @@ $statusBadge = match ($run['status'] ?? 'passed') {
         </tr>
       </thead>
       <tbody>
-      <?php foreach (($run['findings'] ?? []) as $f): 
+      <?php foreach (($run['findings'] ?? []) as $f):
           $sTone = match ($f['status']) {
               'passed' => 'badge-green',
               'warning' => 'badge-amber',
@@ -126,3 +126,4 @@ $statusBadge = match ($run['status'] ?? 'passed') {
     </table>
   </div>
 </div>
+

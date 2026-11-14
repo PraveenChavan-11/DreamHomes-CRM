@@ -127,3 +127,4 @@ class SearchController extends CrmController
         return $this->response->setJSON(['results' => $results]);
     }
 }
+

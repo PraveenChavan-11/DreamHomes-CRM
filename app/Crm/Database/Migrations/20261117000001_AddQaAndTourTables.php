@@ -95,3 +95,4 @@ class AddQaAndTourTables extends Migration
         $this->forge->dropTable('crm_tour_progress', true);
     }
 }
+
