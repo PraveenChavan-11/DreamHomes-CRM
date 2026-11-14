@@ -16,26 +16,28 @@ $monthLabels = array_map(static fn ($r) => date('M y', strtotime($r['ym'] . '-01
 $nextActions = [];
 if (! empty($overdue)) {
     foreach (array_slice($overdue, 0, 3) as $f) {
+        $actText = ! empty($f['next_action']) ? $f['next_action'] : (! empty($f['activity_type']) ? crm_label($f['activity_type']) : 'Follow up with customer');
         $nextActions[] = [
             'type' => 'overdue',
-            'title' => 'Overdue Follow-up: ' . $f['customer_name'],
-            'sub' => ($f['enquiry_no'] ? $f['enquiry_no'] . ' · ' : '') . ($f['next_action'] ?: 'Follow up with customer'),
-            'badge' => 'Overdue ' . crm_date($f['due_at']),
+            'title' => 'Overdue Follow-up: ' . ($f['customer_name'] ?? 'Customer'),
+            'sub' => (! empty($f['enquiry_no']) ? $f['enquiry_no'] . ' · ' : '') . $actText,
+            'badge' => 'Overdue ' . crm_date($f['due_at'] ?? null),
             'badge_tone' => 'red',
-            'url' => $f['enquiry_id'] ? 'crm/enquiries/' . (int) $f['enquiry_id'] : 'crm/followups?when=overdue',
+            'url' => ! empty($f['enquiry_id']) ? 'crm/enquiries/' . (int) $f['enquiry_id'] : 'crm/followups?when=overdue',
             'action_label' => 'Open',
         ];
     }
 }
 if (! empty($today)) {
     foreach (array_slice($today, 0, 3) as $f) {
+        $actText = ! empty($f['next_action']) ? $f['next_action'] : (! empty($f['activity_type']) ? crm_label($f['activity_type']) : 'Call customer');
         $nextActions[] = [
             'type' => 'today',
-            'title' => 'Follow-up Due Today: ' . $f['customer_name'],
-            'sub' => ($f['enquiry_no'] ? $f['enquiry_no'] . ' · ' : '') . ($f['next_action'] ?: 'Call customer'),
-            'badge' => date('H:i', strtotime($f['due_at'])),
+            'title' => 'Follow-up Due Today: ' . ($f['customer_name'] ?? 'Customer'),
+            'sub' => (! empty($f['enquiry_no']) ? $f['enquiry_no'] . ' · ' : '') . $actText,
+            'badge' => ! empty($f['due_at']) ? date('H:i', strtotime($f['due_at'])) : 'Today',
             'badge_tone' => 'blue',
-            'url' => $f['enquiry_id'] ? 'crm/enquiries/' . (int) $f['enquiry_id'] : 'crm/followups',
+            'url' => ! empty($f['enquiry_id']) ? 'crm/enquiries/' . (int) $f['enquiry_id'] : 'crm/followups',
             'action_label' => 'Contact',
         ];
     }

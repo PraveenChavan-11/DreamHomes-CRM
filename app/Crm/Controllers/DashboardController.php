@@ -40,7 +40,7 @@ class DashboardController extends CrmController
         $db  = Crm::db();
         $now = Crm::now();
         $fo  = $this->inList('f.assigned_to');
-        $base = "SELECT f.id, f.due_at, f.activity_type, f.status, f.enquiry_id, e.enquiry_no, c.id customer_id, c.name customer_name, CONCAT(a.first_name,' ',a.last_name) assignee
+        $base = "SELECT f.id, f.due_at, f.activity_type, f.status, f.next_action, f.enquiry_id, e.enquiry_no, c.id customer_id, c.name customer_name, CONCAT(a.first_name,' ',a.last_name) assignee
                  FROM crm_followups f JOIN crm_customers c ON c.id = f.customer_id LEFT JOIN crm_enquiries e ON e.id = f.enquiry_id LEFT JOIN admin_users a ON a.id = f.assigned_to";
         $today   = $db->query("{$base} WHERE f.status = 'pending' AND DATE(f.due_at) = DATE(?) AND {$fo} ORDER BY f.due_at LIMIT 8", [$now])->getResultArray();
         $overdue = $db->query("{$base} WHERE ((f.status = 'pending' AND f.due_at < ?) OR f.status = 'missed') AND {$fo} ORDER BY f.due_at LIMIT 8", [$now])->getResultArray();

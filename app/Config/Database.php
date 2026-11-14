@@ -219,13 +219,20 @@ class Database extends Config
                 $this->{$group}['DSN']      = '';
                 $this->{$group}['failover'] = [];
             }
-        } elseif (empty($this->default['database']) && isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'dhiscrm.talenthubconsultant.com')) {
-            $this->default['hostname'] = '127.0.0.1';
-            $this->default['database'] = 'u139147679_dhiscrm';
-            $this->default['username'] = 'u139147679_dhiscrm';
-            $this->default['password'] = 'DreamHomes2026!Db';
-            $this->default['port']     = 3306;
-            $this->default['DBDriver'] = 'MySQLi';
+        } elseif (empty($this->default['database'])) {
+            $isHostinger = (isset($_SERVER['HTTP_HOST']) && (str_contains($_SERVER['HTTP_HOST'], 'talenthubconsultant.com') || str_contains($_SERVER['HTTP_HOST'], 'dhiscrm')))
+                || (isset($_SERVER['DOCUMENT_ROOT']) && str_contains($_SERVER['DOCUMENT_ROOT'], 'u139147679'))
+                || (isset($_SERVER['SCRIPT_FILENAME']) && str_contains($_SERVER['SCRIPT_FILENAME'], 'u139147679'))
+                || (is_dir('/home/u139147679'));
+
+            if ($isHostinger) {
+                $this->default['hostname'] = '127.0.0.1';
+                $this->default['database'] = 'u139147679_dhiscrm';
+                $this->default['username'] = 'u139147679_dhiscrm';
+                $this->default['password'] = 'DreamHomes2026!Db';
+                $this->default['port']     = 3306;
+                $this->default['DBDriver'] = 'MySQLi';
+            }
         }
     }
 

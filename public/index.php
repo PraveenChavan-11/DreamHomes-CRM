@@ -33,7 +33,12 @@ if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
 define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
 
 // Host Auto-Detection & Live Environment Guard
-if (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'dhiscrm.talenthubconsultant.com')) {
+$isHostinger = (isset($_SERVER['HTTP_HOST']) && (str_contains($_SERVER['HTTP_HOST'], 'talenthubconsultant.com') || str_contains($_SERVER['HTTP_HOST'], 'dhiscrm')))
+    || (isset($_SERVER['DOCUMENT_ROOT']) && str_contains($_SERVER['DOCUMENT_ROOT'], 'u139147679'))
+    || (isset($_SERVER['SCRIPT_FILENAME']) && str_contains($_SERVER['SCRIPT_FILENAME'], 'u139147679'))
+    || (is_dir('/home/u139147679'));
+
+if ($isHostinger) {
     if (!defined('ENVIRONMENT')) {
         define('ENVIRONMENT', 'production');
     }
