@@ -33,7 +33,61 @@ $fill = static fn (array $r) => implode(',', array_map(static fn ($k) => $k . '=
   </div>
 </div>
 
+<?php
+// Compute the 7-step visual sales journey based on current status
+$journeySteps = [
+    ['key' => 'new', 'no' => 'Step 1', 'name' => 'New Enquiry'],
+    ['key' => 'contacted', 'no' => 'Step 2', 'name' => 'Contact'],
+    ['key' => 'followup', 'no' => 'Step 3', 'name' => 'Follow-up'],
+    ['key' => 'site_visit', 'no' => 'Step 4', 'name' => 'Site Visit'],
+    ['key' => 'quotation', 'no' => 'Step 5', 'name' => 'Quotation'],
+    ['key' => 'confirmation', 'no' => 'Step 6', 'name' => 'Confirmation'],
+    ['key' => 'order', 'no' => 'Step 7', 'name' => 'Sales Order'],
+];
+
+$stOrder = [
+    'new' => 1, 'assigned' => 1,
+    'contacted' => 2,
+    'qualified' => 3,
+    'site_visit' => 4,
+    'quotation_preparation' => 5, 'quotation_sent' => 5, 'revised' => 5,
+    'negotiation' => 6, 'accepted' => 6,
+    'won' => 7,
+];
+$curStep = $stOrder[$e['status']] ?? 1;
+?>
+
+<!-- Visual Sales Progress Journey Bar -->
+<div class="sales-journey" aria-label="Sales progress">
+  <?php foreach ($journeySteps as $idx => $step): 
+      $stepNum = $idx + 1;
+      $state = ($stepNum < $curStep || $e['status'] === 'won') ? 'done' : ($stepNum === $curStep ? 'current' : '');
+  ?>
+    <div class="journey-step <?= $state ?>">
+      <div class="step-no"><?= esc($step['no']) ?></div>
+      <div class="step-name"><?= esc($step['name']) ?></div>
+    </div>
+  <?php endforeach; ?>
+</div>
+
 <div class="card mb"><div class="bd gap">
+  <!-- Contextual Primary Next Action based on Current Sales Stage -->
+  <?php if ($active): ?>
+    <?php if (in_array($e['status'], ['new', 'assigned'], true) && crm_can('followups.manage')): ?>
+      <button class="btn teal sm" type="button" data-modal="m-contact">&#9654; Contact Customer</button>
+    <?php elseif ($e['status'] === 'contacted' && crm_can('followups.manage')): ?>
+      <button class="btn teal sm" type="button" data-modal="m-followup">&#9654; Schedule Follow-up</button>
+    <?php elseif ($e['status'] === 'qualified' && crm_can('visits.manage')): ?>
+      <button class="btn teal sm" type="button" data-modal="m-visit">&#9654; Schedule Site Visit</button>
+    <?php elseif (in_array($e['status'], ['site_visit', 'quotation_preparation'], true) && crm_can('quotations.create')): ?>
+      <a class="btn teal sm" href="<?= site_url('crm/quotations/new?enquiry=' . $id) ?>">&#9654; Prepare Quotation</a>
+    <?php elseif ($e['status'] === 'quotation_sent' && $quotes && crm_can('negotiations.create')): ?>
+      <a class="btn teal sm" href="<?= site_url('crm/quotations/' . (int) $quotes[0]['id']) ?>#negotiate">&#9654; Discuss Price &amp; Discounts</a>
+    <?php elseif ($canClose && $canWon): ?>
+      <button class="btn teal sm" type="button" data-modal="m-won">&#9654; Confirm Order (Mark Won)</button>
+    <?php endif; ?>
+  <?php endif; ?>
+
   <?php if ($canAssign): ?><button class="btn alt sm" type="button" data-modal="m-assign"><?= $e['current_owner_id'] ? 'Reassign' : 'Assign' ?></button><?php endif; ?>
   <?php if ($canEdit && $next): ?><button class="btn alt sm" type="button" data-modal="m-status">Change status</button><?php endif; ?>
   <?php if ($active && crm_can('followups.manage')): ?>
@@ -41,7 +95,7 @@ $fill = static fn (array $r) => implode(',', array_map(static fn ($k) => $k . '=
     <button class="btn alt sm" type="button" data-modal="m-followup">Schedule follow-up</button>
   <?php endif; ?>
   <?php if ($active && crm_can('visits.manage')): ?><button class="btn alt sm" type="button" data-modal="m-visit">Schedule site visit</button><?php endif; ?>
-  <?php if ($active && crm_can('quotations.create')): ?><a class="btn teal sm" href="<?= site_url('crm/quotations/new?enquiry=' . $id) ?>">Create quotation</a><?php endif; ?>
+  <?php if ($active && crm_can('quotations.create')): ?><a class="btn alt sm" href="<?= site_url('crm/quotations/new?enquiry=' . $id) ?>">Create quotation</a><?php endif; ?>
   <?php if ($active && $quotes && crm_can('negotiations.create')): ?><a class="btn alt sm" href="<?= site_url('crm/quotations/' . (int) $quotes[0]['id']) ?>#negotiate">Request negotiation</a><?php endif; ?>
   <?php if ($canClose && $canWon): ?><button class="btn sm" type="button" data-modal="m-won">Mark won</button><?php endif; ?>
   <?php if ($canClose): ?><button class="btn danger sm" type="button" data-modal="m-lost">Mark lost</button><button class="btn alt sm" type="button" data-modal="m-hold">Put on hold</button><?php endif; ?>

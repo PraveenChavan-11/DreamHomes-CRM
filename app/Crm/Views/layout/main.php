@@ -18,18 +18,45 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
 <body>
 <div class="app">
   <aside class="side" id="side" aria-label="Main navigation">
-    <a class="brand" href="<?= site_url('crm') ?>"><img src="<?= base_url('assets/crm/img/dhis-logo.png') ?>" alt="Dream Homes Interior Solutions" width="200" height="101"></a>
+    <a class="brand" href="<?= site_url('crm') ?>">
+      <div class="brand-plate">
+        <img src="<?= base_url('assets/crm/img/dhis-logo.png') ?>" alt="Dream Homes Interior Solutions" width="180" height="91">
+      </div>
+      <div class="brand-tag">Sales Management Portal</div>
+    </a>
     <nav class="nav">
-      <?php foreach (crm_nav() as $g):
-          $items = array_filter($g['items'], static fn ($i) => crm_can(...$i[3]));
-          if (! $items) { continue; } ?>
-        <h4><?= esc($g['group']) ?></h4>
-        <?php foreach ($items as [$label, $url, $key, $perm, $icon]): ?>
-          <a href="<?= site_url($url) ?>" class="<?= $active === $key ? 'on' : '' ?>"<?= $active === $key ? ' aria-current="page"' : '' ?>><?= crm_icon($icon) ?><span><?= esc($label) ?></span></a>
-        <?php endforeach; ?>
+      <h4>Main Menu</h4>
+      <?php foreach (crm_nav() as [$label, $url, $key, $perm, $icon]):
+          if (! crm_can(...$perm)) { continue; }
+          $isCurrent = ($active === $key);
+      ?>
+        <a href="<?= site_url($url) ?>" class="<?= $isCurrent ? 'on' : '' ?>"<?= $isCurrent ? ' aria-current="page"' : '' ?>>
+          <?= crm_icon($icon, 20) ?>
+          <span><?= esc($label) ?></span>
+        </a>
       <?php endforeach; ?>
     </nav>
-    <div class="tal"><img src="<?= base_url('assets/crm/img/talenthub-mark.png') ?>" alt="" width="22" height="22"><span>A TalentHub product</span></div>
+    <div class="side-footer">
+      <button type="button" data-modal="m-support-help">
+        <?= crm_icon('M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', 18) ?>
+        <span>Help &amp; Support</span>
+      </button>
+      <a href="<?= site_url('crm/profile') ?>">
+        <?= crm_icon('M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 18) ?>
+        <span>User Profile</span>
+      </a>
+      <form method="post" action="<?= site_url('crm/logout') ?>" style="margin:0">
+        <?= csrf_field() ?>
+        <button type="submit">
+          <?= crm_icon('M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1', 18) ?>
+          <span>Logout</span>
+        </button>
+      </form>
+      <div class="side-attribution">
+        <img src="<?= base_url('assets/crm/img/talenthub-mark.png') ?>" alt="TalentHub" width="18" height="18">
+        <span>Powered by TalentHub</span>
+      </div>
+    </div>
   </aside>
   <div class="main">
     <header class="top">
@@ -40,6 +67,7 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
         <button type="button" aria-haspopup="true"><span class="avatar"><?= esc($initials) ?></span><span><?= esc($user['name'] ?? '') ?> <span class="muted small">· <?= esc($role) ?></span></span></button>
         <div class="pop" role="menu">
           <a href="<?= site_url('crm/profile') ?>" role="menuitem">My profile &amp; password</a>
+          <a href="<?= site_url('crm/settings') ?>" role="menuitem">Settings</a>
           <form method="post" action="<?= site_url('crm/logout') ?>"><?= csrf_field() ?><button type="submit" role="menuitem">Sign out</button></form>
         </div>
       </div>
@@ -50,9 +78,37 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
       <?php if ($m = session()->getFlashdata('info')): ?><div class="flash info"><?= esc($m) ?></div><?php endif; ?>
       <?= $content ?>
     </main>
-    <footer class="foot"><img src="<?= base_url('assets/crm/img/talenthub-mark.png') ?>" alt="" width="18" height="18">DHIS Sales CRM · a TalentHub product · demo and placeholder data are fictional</footer>
+    <footer class="foot">
+      <img src="<?= base_url('assets/crm/img/talenthub-mark.png') ?>" alt="" width="18" height="18">
+      <span>DHIS Sales CRM · Developed &amp; Powered by TalentHub Consultant · Demo data is fictional</span>
+    </footer>
   </div>
 </div>
+
+<!-- Help & Support Modal -->
+<div class="modal" id="m-support-help" role="dialog" aria-modal="true" aria-label="Help and Support">
+  <div class="box">
+    <div class="hd">
+      <h3>Help &amp; Support</h3>
+      <button type="button" class="btn alt sm" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="bd">
+      <p style="font-size:15px;font-weight:600;margin-bottom:8px">DHIS Sales CRM Support</p>
+      <p class="muted small">For operational questions, system configuration changes, or workflow assistance, please contact your administrator or the TalentHub Consultant support desk.</p>
+      <dl class="kv mt">
+        <dt>Application</dt><dd>DHIS Sales CRM (Enterprise Edition)</dd>
+        <dt>Client</dt><dd>DHIS Group – Dream Homes Interior Solutions</dd>
+        <dt>Tech Partner</dt><dd>TalentHub Consultant</dd>
+        <dt>Email</dt><dd><a href="mailto:support@talenthubconsultant.com">support@talenthubconsultant.com</a></dd>
+        <dt>Documentation</dt><dd>Standard Operating Procedures are available from the Settings hub.</dd>
+      </dl>
+    </div>
+    <div class="ft">
+      <button type="button" class="btn alt" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
 <script>window.CRM_BASE = <?= json_encode(base_url('/')) ?>;</script>
 <script src="<?= base_url('assets/crm/js/crm.js' . $v('assets/crm/js/crm.js')) ?>" defer></script>
 </body>
