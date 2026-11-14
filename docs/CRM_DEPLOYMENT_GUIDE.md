@@ -52,5 +52,15 @@ Back up DB + `writable/crm/`, upload new code, run `php spark migrate -n Crm` (m
 ## 5. Staging
 Use the same steps with a separate database and `.env`; set `CI_ENVIRONMENT=production`, keep `DHIS_DEMO_ENV=false` unless the staging copy is a deliberate demo server.
 
-## 6. Remaining external actions
-Hosting document-root/SSL, DNS, database creation, cron registration and SMTP credentials are only possible from your hosting account. Hostinger API access was not used here.
+## 6. Live Hostinger Deployment Status
+
+* **Live Demo Domain:** `https://dhiscrm.talenthubconsultant.com`
+* **Server Root Directory:** `/home/u139147679/domains/talenthubconsultant.com/public_html/Product_Demo/DreamHomes`
+* **Database:** `u139147679_dhiscrm` (MariaDB 11.8 on `srv1824.hstgr.io`, connects via `127.0.0.1` locally)
+* **Auto-Deployment:** Connected to GitHub `main` branch via Hostinger Git Webhook (`https://webhooks.hostinger.com/deploy/29d264ceb80ab83e455347cd12423727`). Every push to `main` auto-deploys.
+* **Complete DDL Export:** Available in repository at `deployment/migration_20261116_crm_complete.sql`.
+* **Scheduled Cron Jobs (hPanel):**
+  ```
+  */10 * * * * cd /home/u139147679/domains/talenthubconsultant.com/public_html/Product_Demo/DreamHomes && /usr/bin/php8.2 spark crm:reminders >> writable/logs/cron.log 2>&1
+  17 2 * * *  cd /home/u139147679/domains/talenthubconsultant.com/public_html/Product_Demo/DreamHomes && /usr/bin/php8.2 spark crm:verify    >> writable/logs/cron.log 2>&1
+  ```

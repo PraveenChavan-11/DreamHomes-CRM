@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| **Login page** | `<your-base-url>/crm/login` (local: `http://localhost:8080/crm/login`) |
+| **Login page** | **Live Demo:** `https://dhiscrm.talenthubconsultant.com/crm/login` (local: `http://localhost:8080/crm/login`) |
 | **Identity** | the username in the table below (the e-mail address also works) |
 | **Password (all demo users)** | `Demo@DHIS#2026` |
 | Session timeout | 30 minutes idle (setting `session.timeout_minutes`) |

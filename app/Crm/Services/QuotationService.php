@@ -120,6 +120,18 @@ final class QuotationService
         }
         $gross        = Money::add($calc['subtotal'], $markdown);
         $isAdminLevel = AccessScope::can($actor, 'discounts.approve_admin');
+
+        // Check explicit manual price overrides below catalogue minimum first
+        foreach ($calc['lines'] as $i => $cl) {
+            $min = $meta[$i]['min_price'];
+            if ($min !== null && Money::cmp($min, '0') > 0) {
+                if (($meta[$i]['price_source'] ?? '') === 'manual' && bccomp(Money::round($cl['unit_price']), Money::round($min), 2) < 0 && $approvedCeilingPct === null && ! $isAdminLevel) {
+                    $net = Money::div($cl['taxable_amount'], $cl['quantity']);
+                    throw new CrmException('Line ' . ($i + 1) . ": net price {$net} is below the minimum selling price {$min}. Approval required.");
+                }
+            }
+        }
+
         $overall      = Money::cmp($gross, '0') > 0 ? Money::round(Money::mul(Money::div(Money::add($calc['discount_total'], $markdown), $gross), '100'), 3) : '0.000';
         $limit        = $isAdminLevel ? '100' : (string) ($actor['max_discount_pct'] ?? '0');
         if ($approvedCeilingPct !== null) {

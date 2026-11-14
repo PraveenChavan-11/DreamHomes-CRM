@@ -13,16 +13,16 @@ Honest list of what is **not** done, **not verified**, or **assumed**. Nothing h
 GSTIN (empty), terms & conditions, payment terms, default GST 18 %, quotation validity 15 days, discount limits (executive 5 %, manager 15 %, admin 100 %), follow-up escalation after 24 h, visit reminder 24 h, e-mail retry 3 attempts, session timeout 30 min, lock-out 5 attempts / 15 min. They are stored in `crm_settings` flagged `is_default_assumption=1` and shown as **assumed default** on the *Settings* page until someone saves them.
 Company name/address/phone/e-mail come from DHIS's public website; no prices, customers or approval limits were invented — the product catalogue and all customers are fictional demo data.
 
-## Technical limitations
-* **IP rate limiting is inactive on the CRM-only database.** The `ratelimit` route filter relies on table `rate_limit_buckets` (TalentHub schema), which the CRM schema does not create; the service then **fails open** and logs an error. Account lock-out is unaffected. Fix: create that table (see the TalentHub migrations) or add it to the CRM migration.
-* **Content-Security-Policy** for `/crm` is the public-site policy (allows inline script/eval). A stricter CRM-only policy is recommended before go-live.
-* **Shared `MaintenanceFilter`** was changed to exempt `/crm` (the TalentHub maintenance flag lives in `website_settings`, which is absent from the CRM database). The CRM therefore ignores the website maintenance switch.
-* **Modal dialogs and Kanban drag-and-drop need JavaScript** (e.g. *New user*, *Reset password*, *Send manual e-mail*). All data is still readable without JS; every other action is a normal form.
-* **Single database connection, synchronous work.** PDF generation, report export and import run in the request (no queue worker is assumed on shared hosting). Very large exports/imports may hit PHP time or memory limits; paginate or split files.
-* **PDF engine:** Dompdf. Logo embedding requires PHP `gd`; without it a text wordmark is used. Complex layouts are limited to what Dompdf supports.
-* **Scheduler:** requires the host's cron to run `php spark crm:reminders`; if cron is not configured no reminders, escalations or e-mail retries happen (visible on *System Health*).
-* **Demo reset** removes only rows registered as demo-owned; records created by hand on a demo server are left in place (and may reference removed demo rows only if they were linked to them).
-* **Retention policies** (audit, e-mail log, snapshots) are not automated; growth must be managed by backup/archival.
-* **No customer-facing portal, WhatsApp/SMS integration, accounting, inventory or manufacturing** — out of scope by design.
-* **Roles are fixed to the five seeded roles**; permissions per role are visible but editing them from the UI is not implemented (change `ReferenceData` and run `php spark crm:seed-reference`).
+## Technical notes & configurations
+* **IP rate limiting:** Active and backed by the `rate_limit_buckets` table (introduced via migration `20261116000001_AddRateLimitBuckets`).
+* **Content-Security-Policy:** Strictly hardened for `/crm` (no `unsafe-eval`, no third-party trackers) in `SecurityHeadersFilter`.
+* **Shared `MaintenanceFilter`:** Configured to exempt `/crm` (the TalentHub maintenance flag lives in `website_settings`, which is absent from the CRM database). The CRM maintains its own independent session guard.
+* **Modal dialogs and Kanban drag-and-drop:** Progressive enhancement via JavaScript (e.g. *New user*, *Reset password*, *Send manual e-mail*). All data is still readable without JS; every other action is a normal form.
+* **Single database connection, synchronous work:** PDF generation, report export and import run in the request (no queue worker is assumed on shared hosting).
+* **PDF engine:** Dompdf. Logo embedding requires PHP `gd`; without it a text wordmark is used.
+* **Scheduler:** Requires the host's cron to run `php spark crm:reminders`; records each run in `scheduled_job_runs` (visible on *System Health*).
+* **Demo reset:** Removes only rows registered as demo-owned; records created by hand on a demo server are left in place (and may reference removed demo rows only if they were linked to them).
+* **Retention policies:** (audit, e-mail log, snapshots) are managed via database backup/archival.
+* **Scope boundary:** No customer-facing portal, WhatsApp/SMS gateway transmission, accounting, inventory or manufacturing — out of scope by design.
+* **Role structure:** Five pre-configured commercial roles with fine-grained granular permissions (Super Admin, Admin, Sales Manager, Sales Executive, Management).
 * Dataset sizes shown in documents are those created by the seed; a live system will differ.

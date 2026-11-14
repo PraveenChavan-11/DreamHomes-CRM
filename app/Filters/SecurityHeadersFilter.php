@@ -28,12 +28,22 @@ class SecurityHeadersFilter implements FilterInterface
         }
 
         // Security: Content-Security-Policy.
-        // The ADMIN area has its own, stricter policy: no 'unsafe-eval' (the Tailwind runtime compiler that needed it is gone) and only the
-        // few third parties it really uses (Google Fonts, Chart.js, Tiny Cloud). The public site keeps its broader policy because it embeds
-        // Tag Manager, Tawk.to and Turnstile, but no longer lists the Tailwind CDN.
+        // The ADMIN and CRM areas have their own strict policies: no 'unsafe-eval', no third-party trackers.
         $path    = ltrim($request->getUri()->getPath(), '/');
         $isAdmin = $path === 'admin' || str_starts_with($path, 'admin/');
-        if ($isAdmin) {
+        $isCrm   = $path === 'crm' || str_starts_with($path, 'crm/');
+        if ($isCrm) {
+            $csp = "default-src 'self' data:; "
+                . "script-src 'self' 'unsafe-inline'; "
+                . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                . "font-src 'self' data: https://fonts.gstatic.com; "
+                . "img-src 'self' data: blob:; "
+                . "connect-src 'self'; "
+                . "frame-src 'self'; "
+                . "frame-ancestors 'self'; "
+                . "object-src 'none'; "
+                . "base-uri 'self';";
+        } elseif ($isAdmin) {
             $csp = "default-src 'self' data:; "
                 . "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tiny.cloud; "
                 . "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tiny.cloud; "
