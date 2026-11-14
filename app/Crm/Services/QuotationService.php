@@ -29,9 +29,11 @@ final class QuotationService
      * @param list<array<string,mixed>> $raw
      * @param list<array<string,mixed>> $charges
      * @param string|null $approvedCeilingPct discount % ceiling granted by an approved negotiation (null = none)
+     * @param string|null $targetTotal negotiated GRAND TOTAL: an explicit, tracked reduction fitted onto the lines (counts as discount for the limits)
+     * Per line, `line_total` (optional) is a manual LINE-TOTAL override: the unit price is back-solved from it (source = manual).
      * @return array<string,mixed> calculator result + 'meta_lines'
      */
-    public static function price(array $raw, array $charges, array $actor, ?string $approvedCeilingPct = null): array
+    public static function price(array $raw, array $charges, array $actor, ?string $approvedCeilingPct = null, ?string $targetTotal = null): array
     {
         if (! $raw) {
             throw new CrmException('Add at least one line item.');
@@ -50,23 +52,36 @@ final class QuotationService
                     throw new CrmException('Line ' . ($i + 1) . ': product ' . $p['sku'] . ' is inactive.');
                 }
             }
-            $price = isset($l['unit_price']) && $l['unit_price'] !== '' ? (string) $l['unit_price'] : ($p['standard_price'] ?? null);
-            if ($price === null) {
-                throw new CrmException('Line ' . ($i + 1) . ': unit price is required.');
-            }
             $unitIn = $l['unit'] ?? ($p['unit'] ?? 'nos');
             $model  = $p['pricing_model'] ?? ($unitIn === 'sqft' ? 'sqft' : ($unitIn === 'rft' ? 'rft' : null));
             $sized  = RequirementService::quantityFromSize($model, $l['width'] ?? null, $l['height'] ?? null, $l['size_unit'] ?? null, $l['nos'] ?? null);
-            $source = ($p === null || Money::cmp($price, (string) $p['standard_price']) !== 0) ? 'manual' : 'catalogue';
+            $qty    = $sized ?? ($l['quantity'] ?? 1);
+            $solvedDisc = null;
+            $override = isset($l['line_total']) && trim((string) $l['line_total']) !== '' ? Money::round(Money::norm((string) $l['line_total'])) : null;
+            if ($override !== null) {
+                try {
+                    $solved = QuotationCalculator::solveUnitPrice((string) $qty, (string) ($l['discount_pct'] ?? 0), (string) ($l['discount_amount'] ?? 0), (string) ($p['tax_rate'] ?? ($l['tax_rate'] ?? $defaultTax)), $override);
+                } catch (CrmException $ex) {
+                    throw new CrmException('Line ' . ($i + 1) . ': ' . $ex->getMessage());
+                }
+                $price      = $solved['unit_price'];
+                $solvedDisc = $solved['discount_amount'];
+            } else {
+                $price = isset($l['unit_price']) && $l['unit_price'] !== '' ? (string) $l['unit_price'] : ($p['standard_price'] ?? null);
+            }
+            if ($price === null) {
+                throw new CrmException('Line ' . ($i + 1) . ': unit price is required.');
+            }
+            $source = ($p === null || $override !== null || Money::cmp($price, (string) $p['standard_price']) !== 0) ? 'manual' : 'catalogue';
             $lines[] = [
-                'quantity' => $sized ?? ($l['quantity'] ?? 1), 'unit_price' => $price, 'discount_pct' => $l['discount_pct'] ?? 0, 'discount_amount' => $l['discount_amount'] ?? 0,
+                'quantity' => $qty, 'unit_price' => $price, 'discount_pct' => $l['discount_pct'] ?? 0, 'discount_amount' => $solvedDisc ?? ($l['discount_amount'] ?? 0),
                 'tax_rate' => $p['tax_rate'] ?? ($l['tax_rate'] ?? $defaultTax),
             ];
             $meta[] = [
-                'product_id' => $p['id'] ?? null, 'sku' => $p['sku'] ?? null, 'min_price' => $p['min_price'] ?? null, 'unit' => $unitIn,
+                'product_id' => $p['id'] ?? null, 'sku' => $p['sku'] ?? null, 'min_price' => $p['min_price'] ?? null, 'std_price' => $p['standard_price'] ?? null, 'unit' => $unitIn,
                 'variant' => ($l['variant'] ?? '') !== '' ? $l['variant'] : null, 'width' => ($l['width'] ?? '') !== '' ? $l['width'] : null, 'height' => ($l['height'] ?? '') !== '' ? $l['height'] : null,
-                'size_unit' => ($l['size_unit'] ?? '') !== '' ? $l['size_unit'] : null, 'nos' => ($l['nos'] ?? '') !== '' ? $l['nos'] : null, 'price_source' => $source,
-                'description' => trim((string) ($l['description'] ?? ($p['name'] ?? ''))), 'specifications' => $l['specifications'] ?? ($p['specifications'] ?? null),
+                'size_unit' => ($l['size_unit'] ?? '') !== '' ? $l['size_unit'] : null, 'nos' => ($l['nos'] ?? '') !== '' ? $l['nos'] : null, 'price_source' => $source, 'override_total' => $override,
+                'description' => trim((string) (($l['description'] ?? '') !== '' ? $l['description'] : ($p['name'] ?? ''))), 'specifications' => ($l['specifications'] ?? '') !== '' ? $l['specifications'] : ($p['specifications'] ?? null),
             ];
             if ($meta[$i]['description'] === '') {
                 throw new CrmException('Line ' . ($i + 1) . ': description is required.');
@@ -78,17 +93,40 @@ final class QuotationService
                 $chargeIn[] = ['name' => $c['name'], 'amount' => $c['amount'], 'tax_rate' => $c['tax_rate'] ?? $defaultTax];
             }
         }
-        $calc = QuotationCalculator::compute($lines, $chargeIn, Settings::get('quotation.round_off') === '1');
+        $roundOff = Settings::get('quotation.round_off') === '1';
+        $calc     = QuotationCalculator::compute($lines, $chargeIn, $roundOff);
+        $calc['target_total']      = null;
+        $calc['adjustment_amount'] = '0.00';
+        if ($targetTotal !== null && trim($targetTotal) !== '') {
+            if (! is_numeric($targetTotal)) {
+                throw CrmException::validation(['target_total' => 'Negotiated total must be a number.']);
+            }
+            try {
+                $fit = QuotationCalculator::fitGrandTotal($lines, $chargeIn, $roundOff, $targetTotal);
+            } catch (CrmException $ex) {
+                throw CrmException::validation(['target_total' => $ex->getMessage()]);
+            }
+            $calc = $fit['calc'] + ['target_total' => Money::round($targetTotal), 'adjustment_amount' => $fit['adjustment'], 'target_variance' => $fit['variance']];
+        }
 
         // ── authority checks (server-side; the UI cannot bypass these) ──
+        // A hand-typed price below the catalogue standard price is an implicit discount: it counts against the limit exactly like a % discount.
+        $markdown = '0.00';
+        foreach ($calc['lines'] as $i => $cl) {
+            $std = $meta[$i]['std_price'] ?? null;
+            if ($std !== null && Money::cmp($cl['unit_price'], (string) $std) < 0) {
+                $markdown = Money::round(Money::add($markdown, Money::mul(Money::sub((string) $std, $cl['unit_price']), $cl['quantity'])));
+            }
+        }
+        $gross        = Money::add($calc['subtotal'], $markdown);
         $isAdminLevel = AccessScope::can($actor, 'discounts.approve_admin');
-        $overall      = Money::cmp($calc['subtotal'], '0') > 0 ? Money::round(Money::mul(Money::div($calc['discount_total'], $calc['subtotal']), '100'), 3) : '0.000';
+        $overall      = Money::cmp($gross, '0') > 0 ? Money::round(Money::mul(Money::div(Money::add($calc['discount_total'], $markdown), $gross), '100'), 3) : '0.000';
         $limit        = $isAdminLevel ? '100' : (string) ($actor['max_discount_pct'] ?? '0');
         if ($approvedCeilingPct !== null) {
             $limit = bccomp($approvedCeilingPct, $limit, 3) > 0 ? $approvedCeilingPct : $limit;
         }
         if (bccomp($overall, Money::round($limit, 3), 3) > 0) {
-            throw new CrmException("Discount {$overall}% exceeds the limit of " . Money::round($limit, 1) . '% allowed for you. Submit a negotiation / discount request for approval.');
+            throw new CrmException("Effective discount {$overall}% (discounts, manual price reductions and negotiated total) exceeds the limit of " . Money::round($limit, 1) . '% allowed for you. Submit a negotiation / discount request for approval.');
         }
         foreach ($calc['lines'] as $i => $cl) {
             $min = $meta[$i]['min_price'];
@@ -114,7 +152,7 @@ final class QuotationService
             $m = $calc['meta'][$i];
             $db->table('crm_quotation_items')->insert([
                 'version_id' => $versionId, 'line_no' => $i + 1, 'product_id' => $m['product_id'], 'sku' => $m['sku'], 'description' => mb_substr($m['description'], 0, 500), 'specifications' => $m['specifications'],
-                'variant' => $m['variant'] ?? null, 'width' => $m['width'] ?? null, 'height' => $m['height'] ?? null, 'size_unit' => $m['size_unit'] ?? null, 'nos' => $m['nos'] ?? null, 'price_source' => $m['price_source'] ?? 'catalogue',
+                'variant' => $m['variant'] ?? null, 'width' => $m['width'] ?? null, 'height' => $m['height'] ?? null, 'size_unit' => $m['size_unit'] ?? null, 'nos' => $m['nos'] ?? null, 'price_source' => $m['price_source'] ?? 'catalogue', 'override_total' => $m['override_total'] ?? null, 'std_price' => $m['std_price'] ?? null,
                 'quantity' => $cl['quantity'], 'unit' => $m['unit'], 'unit_price' => $cl['unit_price'], 'min_price' => $m['min_price'], 'discount_pct' => $cl['discount_pct'], 'discount_amount' => $cl['discount_amount'],
                 'line_subtotal' => $cl['line_subtotal'], 'taxable_amount' => $cl['taxable_amount'], 'tax_rate' => $cl['tax_rate'], 'tax_amount' => $cl['tax_amount'], 'line_total' => $cl['line_total'],
             ]);
@@ -125,6 +163,7 @@ final class QuotationService
         $db->table('crm_quotation_versions')->where('id', $versionId)->update([
             'subtotal' => $calc['subtotal'], 'discount_total' => $calc['discount_total'], 'taxable_total' => $calc['taxable_total'], 'tax_total' => $calc['tax_total'],
             'charges_total' => $calc['charges_total'], 'round_off' => $calc['round_off'], 'grand_total' => $calc['grand_total'],
+            'target_total' => $calc['target_total'] ?? null, 'adjustment_amount' => $calc['adjustment_amount'] ?? '0.00',
         ]);
     }
 
@@ -155,7 +194,7 @@ final class QuotationService
                 throw new CrmException('Record customer contact before quoting (enquiry must be contacted or later, and active).');
             }
             $lines = $lines ?: RequirementService::toQuotationLines($enquiryId);
-            $calc = self::price($lines, $charges, $actor);
+            $calc = self::price($lines, $charges, $actor, null, $meta['target_total'] ?? null);
             $no   = NumberSequenceService::next('quotation');
             $db->table('crm_quotations')->insert(['quotation_no' => $no, 'enquiry_id' => $enquiryId, 'customer_id' => $e['customer_id'], 'status' => 'draft', 'created_by' => $actor['id'], 'is_demo' => $isDemo]);
             $qid = (int) $db->insertID();
@@ -188,6 +227,7 @@ final class QuotationService
         return $v;
     }
 
+    /** @param array<string,mixed> $meta may carry `target_total` (negotiated grand total) and `change_note` (why this draft was edited) */
     public static function updateDraft(int $versionId, array $actor, array $lines, array $charges = [], array $meta = []): void
     {
         Crm::tx(static function ($db) use ($versionId, $actor, $lines, $charges, $meta) {
@@ -197,9 +237,15 @@ final class QuotationService
                 throw new CrmException('You do not have permission to edit quotations.');
             }
             $approved = self::approvedCeiling((int) $v['quotation_id']);
-            $calc = self::price($lines, $charges, $actor, $approved);
+            $calc = self::price($lines, $charges, $actor, $approved, $meta['target_total'] ?? null);
+            $beforeItems   = $db->table('crm_quotation_items')->where('version_id', $versionId)->orderBy('line_no')->get()->getResultArray();
+            $beforeCharges = $db->table('crm_quotation_charges')->where('version_id', $versionId)->get()->getResultArray();
             self::writeVersionBody($versionId, $calc);
             $db->table('crm_quotation_versions')->where('id', $versionId)->update(self::versionMeta($meta, $v));
+            $after = $db->table('crm_quotation_versions')->where('id', $versionId)->get()->getRowArray();
+            self::recordChangeSet((int) $q['id'], $beforeItems, $db->table('crm_quotation_items')->where('version_id', $versionId)->orderBy('line_no')->get()->getResultArray(), $v, $after,
+                $beforeCharges, $db->table('crm_quotation_charges')->where('version_id', $versionId)->get()->getResultArray(), (int) $v['version_no'], (int) $v['version_no'],
+                trim((string) ($meta['change_note'] ?? '')) !== '' ? (string) $meta['change_note'] : 'Draft edited', (int) $actor['id']);
             AuditService::workflow('quotation.draft_updated', 'quotation', (int) $q['id'], ['customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'], 'user_id' => $actor['id'], 'new' => ['version' => (int) $v['version_no'], 'grand_total' => $calc['grand_total']]]);
         });
     }
@@ -288,7 +334,7 @@ final class QuotationService
         if (! $to) {
             throw new CrmException('Customer has no email address.');
         }
-        $id = self::emailQuotation($q, $v, $c, $v['pdf_path'], $to, $actor);
+        $id = self::emailQuotation($q, $v, $c, PdfService::resolve((string) $v['pdf_path']) ?? $v['pdf_path'], $to, $actor);
         AuditService::workflow('quotation.resent', 'quotation', $quotationId, ['customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'], 'user_id' => $actor['id'], 'new' => ['version' => (int) $v['version_no'], 'email_log_id' => $id]]);
 
         return $id;
@@ -328,7 +374,7 @@ final class QuotationService
             if (trim((string) $reason) === '') {
                 throw CrmException::validation(['reason' => 'State why the quotation is being revised (e.g. customer asked for a different variant or size).']);
             }
-            $calc = self::price($lines, $charges, $actor, $ceiling);
+            $calc = self::price($lines, $charges, $actor, $ceiling, $meta['target_total'] ?? null);
             $vno  = (int) $prev['version_no'] + 1;
             $db->table('crm_quotation_versions')->insert(['quotation_id' => $quotationId, 'version_no' => $vno, 'created_by' => $actor['id'], 'created_at' => Crm::now(), 'revision_reason' => mb_substr((string) $reason, 0, 500), 'source_followup_id' => $followupId] + self::versionMeta($meta, $prev));
             $vid = (int) $db->insertID();
@@ -395,7 +441,30 @@ final class QuotationService
         return $s;
     }
 
-    /** Line-level diff between two item sets: added / removed / modified with per-field before/after. @return list<array<string,mixed>> */
+    /** Fields compared line by line (product swap, variant, size, quantity, price, discount, tax, total). */
+    private const DIFF_FIELDS = ['description', 'sku', 'variant', 'width', 'height', 'size_unit', 'nos', 'quantity', 'unit', 'unit_price', 'price_source', 'discount_pct', 'discount_amount', 'tax_rate', 'taxable_amount', 'tax_amount', 'line_total'];
+
+    private static function fieldChanges(array $x, array $y): array
+    {
+        $d = [];
+        foreach (self::DIFF_FIELDS as $f) {
+            $a = $x[$f] ?? null;
+            $b = $y[$f] ?? null;
+            $same = is_numeric($a) && is_numeric($b) ? bccomp((string) $a, (string) $b, 3) === 0 : (string) $a === (string) $b;
+            if (! $same) {
+                $d[$f] = ['from' => $a, 'to' => $b];
+            }
+        }
+
+        return $d;
+    }
+
+    /**
+     * Line-level diff between two item sets: added / removed / modified with per-field before/after.
+     * An added line that takes the place of a removed one (same line position or same product - a product/variant/size swap) carries
+     * `replaces` (the old line label + field-level before/after) so the UI can show the swap as one change.
+     * @return list<array<string,mixed>>
+     */
     public static function diffItems(array $a, array $b): array
     {
         $am = $bm = [];
@@ -406,65 +475,155 @@ final class QuotationService
             $bm[self::itemKey($i)] = $i;
         }
         $out = [];
+        $addedIdx = [];
         foreach ($bm as $k => $i) {
             if (! isset($am[$k])) {
-                $out[] = ['type' => 'added', 'item' => self::itemLabel($i), 'detail' => ['quantity' => $i['quantity'], 'unit_price' => $i['unit_price'], 'line_total' => $i['line_total']]];
+                $addedIdx[$k] = count($out);
+                $out[] = ['type' => 'added', 'item' => self::itemLabel($i), 'detail' => ['quantity' => $i['quantity'], 'unit_price' => $i['unit_price'], 'line_total' => $i['line_total']], 'line_no' => $i['line_no'] ?? null];
                 continue;
             }
-            $d = [];
-            foreach (['quantity', 'unit', 'unit_price', 'discount_pct', 'discount_amount', 'tax_rate', 'nos', 'description', 'line_total'] as $f) {
-                $x = $am[$k][$f] ?? null;
-                $y = $i[$f] ?? null;
-                $same = is_numeric($x) && is_numeric($y) ? bccomp((string) $x, (string) $y, 3) === 0 : (string) $x === (string) $y;
-                if (! $same) {
-                    $d[$f] = ['from' => $x, 'to' => $y];
-                }
-            }
+            $d = self::fieldChanges($am[$k], $i);
             if ($d) {
                 $out[] = ['type' => 'modified', 'item' => self::itemLabel($i), 'detail' => $d];
             }
         }
+        $removed = [];
         foreach ($am as $k => $i) {
             if (! isset($bm[$k])) {
-                $out[] = ['type' => 'removed', 'item' => self::itemLabel($i), 'detail' => ['quantity' => $i['quantity'], 'unit_price' => $i['unit_price'], 'line_total' => $i['line_total']]];
+                $removed[$k] = $i;
             }
+        }
+        $used = [];
+        foreach ($addedIdx as $k => $pos) {
+            $new = $bm[$k];
+            $match = null;
+            foreach ($removed as $rk => $old) {
+                if (isset($used[$rk])) {
+                    continue;
+                }
+                if (($old['line_no'] ?? null) == ($new['line_no'] ?? null)) {
+                    $match = $rk;
+                    break;
+                }
+            }
+            if ($match === null && $new['product_id']) {
+                foreach ($removed as $rk => $old) {
+                    if (! isset($used[$rk]) && (int) $old['product_id'] === (int) $new['product_id']) {
+                        $match = $rk;
+                        break;
+                    }
+                }
+            }
+            if ($match !== null) {
+                $used[$match] = true;
+                $out[$pos]['detail']['replaces'] = ['item' => self::itemLabel($removed[$match]), 'fields' => self::fieldChanges($removed[$match], $new)];
+            }
+        }
+        foreach ($removed as $rk => $i) {
+            $row = ['type' => 'removed', 'item' => self::itemLabel($i), 'detail' => ['quantity' => $i['quantity'], 'unit_price' => $i['unit_price'], 'line_total' => $i['line_total']]];
+            if (isset($used[$rk])) {
+                $row['detail']['replaced'] = true;
+            }
+            $out[] = $row;
         }
 
         return $out;
     }
 
-    /** Persist the item/total/terms differences of a revision (append-only record of every product change). */
-    private static function recordChanges(int $quotationId, int $fromVid, int $toVid, int $fromNo, int $toNo, string $reason, int $userId): void
+    /** Diff + persist (append-only) every item / charge / total / terms difference between two states of a quotation. */
+    private static function recordChangeSet(int $quotationId, array $ia, array $ib, array $va, array $vb, array $ca, array $cb, int $fromNo, int $toNo, string $reason, int $userId): int
     {
         $db  = Crm::db();
-        $ia  = $db->table('crm_quotation_items')->where('version_id', $fromVid)->get()->getResultArray();
-        $ib  = $db->table('crm_quotation_items')->where('version_id', $toVid)->get()->getResultArray();
-        $ins = static function (string $type, ?string $ref, array $detail) use ($db, $quotationId, $fromNo, $toNo, $reason, $userId) {
+        $n   = 0;
+        $ins = static function (string $type, ?string $ref, array $detail) use ($db, $quotationId, $fromNo, $toNo, $reason, $userId, &$n) {
             $db->table('crm_quotation_changes')->insert(['quotation_id' => $quotationId, 'from_version_no' => $fromNo, 'to_version_no' => $toNo, 'change_type' => $type, 'item_ref' => $ref ? mb_substr($ref, 0, 255) : null, 'detail' => json_encode($detail), 'reason' => mb_substr($reason, 0, 500), 'user_id' => $userId, 'created_at' => Crm::now()]);
+            $n++;
         };
         foreach (self::diffItems($ia, $ib) as $c) {
             $ins($c['type'], $c['item'], $c['detail']);
         }
-        $va = $db->table('crm_quotation_versions')->where('id', $fromVid)->get()->getRowArray();
-        $vb = $db->table('crm_quotation_versions')->where('id', $toVid)->get()->getRowArray();
-        $t  = [];
-        foreach (['subtotal', 'discount_total', 'tax_total', 'charges_total', 'grand_total'] as $f) {
-            if (Money::cmp($va[$f], $vb[$f]) !== 0) {
-                $t[$f] = ['from' => $va[$f], 'to' => $vb[$f]];
+        // additional charges, by name
+        $cam = array_column($ca, null, 'name');
+        $cbm = array_column($cb, null, 'name');
+        foreach ($cbm as $name => $c) {
+            if (! isset($cam[$name])) {
+                $ins('added', 'Charge: ' . $name, ['amount' => $c['amount']]);
+            } elseif (Money::cmp($cam[$name]['amount'], $c['amount']) !== 0) {
+                $ins('modified', 'Charge: ' . $name, ['amount' => ['from' => $cam[$name]['amount'], 'to' => $c['amount']]]);
             }
+        }
+        foreach ($cam as $name => $c) {
+            if (! isset($cbm[$name])) {
+                $ins('removed', 'Charge: ' . $name, ['amount' => $c['amount']]);
+            }
+        }
+        $t = [];
+        foreach (['subtotal', 'discount_total', 'tax_total', 'charges_total', 'adjustment_amount', 'grand_total'] as $f) {
+            if (Money::cmp((string) ($va[$f] ?? '0'), (string) ($vb[$f] ?? '0')) !== 0) {
+                $t[$f] = ['from' => $va[$f] ?? '0', 'to' => $vb[$f] ?? '0'];
+            }
+        }
+        if ((string) ($va['target_total'] ?? '') !== (string) ($vb['target_total'] ?? '')) {
+            $t['target_total'] = ['from' => $va['target_total'] ?? null, 'to' => $vb['target_total'] ?? null];
         }
         if ($t) {
             $ins('totals', null, $t);
         }
         $terms = [];
-        foreach (['terms', 'payment_terms', 'delivery_estimate', 'valid_until'] as $f) {
-            if ((string) $va[$f] !== (string) $vb[$f]) {
-                $terms[$f] = ['from' => $va[$f], 'to' => $vb[$f]];
+        foreach (['terms', 'payment_terms', 'delivery_estimate', 'valid_until', 'customer_remarks'] as $f) {
+            if ((string) ($va[$f] ?? '') !== (string) ($vb[$f] ?? '')) {
+                $terms[$f] = ['from' => $va[$f] ?? null, 'to' => $vb[$f] ?? null];
             }
         }
         if ($terms) {
             $ins('terms', null, $terms);
         }
+
+        return $n;
+    }
+
+    /** Persist the differences between two stored versions of a quotation (used by revise). */
+    private static function recordChanges(int $quotationId, int $fromVid, int $toVid, int $fromNo, int $toNo, string $reason, int $userId): void
+    {
+        $db = Crm::db();
+        self::recordChangeSet($quotationId,
+            $db->table('crm_quotation_items')->where('version_id', $fromVid)->orderBy('line_no')->get()->getResultArray(), $db->table('crm_quotation_items')->where('version_id', $toVid)->orderBy('line_no')->get()->getResultArray(),
+            $db->table('crm_quotation_versions')->where('id', $fromVid)->get()->getRowArray(), $db->table('crm_quotation_versions')->where('id', $toVid)->get()->getRowArray(),
+            $db->table('crm_quotation_charges')->where('version_id', $fromVid)->get()->getResultArray(), $db->table('crm_quotation_charges')->where('version_id', $toVid)->get()->getResultArray(),
+            $fromNo, $toNo, $reason, $userId);
+    }
+
+    /**
+     * Full version history for the UI: every version (newest first) with its items, charges, author, reason, PDF state, the tracked changes
+     * recorded against it (draft saves + the revision diff) and the negotiation that produced it.
+     * @return list<array<string,mixed>>
+     */
+    public static function versions(int $quotationId, array $actor): array
+    {
+        self::loadQuotation($quotationId, $actor);
+        $db    = Crm::db();
+        $names = HistoryService::userNames();
+        $log   = [];
+        foreach (self::changeLog($quotationId, $actor) as $c) {
+            $log[(int) $c['to_version_no']][] = $c;
+        }
+        $neg = [];
+        foreach ($db->table('crm_negotiations')->where('quotation_id', $quotationId)->get()->getResultArray() as $n) {
+            if ($n['resulting_version_id']) {
+                $neg[(int) $n['resulting_version_id']] = $n;
+            }
+        }
+        $out = [];
+        foreach ($db->table('crm_quotation_versions')->where('quotation_id', $quotationId)->orderBy('version_no', 'DESC')->get()->getResultArray() as $v) {
+            $v['items']        = $db->table('crm_quotation_items')->where('version_id', $v['id'])->orderBy('line_no')->get()->getResultArray();
+            $v['charges']      = $db->table('crm_quotation_charges')->where('version_id', $v['id'])->get()->getResultArray();
+            $v['author']       = $v['created_by'] ? ($names[(int) $v['created_by']] ?? '?') : 'System';
+            $v['changes']      = $log[(int) $v['version_no']] ?? [];
+            $v['negotiation']  = $neg[(int) $v['id']] ?? null;
+            $out[] = $v;
+        }
+
+        return $out;
     }
 
     /** @return list<array<string,mixed>> change log of a quotation, newest version first */

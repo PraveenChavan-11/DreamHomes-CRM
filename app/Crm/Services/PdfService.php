@@ -17,6 +17,24 @@ final class PdfService
         return $d;
     }
 
+    /**
+     * Portable lookup of a stored PDF: the DB keeps whatever path existed when the file was written (possibly another machine / folder),
+     * so only the file NAME is trusted and it is always resolved inside the CRM PDF directory (no path traversal, survives DB export/import).
+     */
+    public static function resolve(?string $storedPath): ?string
+    {
+        if ($storedPath === null || $storedPath === '') {
+            return null;
+        }
+        $name = basename(str_replace('\\', '/', $storedPath));
+        if (! preg_match('/^[A-Za-z0-9._-]+\.pdf$/', $name)) {
+            return null;
+        }
+        $full = self::dir() . $name;
+
+        return is_file($full) ? $full : null;
+    }
+
     /** @return array{html:string,data:array<string,mixed>} */
     public static function quotationHtml(int $versionId): array
     {
@@ -38,6 +56,22 @@ final class PdfService
         ];
 
         return ['html' => view('Crm\Views\pdf\quotation', $data), 'data' => $data];
+    }
+
+    /** Render a version to PDF bytes WITHOUT storing it (used for drafts; sent versions keep their stored original). */
+    public static function quotationBytes(int $versionId): string
+    {
+        $r    = self::quotationHtml($versionId);
+        $opts = new Options();
+        $opts->set('isRemoteEnabled', false);
+        $opts->set('isHtml5ParserEnabled', true);
+        $opts->set('defaultFont', 'DejaVu Sans');
+        $pdf = new Dompdf($opts);
+        $pdf->loadHtml($r['html']);
+        $pdf->setPaper('A4');
+        $pdf->render();
+
+        return $pdf->output();
     }
 
     /** @return array{path:string,sha256:string,bytes:int} */

@@ -1,3 +1,15 @@
+# DHIS Sales CRM (module in this repository)
+
+A full sales CRM for **Dream Homes Interior Solutions (DHIS Group)** lives in `app/Crm` and is served under **`/crm`** — customers, enquiries & auto-assignment, follow-ups, site visits & measurements, product/price master, versioned quotations (manual variant / size / price editing with a full revision history), negotiation & discount approval, e-mail log, sales orders, won/lost, dashboards, reports, audit trail and demo-data control. It runs on the same CodeIgniter 4 / PHP 8.2 / MariaDB stack; the TalentHub website code below is untouched.
+
+* **Demo logins, walkthrough:** [`DEMO_ACCESS.md`](DEMO_ACCESS.md) (fictional data; demo server only)
+* **Run locally:** `cp .env.example .env` (fill DB), `php spark migrate -n Crm`, `php spark crm:seed-reference`, optionally `php spark crm:demo-seed` (needs `DHIS_DEMO_ENV=true` + setting `demo.enabled=1`), `php spark serve --port 8080`, open `/crm/login`
+* **Scheduler:** `php spark crm:reminders` every 10 minutes via cron · **Integrity check:** `php spark crm:verify`
+* **Tests:** `php vendor/bin/phpunit -c phpunit.crm.xml --no-coverage` (uses the isolated `dhis_crm_test` database)
+* **Docs:** `docs/CRM_ARCHITECTURE.md`, `CRM_WORKFLOW_SPECIFICATION.md`, `CRM_ROLE_PERMISSION_MATRIX.md`, `CRM_API_DOCUMENTATION.md`, `CRM_DEPLOYMENT_GUIDE.md`, `CRM_BACKUP_RECOVERY.md`, `CRM_SECURITY_CHECKLIST.md`, `CRM_UAT_CHECKLIST.md`, `CRM_DEMO_SCENARIOS.md`, `CRM_KNOWN_LIMITATIONS.md` · [`CHANGELOG.md`](CHANGELOG.md)
+
+---
+
 # TalentHub — Enterprise Recruitment Platform & Administration Center
 
 **Production Domain:** [talenthubconsultant.com](https://talenthubconsultant.com)  

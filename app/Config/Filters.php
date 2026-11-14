@@ -41,6 +41,8 @@ class Filters extends BaseFilters
         'agentauth'       => \App\Filters\AgentAuthFilter::class,
         'apiperm'         => \App\Filters\AdminApiPermissionFilter::class,
         'securityheaders' => \App\Filters\SecurityHeadersFilter::class,
+        'crmauth'         => \Crm\Filters\CrmAuthFilter::class,
+        'crmperm'         => \Crm\Filters\CrmPermFilter::class,
     ];
 
     /**

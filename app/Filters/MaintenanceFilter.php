@@ -16,7 +16,8 @@ class MaintenanceFilter implements FilterInterface
         // Admin & Admin API are always accessible to staff
         if (str_starts_with($uri, 'admin') || str_starts_with($uri, '/admin') ||
             str_starts_with($uri, 'api/v1/admin') || str_starts_with($uri, '/api/v1/admin') ||
-            str_starts_with($uri, 'assets') || str_starts_with($uri, '/assets')) {
+            str_starts_with($uri, 'assets') || str_starts_with($uri, '/assets') ||
+            str_starts_with($uri, 'crm') || str_starts_with($uri, '/crm')) { // DHIS CRM has its own session guard; TalentHub's website_settings table may not exist
             return $request;
         }
 

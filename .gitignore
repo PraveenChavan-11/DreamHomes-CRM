@@ -8,6 +8,7 @@ Thumbs.db
 .env
 .env.*
 *.env
+!.env.example
 *.secret
 *smtp_config*.php
 !*smtp_config.php

@@ -28,6 +28,26 @@ final class NegotiationService
         return QuotationCalculator::compute($lines, array_map(static fn ($c) => ['name' => $c['name'], 'amount' => $c['amount'], 'tax_rate' => $c['tax_rate']], $chg), Settings::get('quotation.round_off') === '1')['grand_total'];
     }
 
+    /** Uniform discount % (3 dp) that brings the version's estimated grand total closest to the customer's expected amount. */
+    public static function pctForTarget(int $versionId, string $target): string
+    {
+        if (! is_numeric($target) || bccomp($target, '0', 2) <= 0) {
+            throw CrmException::validation(['customer_expected_amount' => 'Expected amount must be a positive number.']);
+        }
+        $lo = '0';
+        $hi = '100';
+        for ($i = 0; $i < 30; $i++) {
+            $mid = bcdiv(bcadd($lo, $hi, 6), '2', 6);
+            if (bccomp(self::estimate($versionId, $mid), $target, 2) >= 0) {
+                $lo = $mid;
+            } else {
+                $hi = $mid;
+            }
+        }
+
+        return Money::round($lo, 3);
+    }
+
     public static function request(int $quotationId, array $actor, string $requestedPct, ?string $reason, ?string $customerExpected = null, ?int $resubmissionOf = null, int $isDemo = 0): array
     {
         if (! AccessScope::can($actor, 'negotiations.create')) {

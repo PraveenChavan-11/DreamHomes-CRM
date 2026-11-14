@@ -610,3 +610,6 @@ $routes->group('api', static function ($routes) {
         ]);
     });
 });
+
+// ─── DHIS Sales CRM (self-contained module; see app/Crm/Routes.php) ───
+require APPPATH . "Crm/Routes.php";
