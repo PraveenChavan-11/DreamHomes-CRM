@@ -159,5 +159,19 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
         $routes->get('demo', 'AdminController::demo', ['filter' => 'crmperm:demo.reset']);
         $routes->post('demo/reset', 'AdminController::demoReset', ['filter' => 'crmperm:demo.reset']);
         $routes->get('health', 'AdminController::health', ['filter' => 'crmperm:settings.manage']);
+
+        // Global Command Launcher Search (Ctrl+K)
+        $routes->get('search', 'SearchController::search');
+
+        // Auto QA Command Centre & Product Tour
+        $routes->group('qa', ['filter' => 'crmperm:settings.manage'], static function ($routes) {
+            $routes->get('', 'QaController::index');
+            $routes->post('run', 'QaController::run');
+        });
+        $routes->group('tour', static function ($routes) {
+            $routes->get('get', 'QaController::getTour');
+            $routes->post('update', 'QaController::updateTour');
+            $routes->post('reset', 'QaController::resetTour');
+        });
     });
 });

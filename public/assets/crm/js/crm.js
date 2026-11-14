@@ -163,4 +163,205 @@
         .then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && typeof j.count === 'number') { bell.textContent = j.count > 99 ? '99+' : j.count; bell.style.display = j.count ? '' : 'none'; } }).catch(function () {});
     }, 60000);
   }
+
+  // --------------------------------------------------------------------------
+  // Global Command Launcher (Ctrl + K / Cmd + K)
+  // --------------------------------------------------------------------------
+  var cmdModal = $('#m-cmd-k');
+  var cmdInput = $('#cmd-search-input');
+  var cmdResults = $('#cmd-results-list');
+  var cmdTrigger = $('#cmd-k-trigger');
+
+  function openCommandLauncher() {
+    if (!cmdModal) return;
+    cmdModal.classList.add('open');
+    if (cmdInput) {
+      cmdInput.value = '';
+      cmdInput.focus();
+    }
+  }
+
+  function closeCommandLauncher() {
+    if (cmdModal) cmdModal.classList.remove('open');
+  }
+
+  if (cmdTrigger) {
+    cmdTrigger.addEventListener('click', openCommandLauncher);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (cmdModal && cmdModal.classList.contains('open')) {
+        closeCommandLauncher();
+      } else {
+        openCommandLauncher();
+      }
+    }
+  });
+
+  var debounceTimer = null;
+  if (cmdInput && cmdResults) {
+    cmdInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      var q = cmdInput.value.trim();
+      if (!q) {
+        cmdResults.innerHTML = '<div class="cmd-hint">Type at least 1 character to search across your authorized records...</div>';
+        return;
+      }
+      debounceTimer = setTimeout(function () {
+        fetch(window.CRM_BASE + 'crm/search?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var items = data.results || [];
+            if (!items.length) {
+              cmdResults.innerHTML = '<div class="cmd-hint">No records or actions found matching “' + q + '”.</div>';
+              return;
+            }
+            var html = '';
+            items.forEach(function (it) {
+              html += '<a class="cmd-item" href="' + it.url + '">' +
+                '<div>' +
+                  '<div class="cmd-item-title">' + it.title + '</div>' +
+                  (it.sub ? '<div class="cmd-item-sub">' + it.sub + '</div>' : '') +
+                '</div>' +
+                '<span class="cmd-item-cat">' + it.category + '</span>' +
+              '</a>';
+            });
+            cmdResults.innerHTML = html;
+          }).catch(function () {});
+      }, 150);
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // Interactive Product Tour Engine
+  // --------------------------------------------------------------------------
+  var activeTour = null;
+  var currentStepIdx = 0;
+  var tourBackdrop = $('#tour-backdrop');
+  var tourSpotlight = $('#tour-spotlight');
+  var tourPopover = $('#tour-popover');
+  var tourStepInd = $('#tour-step-indicator');
+  var tourTitle = $('#tour-title');
+  var tourContent = $('#tour-content');
+  var tourPrev = $('#tour-prev-btn');
+  var tourNext = $('#tour-next-btn');
+  var tourSkip = $('#tour-skip-btn');
+  var tourStartBtn = $('#btn-start-tour');
+  var modalRestartBtn = $('#modal-restart-tour');
+
+  function renderTourStep(idx) {
+    if (!activeTour || !activeTour.steps || !activeTour.steps[idx]) {
+      endTour(true);
+      return;
+    }
+    currentStepIdx = idx;
+    var step = activeTour.steps[idx];
+    var targetEl = $(step.target);
+
+    tourStepInd.textContent = 'Step ' + (idx + 1) + ' of ' + activeTour.steps.length;
+    tourTitle.textContent = step.title;
+    tourContent.textContent = step.content;
+    tourPrev.style.display = idx > 0 ? '' : 'none';
+    tourNext.textContent = (idx === activeTour.steps.length - 1) ? 'Finish Tour' : 'Next →';
+
+    tourBackdrop.style.display = 'block';
+
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      var rect = targetEl.getBoundingClientRect();
+      var pad = 6;
+      tourSpotlight.style.display = 'block';
+      tourSpotlight.style.top = (rect.top + window.scrollY - pad) + 'px';
+      tourSpotlight.style.left = (rect.left + window.scrollX - pad) + 'px';
+      tourSpotlight.style.width = (rect.width + pad * 2) + 'px';
+      tourSpotlight.style.height = (rect.height + pad * 2) + 'px';
+
+      // Position popover relative to spotlight
+      var popTop = rect.bottom + window.scrollY + 12;
+      var popLeft = Math.max(16, rect.left + window.scrollX);
+      if (popTop + 200 > document.body.scrollHeight) {
+        popTop = Math.max(16, rect.top + window.scrollY - 180);
+      }
+      tourPopover.style.top = popTop + 'px';
+      tourPopover.style.left = Math.min(window.innerWidth - 360, popLeft) + 'px';
+    } else {
+      // Centered fallback if element not on page
+      tourSpotlight.style.display = 'none';
+      tourPopover.style.top = '30%';
+      tourPopover.style.left = 'calc(50% - 170px)';
+    }
+
+    // Persist step
+    var fd = new FormData();
+    fd.append('tour_key', activeTour.key);
+    fd.append('step', idx);
+    fd.append(csrfName(), csrf());
+    fetch(window.CRM_BASE + 'crm/tour/update', { method: 'POST', body: fd, credentials: 'same-origin' }).catch(function () {});
+  }
+
+  function endTour(completed, skipped) {
+    tourBackdrop.style.display = 'none';
+    if (!activeTour) return;
+    var fd = new FormData();
+    fd.append('tour_key', activeTour.key);
+    fd.append('step', currentStepIdx);
+    if (completed) fd.append('completed', '1');
+    if (skipped) fd.append('skipped', '1');
+    fd.append(csrfName(), csrf());
+    fetch(window.CRM_BASE + 'crm/tour/update', { method: 'POST', body: fd, credentials: 'same-origin' }).catch(function () {});
+  }
+
+  if (tourNext) {
+    tourNext.addEventListener('click', function () {
+      if (currentStepIdx < activeTour.steps.length - 1) {
+        renderTourStep(currentStepIdx + 1);
+      } else {
+        endTour(true);
+      }
+    });
+  }
+
+  if (tourPrev) {
+    tourPrev.addEventListener('click', function () {
+      if (currentStepIdx > 0) renderTourStep(currentStepIdx - 1);
+    });
+  }
+
+  if (tourSkip) {
+    tourSkip.addEventListener('click', function () {
+      endTour(false, true);
+    });
+  }
+
+  function startUserTour(force) {
+    fetch(window.CRM_BASE + 'crm/tour/get', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (tour) {
+        if (!tour || !tour.steps) return;
+        activeTour = tour;
+        if (force || (!tour.is_completed && !tour.is_skipped)) {
+          renderTourStep(0);
+        }
+      }).catch(function () {});
+  }
+
+  if (tourStartBtn) tourStartBtn.addEventListener('click', function () { startUserTour(true); });
+  if (modalRestartBtn) modalRestartBtn.addEventListener('click', function () {
+    var m = $('#m-support-help'); if (m) m.classList.remove('open');
+    startUserTour(true);
+  });
+
+  // Auto trigger tour on first visit if not completed
+  setTimeout(function () { startUserTour(false); }, 1000);
+
+  // --------------------------------------------------------------------------
+  // Service Worker Registration for PWA Standalone Operation
+  // --------------------------------------------------------------------------
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () {});
+    });
+  }
 })();

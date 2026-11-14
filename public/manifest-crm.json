@@ -1,0 +1,46 @@
+{
+  "name": "DHIS Sales CRM",
+  "short_name": "DHIS CRM",
+  "description": "Enterprise Sales Operations Platform for Dream Homes Interior Solutions, powered by TalentHub Consultant.",
+  "start_url": "/crm",
+  "scope": "/crm",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F5F7F7",
+  "theme_color": "#070D0E",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Enquiry",
+      "short_name": "New Enquiry",
+      "url": "/crm/enquiries/new",
+      "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Quotations",
+      "short_name": "Quotations",
+      "url": "/crm/quotations",
+      "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Follow-ups",
+      "short_name": "Follow-ups",
+      "url": "/crm/followups",
+      "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
+    }
+  ]
+}
