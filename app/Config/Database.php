@@ -219,6 +219,13 @@ class Database extends Config
                 $this->{$group}['DSN']      = '';
                 $this->{$group}['failover'] = [];
             }
+        } elseif (empty($this->default['database']) && isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'dhiscrm.talenthubconsultant.com')) {
+            $this->default['hostname'] = '127.0.0.1';
+            $this->default['database'] = 'u139147679_dhiscrm';
+            $this->default['username'] = 'u139147679_dhiscrm';
+            $this->default['password'] = 'DreamHomes2026!Db';
+            $this->default['port']     = 3306;
+            $this->default['DBDriver'] = 'MySQLi';
         }
     }
 

@@ -6,6 +6,15 @@ use CodeIgniter\Config\BaseConfig;
 
 class App extends BaseConfig
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'dhiscrm.talenthubconsultant.com')) {
+            $this->baseURL = 'https://dhiscrm.talenthubconsultant.com/';
+        }
+    }
+
     /**
      * --------------------------------------------------------------------------
      * Base Site URL
