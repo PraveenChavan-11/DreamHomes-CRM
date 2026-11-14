@@ -1,0 +1,803 @@
+{
+    "roles": [
+        {
+            "id": "1",
+            "slug": "super_admin",
+            "name": "Super Administrator",
+            "description": "Full system access and security administration",
+            "created_at": "2026-10-28 21:10:10",
+            "updated_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "2",
+            "slug": "recruiter",
+            "name": "Senior Recruiter",
+            "description": "Candidate screening, job management, pipeline transitions, and resume bank",
+            "created_at": "2026-10-28 21:10:10",
+            "updated_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "3",
+            "slug": "content_editor",
+            "name": "Content Editor",
+            "description": "Manages Insights blog, FAQs, testimonials, and public content",
+            "created_at": "2026-10-28 21:10:10",
+            "updated_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "4",
+            "slug": "hr_manager",
+            "name": "HR Manager \/ Talent Partner",
+            "description": "Full recruitment operations: candidate pipeline, vacancies, applications, resume bank, and corporate client communication",
+            "created_at": "2026-11-01 14:58:21",
+            "updated_at": "2026-11-01 14:58:21"
+        },
+        {
+            "id": "5",
+            "slug": "test_auto_role_648e60",
+            "name": "Test Automation Role",
+            "description": "Temporary test role for automated RBAC testing",
+            "created_at": "2026-11-01 09:43:44",
+            "updated_at": "2026-11-01 09:43:44"
+        }
+    ],
+    "permissions": [
+        {
+            "id": "1",
+            "code": "media.manage",
+            "name": "View Job Mandates",
+            "category": "content",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "2",
+            "code": "pages.manage",
+            "name": "Create Job Mandates",
+            "category": "content",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "3",
+            "code": "security.view",
+            "name": "Edit Job Mandates",
+            "category": "administration",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "4",
+            "code": "jobs.publish",
+            "name": "Publish Job Mandates",
+            "category": "Jobs",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "5",
+            "code": "jobs.close",
+            "name": "Close\/Archive Job Mandates",
+            "category": "Jobs",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "6",
+            "code": "candidates.view",
+            "name": "View Candidate Profiles",
+            "category": "Candidates",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "7",
+            "code": "candidates.manage",
+            "name": "Edit\/Manage Candidate Profiles",
+            "category": "Candidates",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "8",
+            "code": "resumes.download",
+            "name": "Download & Preview Resumes",
+            "category": "Candidates",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "9",
+            "code": "applications.view",
+            "name": "View Applications",
+            "category": "Applications",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "10",
+            "code": "applications.transition",
+            "name": "Transition Application Stages",
+            "category": "Applications",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "11",
+            "code": "applications.notes",
+            "name": "Add Recruiter Notes",
+            "category": "Applications",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "12",
+            "code": "employers.manage",
+            "name": "Manage Employer Accounts",
+            "category": "CRM",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "13",
+            "code": "enquiries.manage",
+            "name": "Manage Enquiries & Follow-ups",
+            "category": "CRM",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "14",
+            "code": "content.manage",
+            "name": "Manage CMS (Blogs, FAQs, Testimonials)",
+            "category": "CMS",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "15",
+            "code": "templates.manage",
+            "name": "Manage Email Templates",
+            "category": "Settings",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "16",
+            "code": "users.manage",
+            "name": "Manage Staff Accounts & Roles",
+            "category": "Administration",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "17",
+            "code": "audit.view",
+            "name": "View Security Audit Logs",
+            "category": "Administration",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "18",
+            "code": "settings.manage",
+            "name": "Manage Website Settings",
+            "category": "Administration",
+            "created_at": "2026-10-28 21:10:10"
+        },
+        {
+            "id": "19",
+            "code": "engagement.view",
+            "name": "View Engagement Overview & Telemetry",
+            "category": "Engagement",
+            "created_at": "2026-11-01 10:38:51"
+        },
+        {
+            "id": "20",
+            "code": "engagement.manage",
+            "name": "Manage Announcements, Popups & Campaigns",
+            "category": "Engagement",
+            "created_at": "2026-11-01 10:38:51"
+        },
+        {
+            "id": "21",
+            "code": "newsletter.manage",
+            "name": "Manage Newsletter Subscribers & Preferences",
+            "category": "Engagement",
+            "created_at": "2026-11-01 10:38:51"
+        },
+        {
+            "id": "22",
+            "code": "campaigns.send",
+            "name": "Compose and Dispatch Email Campaigns",
+            "category": "Engagement",
+            "created_at": "2026-11-01 10:38:51"
+        },
+        {
+            "id": "23",
+            "code": "users.view",
+            "name": "View Staff & Admin Users",
+            "category": "Administration",
+            "created_at": "2026-11-01 17:38:52"
+        },
+        {
+            "id": "25",
+            "code": "roles.view",
+            "name": "View Roles & Permission Matrix",
+            "category": "Administration",
+            "created_at": "2026-11-01 17:38:52"
+        },
+        {
+            "id": "26",
+            "code": "roles.manage",
+            "name": "Create & Configure Roles & Permissions",
+            "category": "Administration",
+            "created_at": "2026-11-01 17:38:52"
+        }
+    ],
+    "role_permissions": [
+        {
+            "role_id": "1",
+            "permission_id": "1"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "2"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "3"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "4"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "5"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "6"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "7"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "8"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "9"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "10"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "11"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "12"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "13"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "14"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "15"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "16"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "17"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "18"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "19"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "20"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "21"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "22"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "23"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "25"
+        },
+        {
+            "role_id": "1",
+            "permission_id": "26"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "1"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "2"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "3"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "4"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "5"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "6"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "7"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "8"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "9"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "10"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "11"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "12"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "13"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "19"
+        },
+        {
+            "role_id": "2",
+            "permission_id": "21"
+        },
+        {
+            "role_id": "3",
+            "permission_id": "1"
+        },
+        {
+            "role_id": "3",
+            "permission_id": "14"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "4"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "5"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "6"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "7"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "8"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "9"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "10"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "11"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "12"
+        },
+        {
+            "role_id": "4",
+            "permission_id": "13"
+        },
+        {
+            "role_id": "5",
+            "permission_id": "1"
+        },
+        {
+            "role_id": "5",
+            "permission_id": "2"
+        }
+    ],
+    "email_templates": [
+        {
+            "id": "1",
+            "code": "app_candidate_ack",
+            "name": "Candidate Application Acknowledgement",
+            "subject": "Application Received: {{job_title}} - TalentHub Consultant",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{job_title}}, {{category_name}}, {{current_company}}"
+        },
+        {
+            "id": "2",
+            "code": "app_talent_pool_ack",
+            "name": "Talent Pool General Registration",
+            "subject": "Career Profile Registered - TalentHub Consultant Pune",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{desired_role}}, {{experience_years}}, {{current_location}}"
+        },
+        {
+            "id": "3",
+            "code": "employer_enquiry_ack",
+            "name": "Employer Hiring Enquiry Confirmation",
+            "subject": "Hiring Requirement Registered - TalentHub Corporate Desk",
+            "is_active": "1",
+            "variables_help": "{{contact_person}}, {{company_name}}, {{required_roles}}, {{urgency}}"
+        },
+        {
+            "id": "4",
+            "code": "interview_shortlist",
+            "name": "Candidate Interview Shortlist Notification",
+            "subject": "Interview Scheduled: {{job_title}} - {{company_name}}",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{job_title}}, {{company_name}}, {{interview_datetime}}, {{interview_location}}"
+        },
+        {
+            "id": "5",
+            "code": "password_reset",
+            "name": "Admin Password Reset",
+            "subject": "Reset Your TalentHub Admin Password",
+            "is_active": "1",
+            "variables_help": "{{username}}, {{reset_link}}"
+        },
+        {
+            "id": "6",
+            "code": "contact_enquiry_ack",
+            "name": "Contact Enquiry Acknowledgement",
+            "subject": "We have received your enquiry - TalentHub Consultant",
+            "is_active": "1",
+            "variables_help": "{{name}}, {{subject}}, {{message}}"
+        },
+        {
+            "id": "7",
+            "code": "admin_app_alert",
+            "name": "Admin New Application Alert",
+            "subject": "New Job Application: {{job_title}} - {{candidate_name}}",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{email}}, {{phone}}, {{job_title}}, {{experience_years}}, {{current_ctc}}, {{expected_ctc}}, {{notice_period}}, {{admin_url}}"
+        },
+        {
+            "id": "8",
+            "code": "newsletter_verification",
+            "name": "Newsletter Email Verification (Double Opt-In)",
+            "subject": "Confirm your TalentHub Newsletter Subscription",
+            "is_active": "1",
+            "variables_help": "{{subscriber_name}}, {{verification_url}}"
+        },
+        {
+            "id": "9",
+            "code": "newsletter_welcome",
+            "name": "Newsletter Welcome Email",
+            "subject": "Welcome to TalentHub Pune Recruitment Intelligence",
+            "is_active": "1",
+            "variables_help": "{{subscriber_name}}, {{preferences_url}}, {{unsubscribe_url}}"
+        },
+        {
+            "id": "10",
+            "code": "job_alert_notification",
+            "name": "Matching Job Opportunities Alert",
+            "subject": "New Job Opportunities Matching Your Preferences \u00d4\u00c7\u00f6 TalentHub",
+            "is_active": "1",
+            "variables_help": "{{jobs_list_html}}, {{jobs_list_text}}, {{jobs_url}}, {{unsubscribe_url}}"
+        },
+        {
+            "id": "11",
+            "code": "app_candidate_rejected",
+            "name": "Candidate Application Status: Not Selected \/ Talent Pool Retained",
+            "subject": "Update regarding your application for {{job_title}} \u2014 TalentHub Consultant",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{job_title}}, {{company_name}}, {{recruiter_notes}}, {{jobs_url}}"
+        },
+        {
+            "id": "12",
+            "code": "app_candidate_closed",
+            "name": "Candidate Application Status: Mandate Concluded \/ Closed",
+            "subject": "Recruitment Mandate Concluded: {{job_title}} \u2014 TalentHub Consultant",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{job_title}}, {{recruiter_notes}}, {{jobs_url}}"
+        },
+        {
+            "id": "13",
+            "code": "app_candidate_shortlisted",
+            "name": "Candidate Application Status: Profile Shortlisted",
+            "subject": "Congratulations! Profile Shortlisted for {{job_title}} \u2014 TalentHub Consultant",
+            "is_active": "1",
+            "variables_help": "{{candidate_name}}, {{job_title}}, {{company_name}}, {{recruiter_notes}}"
+        },
+        {
+            "id": "14",
+            "code": "employer_mandate_closed",
+            "name": "Employer Hiring Mandate Status: Concluded \/ Archived",
+            "subject": "Corporate Mandate Update: {{required_roles}} \u2014 TalentHub Corporate Desk",
+            "is_active": "1",
+            "variables_help": "{{contact_person}}, {{company_name}}, {{required_roles}}, {{recruiter_notes}}"
+        },
+        {
+            "id": "15",
+            "code": "direct_announcement_notice",
+            "name": "Direct Executive Notice & Announcement",
+            "subject": "{{announcement_subject}}",
+            "is_active": "1",
+            "variables_help": "announcement_subject, announcement_headline, subscriber_name, announcement_content, priority_badge, cta_text, cta_url, unsubscribe_url, preferences_url"
+        },
+        {
+            "id": "16",
+            "code": "new_job_broadcast",
+            "name": "Automated Job Opening Broadcast",
+            "subject": "New Opportunity: {{job_title}} ({{experience_label}}) in {{location}} \u2014 TalentHub",
+            "is_active": "1",
+            "variables_help": "job_title, category_name, job_type, location, experience_label, description_summary, job_url, subscriber_name, unsubscribe_url, preferences_url"
+        },
+        {
+            "id": "17",
+            "code": "new_article_broadcast",
+            "name": "Automated Insights & Articles Broadcast",
+            "subject": "Market Intelligence: {{article_title}} \u2014 TalentHub Insights",
+            "is_active": "1",
+            "variables_help": "article_title, category_name, article_summary, article_url, subscriber_name, unsubscribe_url, preferences_url"
+        },
+        {
+            "id": "18",
+            "code": "candidate_interview_reminder",
+            "name": "Candidate Interview Reminder (24h Notice)",
+            "subject": "Interview Reminder: {{job_title}} with {{company_name}} \u2014 TalentHub Consultant",
+            "is_active": "1",
+            "variables_help": "candidate_name, job_title, company_name, interview_date, interview_mode, interview_location, notes, contact_phone"
+        }
+    ],
+    "settings_keys": [
+        {
+            "key": "site_name",
+            "group": "general",
+            "value": "TalentHub Consultant",
+            "is_public": "1"
+        },
+        {
+            "key": "site_tagline",
+            "group": "general",
+            "value": "Pune Leading Job Consultancy & Recruitment Specialists",
+            "is_public": "1"
+        },
+        {
+            "key": "contact_email",
+            "group": "contact",
+            "value": "hr@talenthubconsultant.com",
+            "is_public": "1"
+        },
+        {
+            "key": "hiring_email",
+            "group": "contact",
+            "value": "hr@talenthubconsultant.com",
+            "is_public": "1"
+        },
+        {
+            "key": "contact_phone",
+            "group": "contact",
+            "value": "+91 72761 46573",
+            "is_public": "1"
+        },
+        {
+            "key": "whatsapp_number",
+            "group": "contact",
+            "value": "+91 72761 46573",
+            "is_public": "1"
+        },
+        {
+            "key": "office_address",
+            "group": "contact",
+            "value": "Office No. 4, Katraj-Kondhwa Road, Katraj, Pune, Maharashtra 411046",
+            "is_public": "1"
+        },
+        {
+            "key": "working_hours",
+            "group": "contact",
+            "value": "Monday - Saturday: 9:30 AM - 7:00 PM IST",
+            "is_public": "1"
+        },
+        {
+            "key": "tinymce_api_key",
+            "group": "integrations",
+            "value": "3jrdqfwaib63nm13ptq5jmcddhi2piam61pcl23o3ap9bbyq",
+            "is_public": "0"
+        },
+        {
+            "key": "maintenance_mode",
+            "group": "operations",
+            "value": "0",
+            "is_public": "1"
+        },
+        {
+            "key": "maintenance_headline",
+            "group": "operations",
+            "value": "We Are Improving Your Experience",
+            "is_public": "1"
+        },
+        {
+            "key": "maintenance_message",
+            "group": "operations",
+            "value": "TalentHub Consultant is currently undergoing scheduled platform upgrades to serve you better. Our recruitment advisors remain reachable via phone.",
+            "is_public": "1"
+        },
+        {
+            "key": "maintenance_return_time",
+            "group": "operations",
+            "value": "Shortly (Within 1 Hour)",
+            "is_public": "1"
+        },
+        {
+            "key": "maintenance_support_email",
+            "group": "operations",
+            "value": "hr@talenthubconsultant.com",
+            "is_public": "1"
+        },
+        {
+            "key": "maintenance_support_phone",
+            "group": "operations",
+            "value": "+91 72761 46573",
+            "is_public": "1"
+        },
+        {
+            "key": "coming_soon_mode",
+            "group": "operations",
+            "value": "0",
+            "is_public": "1"
+        },
+        {
+            "key": "coming_soon_headline",
+            "group": "operations",
+            "value": "Next-Generation Executive Talent is Arriving",
+            "is_public": "1"
+        },
+        {
+            "key": "coming_soon_message",
+            "group": "operations",
+            "value": "We are curating Pune premier executive recruitment and specialized engineering mandates.",
+            "is_public": "1"
+        },
+        {
+            "key": "coming_soon_launch_date",
+            "group": "operations",
+            "value": "2026-11-01",
+            "is_public": "1"
+        },
+        {
+            "key": "jobs_enabled",
+            "group": "features",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "applications_enabled",
+            "group": "features",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "resume_upload_enabled",
+            "group": "features",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "employer_enquiry_enabled",
+            "group": "features",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "contact_form_enabled",
+            "group": "features",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "hostinger_mail_last_status",
+            "group": "email",
+            "value": "FAILED",
+            "is_public": "0"
+        },
+        {
+            "key": "hostinger_mail_last_test_at",
+            "group": "email",
+            "value": "2026-10-28 17:30:10",
+            "is_public": "0"
+        },
+        {
+            "key": "ga_measurement_id",
+            "group": "analytics",
+            "value": "G-K6J0RWMLBS",
+            "is_public": "1"
+        },
+        {
+            "key": "ga_enabled",
+            "group": "analytics",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "tawk_property_id",
+            "group": "integrations",
+            "value": "6ad65a04c40a0134c95ce3b6",
+            "is_public": "1"
+        },
+        {
+            "key": "tawk_widget_id",
+            "group": "integrations",
+            "value": "1k5akv9ak",
+            "is_public": "1"
+        },
+        {
+            "key": "tawk_enabled",
+            "group": "integrations",
+            "value": "1",
+            "is_public": "1"
+        },
+        {
+            "key": "google_site_verification",
+            "group": "seo",
+            "value": "",
+            "is_public": "1"
+        },
+        {
+            "key": "linkedin_url",
+            "group": "social",
+            "value": "https:\/\/www.linkedin.com\/company\/talenthubconsultant",
+            "is_public": "1"
+        },
+        {
+            "key": "facebook_url",
+            "group": "social",
+            "value": "https:\/\/www.facebook.com\/talenthubconsultant",
+            "is_public": "1"
+        },
+        {
+            "key": "instagram_url",
+            "group": "social",
+            "value": "https:\/\/www.instagram.com\/talenthubconsultant",
+            "is_public": "1"
+        },
+        {
+            "key": "twitter_url",
+            "group": "social",
+            "value": "https:\/\/twitter.com\/talenthub_pune",
+            "is_public": "1"
+        }
+    ]
+}

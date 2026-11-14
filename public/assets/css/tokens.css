@@ -1,0 +1,95 @@
+/* TalentHub design tokens — single source of truth for the public site AND the admin area.
+   Self-hosted variable WOFF2 (Latin subset, SIL OFL): Inter (body/UI) + Plus Jakarta Sans (display).
+   Only the weight ranges actually used are declared. font-display: swap + size-adjusted fallbacks limit CLS. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/inter-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+20B9, U+2122, U+2190-2193, U+2212, U+2215;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600 800;
+  font-display: swap;
+  src: url('../fonts/plus-jakarta-sans-latin-var.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+20B9, U+2122, U+2190-2193, U+2212, U+2215;
+}
+/* Metric-matched fallbacks so text does not jump when the web font swaps in. */
+@font-face { font-family: 'Inter Fallback'; src: local('Arial'); size-adjust: 107%; ascent-override: 90%; descent-override: 22%; line-gap-override: 0%; }
+@font-face { font-family: 'Jakarta Fallback'; src: local('Arial'); size-adjust: 104%; ascent-override: 96%; descent-override: 24%; line-gap-override: 0%; }
+
+:root {
+  /* ── Brand palette (fixed by brand guidelines) ── */
+  --c-green: #1D6A34;        /* primary */
+  --c-mint: #37CE97;         /* secondary / accent */
+  --c-green-dark: #1A532A;   /* dark green */
+  --c-teal: #1B5F52;         /* deep teal */
+  --c-bg: #F9FBFA;           /* page background */
+
+  /* ── Derived neutrals and surfaces ── */
+  --c-ink: #12261C;          /* headings / body text (AAA on --c-bg) */
+  --c-text: #2B4036;         /* body copy (AA+) */
+  --c-muted: #4A5F54;        /* secondary text (AA on white and --c-bg) */
+  --c-line: rgba(29, 106, 52, .14);
+  --c-line-strong: rgba(29, 106, 52, .28);
+  --c-surface: #FFFFFF;
+  --c-tint: #EAF5EF;         /* light green wash */
+  --c-night: #0A2416;        /* deepest band / footer */
+  --c-night-2: #0F3320;
+  --c-danger: #B42318;
+  --c-danger-bg: #FEF3F2;
+  --c-warn: #B54708;
+  --c-focus: #0B6BCB;        /* focus ring colour that contrasts with both green and white */
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', 'Inter Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Jakarta Fallback', 'Inter', system-ui, sans-serif;
+  --fs-xs: .75rem;
+  --fs-sm: .875rem;
+  --fs-base: 1rem;
+  --fs-lead: clamp(1.0625rem, 1rem + .3vw, 1.25rem);
+  --fs-h4: clamp(1.0625rem, 1rem + .25vw, 1.25rem);
+  --fs-h3: clamp(1.25rem, 1.1rem + .6vw, 1.625rem);
+  --fs-h2: clamp(1.75rem, 1.2rem + 2.2vw, 3rem);
+  --fs-h1: clamp(2.25rem, 1.4rem + 3.8vw, 4.5rem);
+  --lh-tight: 1.08;
+  --lh-snug: 1.25;
+  --lh-body: 1.65;
+  --tracking-display: -.03em;
+  --tracking-eyebrow: .14em;
+
+  /* ── Spacing scale (4px base) ── */
+  --sp-1: .25rem; --sp-2: .5rem; --sp-3: .75rem; --sp-4: 1rem; --sp-5: 1.5rem; --sp-6: 2rem;
+  --sp-7: 3rem; --sp-8: 4rem; --sp-9: 6rem; --sp-10: 8rem;
+  --section-y: clamp(3.5rem, 2rem + 6vw, 7rem);
+  --gutter: clamp(1rem, .5rem + 2.5vw, 2rem);
+  --container: 1240px;
+
+  /* ── Radii ── */
+  --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-xl: 32px; --r-pill: 999px;
+
+  /* ── Elevation ── */
+  --sh-1: 0 1px 2px rgba(18, 38, 28, .06), 0 2px 8px -2px rgba(18, 38, 28, .06);
+  --sh-2: 0 2px 4px rgba(18, 38, 28, .05), 0 12px 28px -10px rgba(18, 38, 28, .14);
+  --sh-3: 0 4px 8px rgba(18, 38, 28, .06), 0 28px 56px -18px rgba(29, 106, 52, .30);
+  --sh-glow: 0 0 0 1px rgba(55, 206, 151, .35), 0 18px 48px -12px rgba(55, 206, 151, .35);
+
+  /* ── Motion ── */
+  --ease-out: cubic-bezier(.22, .8, .24, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-fast: .18s;
+  --dur-base: .35s;
+  --dur-slow: .7s;
+  --reveal-dist: 28px;
+
+  /* ── Layers ── */
+  --z-header: 60; --z-drawer: 70; --z-modal: 80; --z-toast: 90; --z-progress: 100;
+
+  /* Legacy aliases used by older stylesheets (kept so nothing regresses) */
+  --th-green: var(--c-green); --th-green-dark: var(--c-green-dark); --th-mint: var(--c-mint);
+  --th-bg: var(--c-bg); --th-ink: var(--c-ink); --th-teal: var(--c-teal); --th-muted: var(--c-muted);
+  --th-line: var(--c-line); --th-surface: var(--c-surface);
+}

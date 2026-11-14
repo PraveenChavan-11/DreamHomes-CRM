@@ -1,0 +1,501 @@
+<?php
+
+namespace Crm\Services;
+
+final class QuotationService
+{
+    private static function enquiryFor(int $enquiryId, array $actor): array
+    {
+        $e = Crm::db()->table('crm_enquiries')->where('id', $enquiryId)->get()->getRowArray() ?? throw new CrmException('Enquiry not found.');
+        if (! AccessScope::canSeeEnquiry($actor, $enquiryId)) {
+            throw new CrmException('You do not have access to this enquiry.');
+        }
+
+        return $e;
+    }
+
+    public static function loadQuotation(int $id, array $actor): array
+    {
+        $q = Crm::db()->table('crm_quotations')->where('id', $id)->get()->getRowArray() ?? throw new CrmException('Quotation not found.');
+        if (! AccessScope::canSeeEnquiry($actor, (int) $q['enquiry_id'])) {
+            throw new CrmException('You do not have access to this quotation.');
+        }
+
+        return $q;
+    }
+
+    /**
+     * Normalise raw input lines against the product master and compute with the server-side calculator.
+     * @param list<array<string,mixed>> $raw
+     * @param list<array<string,mixed>> $charges
+     * @param string|null $approvedCeilingPct discount % ceiling granted by an approved negotiation (null = none)
+     * @return array<string,mixed> calculator result + 'meta_lines'
+     */
+    public static function price(array $raw, array $charges, array $actor, ?string $approvedCeilingPct = null): array
+    {
+        if (! $raw) {
+            throw new CrmException('Add at least one line item.');
+        }
+        $db    = Crm::db();
+        $lines = [];
+        $meta  = [];
+        $dtRow      = $db->table('crm_tax_rates')->where('is_default', 1)->get()->getRow();
+        $defaultTax = $dtRow ? (string) $dtRow->rate : Settings::get('tax.default_rate');
+        foreach ($raw as $i => $l) {
+            $p = null;
+            if (! empty($l['product_id'])) {
+                $p = $db->table('crm_products p')->select('p.*, t.rate AS tax_rate')->join('crm_tax_rates t', 't.id = p.tax_rate_id')->where('p.id', (int) $l['product_id'])->get()->getRowArray()
+                    ?? throw new CrmException('Line ' . ($i + 1) . ': product not found.');
+                if ((int) $p['is_active'] !== 1) {
+                    throw new CrmException('Line ' . ($i + 1) . ': product ' . $p['sku'] . ' is inactive.');
+                }
+            }
+            $price = isset($l['unit_price']) && $l['unit_price'] !== '' ? (string) $l['unit_price'] : ($p['standard_price'] ?? null);
+            if ($price === null) {
+                throw new CrmException('Line ' . ($i + 1) . ': unit price is required.');
+            }
+            $unitIn = $l['unit'] ?? ($p['unit'] ?? 'nos');
+            $model  = $p['pricing_model'] ?? ($unitIn === 'sqft' ? 'sqft' : ($unitIn === 'rft' ? 'rft' : null));
+            $sized  = RequirementService::quantityFromSize($model, $l['width'] ?? null, $l['height'] ?? null, $l['size_unit'] ?? null, $l['nos'] ?? null);
+            $source = ($p === null || Money::cmp($price, (string) $p['standard_price']) !== 0) ? 'manual' : 'catalogue';
+            $lines[] = [
+                'quantity' => $sized ?? ($l['quantity'] ?? 1), 'unit_price' => $price, 'discount_pct' => $l['discount_pct'] ?? 0, 'discount_amount' => $l['discount_amount'] ?? 0,
+                'tax_rate' => $p['tax_rate'] ?? ($l['tax_rate'] ?? $defaultTax),
+            ];
+            $meta[] = [
+                'product_id' => $p['id'] ?? null, 'sku' => $p['sku'] ?? null, 'min_price' => $p['min_price'] ?? null, 'unit' => $unitIn,
+                'variant' => ($l['variant'] ?? '') !== '' ? $l['variant'] : null, 'width' => ($l['width'] ?? '') !== '' ? $l['width'] : null, 'height' => ($l['height'] ?? '') !== '' ? $l['height'] : null,
+                'size_unit' => ($l['size_unit'] ?? '') !== '' ? $l['size_unit'] : null, 'nos' => ($l['nos'] ?? '') !== '' ? $l['nos'] : null, 'price_source' => $source,
+                'description' => trim((string) ($l['description'] ?? ($p['name'] ?? ''))), 'specifications' => $l['specifications'] ?? ($p['specifications'] ?? null),
+            ];
+            if ($meta[$i]['description'] === '') {
+                throw new CrmException('Line ' . ($i + 1) . ': description is required.');
+            }
+        }
+        $chargeIn = [];
+        foreach ($charges as $c) {
+            if (trim((string) ($c['name'] ?? '')) !== '' && Money::cmp((string) ($c['amount'] ?? 0), '0') > 0) {
+                $chargeIn[] = ['name' => $c['name'], 'amount' => $c['amount'], 'tax_rate' => $c['tax_rate'] ?? $defaultTax];
+            }
+        }
+        $calc = QuotationCalculator::compute($lines, $chargeIn, Settings::get('quotation.round_off') === '1');
+
+        // ── authority checks (server-side; the UI cannot bypass these) ──
+        $isAdminLevel = AccessScope::can($actor, 'discounts.approve_admin');
+        $overall      = Money::cmp($calc['subtotal'], '0') > 0 ? Money::round(Money::mul(Money::div($calc['discount_total'], $calc['subtotal']), '100'), 3) : '0.000';
+        $limit        = $isAdminLevel ? '100' : (string) ($actor['max_discount_pct'] ?? '0');
+        if ($approvedCeilingPct !== null) {
+            $limit = bccomp($approvedCeilingPct, $limit, 3) > 0 ? $approvedCeilingPct : $limit;
+        }
+        if (bccomp($overall, Money::round($limit, 3), 3) > 0) {
+            throw new CrmException("Discount {$overall}% exceeds the limit of " . Money::round($limit, 1) . '% allowed for you. Submit a negotiation / discount request for approval.');
+        }
+        foreach ($calc['lines'] as $i => $cl) {
+            $min = $meta[$i]['min_price'];
+            if ($min !== null && Money::cmp($min, '0') > 0) {
+                $net = Money::div($cl['taxable_amount'], $cl['quantity']);
+                if (bccomp(Money::round($net), Money::round($min), 2) < 0 && $approvedCeilingPct === null && ! $isAdminLevel) {
+                    throw new CrmException('Line ' . ($i + 1) . ": net price {$net} is below the minimum selling price {$min}. Approval required.");
+                }
+            }
+        }
+        $calc['meta'] = $meta;
+        $calc['overall_discount_pct'] = $overall;
+
+        return $calc;
+    }
+
+    private static function writeVersionBody(int $versionId, array $calc): void
+    {
+        $db = Crm::db();
+        $db->table('crm_quotation_items')->where('version_id', $versionId)->delete();
+        $db->table('crm_quotation_charges')->where('version_id', $versionId)->delete();
+        foreach ($calc['lines'] as $i => $cl) {
+            $m = $calc['meta'][$i];
+            $db->table('crm_quotation_items')->insert([
+                'version_id' => $versionId, 'line_no' => $i + 1, 'product_id' => $m['product_id'], 'sku' => $m['sku'], 'description' => mb_substr($m['description'], 0, 500), 'specifications' => $m['specifications'],
+                'variant' => $m['variant'] ?? null, 'width' => $m['width'] ?? null, 'height' => $m['height'] ?? null, 'size_unit' => $m['size_unit'] ?? null, 'nos' => $m['nos'] ?? null, 'price_source' => $m['price_source'] ?? 'catalogue',
+                'quantity' => $cl['quantity'], 'unit' => $m['unit'], 'unit_price' => $cl['unit_price'], 'min_price' => $m['min_price'], 'discount_pct' => $cl['discount_pct'], 'discount_amount' => $cl['discount_amount'],
+                'line_subtotal' => $cl['line_subtotal'], 'taxable_amount' => $cl['taxable_amount'], 'tax_rate' => $cl['tax_rate'], 'tax_amount' => $cl['tax_amount'], 'line_total' => $cl['line_total'],
+            ]);
+        }
+        foreach ($calc['charges'] as $c) {
+            $db->table('crm_quotation_charges')->insert(['version_id' => $versionId] + $c);
+        }
+        $db->table('crm_quotation_versions')->where('id', $versionId)->update([
+            'subtotal' => $calc['subtotal'], 'discount_total' => $calc['discount_total'], 'taxable_total' => $calc['taxable_total'], 'tax_total' => $calc['tax_total'],
+            'charges_total' => $calc['charges_total'], 'round_off' => $calc['round_off'], 'grand_total' => $calc['grand_total'],
+        ]);
+    }
+
+    private static function versionMeta(array $m, ?array $prev = null): array
+    {
+        $validity = (int) Settings::get('quotation.validity_days');
+
+        return [
+            'terms'             => $m['terms'] ?? ($prev['terms'] ?? Settings::get('quotation.terms')),
+            'payment_terms'     => $m['payment_terms'] ?? ($prev['payment_terms'] ?? Settings::get('quotation.payment_terms')),
+            'delivery_estimate' => $m['delivery_estimate'] ?? ($prev['delivery_estimate'] ?? null),
+            'valid_until'       => $m['valid_until'] ?? date('Y-m-d', strtotime("+{$validity} days")),
+            'customer_remarks'  => $m['customer_remarks'] ?? ($prev['customer_remarks'] ?? null),
+            'internal_remarks'  => $m['internal_remarks'] ?? ($prev['internal_remarks'] ?? null),
+        ];
+    }
+
+    /** @return array{id:int,quotation_no:string,version_id:int,grand_total:string} */
+    public static function create(int $enquiryId, array $actor, array $lines, array $charges = [], array $meta = [], int $isDemo = 0): array
+    {
+        if (! AccessScope::can($actor, 'quotations.create')) {
+            throw new CrmException('You do not have permission to create quotations.');
+        }
+
+        return Crm::tx(static function ($db) use ($enquiryId, $actor, $lines, $charges, $meta, $isDemo) {
+            $e = self::enquiryFor($enquiryId, $actor);
+            if (! WorkflowService::isActive($e['status']) || in_array($e['status'], ['new', 'assigned'], true)) {
+                throw new CrmException('Record customer contact before quoting (enquiry must be contacted or later, and active).');
+            }
+            $lines = $lines ?: RequirementService::toQuotationLines($enquiryId);
+            $calc = self::price($lines, $charges, $actor);
+            $no   = NumberSequenceService::next('quotation');
+            $db->table('crm_quotations')->insert(['quotation_no' => $no, 'enquiry_id' => $enquiryId, 'customer_id' => $e['customer_id'], 'status' => 'draft', 'created_by' => $actor['id'], 'is_demo' => $isDemo]);
+            $qid = (int) $db->insertID();
+            $db->table('crm_quotation_versions')->insert(['quotation_id' => $qid, 'version_no' => 1, 'created_by' => $actor['id'], 'created_at' => Crm::now()] + self::versionMeta($meta));
+            $vid = (int) $db->insertID();
+            self::writeVersionBody($vid, $calc);
+            $db->table('crm_quotations')->where('id', $qid)->update(['current_version_id' => $vid]);
+            if (in_array($e['status'], ['contacted', 'qualified', 'site_visit'], true)) {
+                WorkflowService::transition($enquiryId, 'quotation_preparation', $actor, "Quotation {$no} prepared");
+            }
+            AuditService::workflow('quotation.created', 'quotation', $qid, [
+                'customer_id' => (int) $e['customer_id'], 'enquiry_id' => $enquiryId, 'entity_ref' => $no, 'user_id' => $actor['id'], 'is_demo' => $isDemo,
+                'new' => ['version' => 1, 'grand_total' => $calc['grand_total'], 'discount_total' => $calc['discount_total']],
+            ]);
+            if ($isDemo) {
+                $db->query('INSERT IGNORE INTO crm_demo_registry (table_name,row_id) VALUES (?,?)', ['crm_quotations', $qid]);
+            }
+
+            return ['id' => $qid, 'quotation_no' => $no, 'version_id' => $vid, 'grand_total' => $calc['grand_total']];
+        });
+    }
+
+    public static function assertEditable(int $versionId): array
+    {
+        $v = Crm::db()->query('SELECT * FROM crm_quotation_versions WHERE id = ? FOR UPDATE', [$versionId])->getRowArray() ?? throw new CrmException('Version not found.');
+        if ((int) $v['is_locked'] === 1) {
+            throw new CrmException('This version has been sent or approved and is locked. Create a revision instead.');
+        }
+
+        return $v;
+    }
+
+    public static function updateDraft(int $versionId, array $actor, array $lines, array $charges = [], array $meta = []): void
+    {
+        Crm::tx(static function ($db) use ($versionId, $actor, $lines, $charges, $meta) {
+            $v = self::assertEditable($versionId);
+            $q = self::loadQuotation((int) $v['quotation_id'], $actor);
+            if (! AccessScope::can($actor, 'quotations.create')) {
+                throw new CrmException('You do not have permission to edit quotations.');
+            }
+            $approved = self::approvedCeiling((int) $v['quotation_id']);
+            $calc = self::price($lines, $charges, $actor, $approved);
+            self::writeVersionBody($versionId, $calc);
+            $db->table('crm_quotation_versions')->where('id', $versionId)->update(self::versionMeta($meta, $v));
+            AuditService::workflow('quotation.draft_updated', 'quotation', (int) $q['id'], ['customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'], 'user_id' => $actor['id'], 'new' => ['version' => (int) $v['version_no'], 'grand_total' => $calc['grand_total']]]);
+        });
+    }
+
+    /** Highest discount % an approved-but-unapplied negotiation grants on this quotation. */
+    public static function approvedCeiling(int $quotationId, ?int $negotiationId = null): ?string
+    {
+        $b = Crm::db()->table('crm_negotiations')->selectMax('requested_discount_pct', 'p')->where('quotation_id', $quotationId)->where('status', 'approved');
+        if ($negotiationId) {
+            $b->where('id', $negotiationId);
+        }
+        $p = $b->get()->getRow()->p ?? null;
+
+        return $p === null ? null : (string) $p;
+    }
+
+    /** Lock + render PDF + email (or record manual send). Idempotent per version. */
+    public static function send(int $quotationId, array $actor, string $channel = 'email', ?string $toEmail = null): array
+    {
+        if (! AccessScope::can($actor, 'quotations.send')) {
+            throw new CrmException('You do not have permission to send quotations.');
+        }
+
+        return Crm::tx(static function ($db) use ($quotationId, $actor, $channel, $toEmail) {
+            $q = self::loadQuotation($quotationId, $actor);
+            $c = $db->table('crm_customers')->where('id', $q['customer_id'])->get()->getRowArray();
+            $v = $db->query('SELECT * FROM crm_quotation_versions WHERE id = ? FOR UPDATE', [$q['current_version_id']])->getRowArray();
+            if ((int) $v['is_locked'] === 1) {
+                throw new CrmException('This version was already sent. Use resend, or create a revision.');
+            }
+            if (in_array($q['status'], ['accepted', 'rejected', 'cancelled'], true)) {
+                throw new CrmException('This quotation is closed.');
+            }
+            $to = $toEmail ?: $c['email'];
+            if ($channel === 'email' && ! $to) {
+                throw new CrmException('Customer has no email address. Add one or choose manual delivery.');
+            }
+            $pdf = PdfService::renderQuotation((int) $v['id']);
+            $db->table('crm_quotation_versions')->where('id', $v['id'])->update(['is_locked' => 1, 'locked_at' => Crm::now(), 'sent_at' => Crm::now(), 'pdf_path' => $pdf['path'], 'pdf_sha256' => $pdf['sha256']]);
+            $db->table('crm_quotations')->where('id', $quotationId)->update(['status' => 'sent']);
+            $e = $db->table('crm_enquiries')->where('id', $q['enquiry_id'])->get()->getRowArray();
+            if (in_array($e['status'], ['quotation_preparation', 'negotiation'], true)) {
+                WorkflowService::transition((int) $e['id'], 'quotation_sent', $actor, "Quotation {$q['quotation_no']} v{$v['version_no']} sent");
+            }
+            $emailId = null;
+            if ($channel === 'email') {
+                $emailId = self::emailQuotation($q, $v, $c, $pdf['path'], (string) $to, $actor);
+            }
+            AuditService::workflow('quotation.sent', 'quotation', $quotationId, [
+                'customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'], 'user_id' => $actor['id'], 'is_demo' => (int) $q['is_demo'],
+                'new' => ['version' => (int) $v['version_no'], 'channel' => $channel, 'email_log_id' => $emailId, 'pdf_sha256' => $pdf['sha256']],
+            ]);
+            if ($e['current_owner_id'] && (int) $e['current_owner_id'] !== (int) $actor['id']) {
+                NotificationService::notify((int) $e['current_owner_id'], 'quotation.sent', "Quotation {$q['quotation_no']} was sent", null, "crm/quotations/{$quotationId}", "qt-sent:{$v['id']}", (int) $q['is_demo']);
+            }
+
+            return ['version_id' => (int) $v['id'], 'pdf_path' => $pdf['path'], 'email_log_id' => $emailId];
+        });
+    }
+
+    private static function emailQuotation(array $q, array $v, array $c, string $pdfPath, string $to, array $actor): int
+    {
+        $fresh = Crm::db()->table('crm_quotation_versions')->where('id', $v['id'])->get()->getRowArray();
+        $sp    = Crm::db()->table('admin_users')->where('id', $actor['id'])->get()->getRowArray();
+
+        return EmailService::queue($to, [
+            'template' => 'quotation_sent', 'customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'quotation_id' => (int) $q['id'], 'attachment' => $pdfPath,
+            'user_id' => $actor['id'], 'is_demo' => (int) $q['is_demo'],
+            'vars' => ['customer_name' => $c['name'], 'quotation_no' => $q['quotation_no'], 'version_no' => $v['version_no'], 'grand_total' => 'INR ' . Money::fmt($fresh['grand_total']),
+                'valid_until' => $v['valid_until'] ? date('d M Y', strtotime($v['valid_until'])) : '-', 'salesperson' => $sp ? $sp['first_name'] . ' ' . $sp['last_name'] : '', 'company_name' => Settings::get('company.name')],
+        ]);
+    }
+
+    public static function resend(int $quotationId, array $actor, ?string $toEmail = null): int
+    {
+        if (! AccessScope::can($actor, 'quotations.send')) {
+            throw new CrmException('You do not have permission to send quotations.');
+        }
+        $q = self::loadQuotation($quotationId, $actor);
+        $v = Crm::db()->table('crm_quotation_versions')->where('id', $q['current_version_id'])->get()->getRowArray();
+        if ((int) $v['is_locked'] !== 1 || ! $v['pdf_path']) {
+            throw new CrmException('Nothing to resend: the current version has not been sent yet.');
+        }
+        $c  = Crm::db()->table('crm_customers')->where('id', $q['customer_id'])->get()->getRowArray();
+        $to = $toEmail ?: $c['email'];
+        if (! $to) {
+            throw new CrmException('Customer has no email address.');
+        }
+        $id = self::emailQuotation($q, $v, $c, $v['pdf_path'], $to, $actor);
+        AuditService::workflow('quotation.resent', 'quotation', $quotationId, ['customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'], 'user_id' => $actor['id'], 'new' => ['version' => (int) $v['version_no'], 'email_log_id' => $id]]);
+
+        return $id;
+    }
+
+    /**
+     * New version after the previous one was sent/locked. Never mutates the earlier version, its items, PDF or timestamps.
+     * @param int|null $negotiationId when given, its approved discount ceiling authorises this revision and it is marked applied.
+     */
+    public static function revise(int $quotationId, array $actor, array $lines, array $charges = [], array $meta = [], ?int $negotiationId = null, ?string $reason = null, ?int $followupId = null): array
+    {
+        if (! AccessScope::can($actor, 'quotations.create')) {
+            throw new CrmException('You do not have permission to revise quotations.');
+        }
+
+        return Crm::tx(static function ($db) use ($quotationId, $actor, $lines, $charges, $meta, $negotiationId, $reason, $followupId) {
+            $q = self::loadQuotation($quotationId, $actor);
+            $q = $db->query('SELECT * FROM crm_quotations WHERE id = ? FOR UPDATE', [$quotationId])->getRowArray();
+            if (in_array($q['status'], ['accepted', 'rejected', 'cancelled'], true)) {
+                throw new CrmException('A closed quotation cannot be revised.');
+            }
+            $prev = $db->table('crm_quotation_versions')->where('id', $q['current_version_id'])->get()->getRowArray();
+            if ((int) $prev['is_locked'] !== 1) {
+                throw new CrmException('The current version is still a draft - edit it instead of revising.');
+            }
+            $ceiling = null;
+            if ($negotiationId) {
+                $n = $db->query('SELECT * FROM crm_negotiations WHERE id = ? FOR UPDATE', [$negotiationId])->getRowArray() ?? throw new CrmException('Negotiation not found.');
+                if ((int) $n['quotation_id'] !== $quotationId || $n['status'] !== 'approved') {
+                    throw new CrmException('Only an approved negotiation on this quotation can authorise a revision.');
+                }
+                $ceiling = (string) $n['requested_discount_pct'];
+            }
+            if (trim((string) $reason) === '' && $negotiationId) {
+                $reason = 'Approved discount ' . $db->table('crm_negotiations')->where('id', $negotiationId)->get()->getRow()->negotiation_no;
+            }
+            if (trim((string) $reason) === '') {
+                throw CrmException::validation(['reason' => 'State why the quotation is being revised (e.g. customer asked for a different variant or size).']);
+            }
+            $calc = self::price($lines, $charges, $actor, $ceiling);
+            $vno  = (int) $prev['version_no'] + 1;
+            $db->table('crm_quotation_versions')->insert(['quotation_id' => $quotationId, 'version_no' => $vno, 'created_by' => $actor['id'], 'created_at' => Crm::now(), 'revision_reason' => mb_substr((string) $reason, 0, 500), 'source_followup_id' => $followupId] + self::versionMeta($meta, $prev));
+            $vid = (int) $db->insertID();
+            self::writeVersionBody($vid, $calc);
+            self::recordChanges($quotationId, (int) $prev['id'], $vid, (int) $prev['version_no'], $vno, (string) $reason, (int) $actor['id']);
+            $db->table('crm_quotations')->where('id', $quotationId)->update(['current_version_id' => $vid, 'status' => 'revised']);
+            if ($negotiationId) {
+                $db->table('crm_negotiations')->where('id', $negotiationId)->update(['status' => 'applied', 'final_discount_amount' => $calc['discount_total'], 'resulting_version_id' => $vid]);
+            }
+            AuditService::workflow('quotation.revised', 'quotation', $quotationId, [
+                'customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'] . '-V' . $vno, 'user_id' => $actor['id'], 'is_demo' => (int) $q['is_demo'],
+                'prev' => ['version' => (int) $prev['version_no'], 'grand_total' => $prev['grand_total']], 'new' => ['version' => $vno, 'grand_total' => $calc['grand_total'], 'negotiation_id' => $negotiationId], 'reason' => $reason,
+            ]);
+
+            return ['version_id' => $vid, 'version_no' => $vno, 'grand_total' => $calc['grand_total']];
+        });
+    }
+
+    /** Customer decision on the latest SENT version. */
+    public static function recordResponse(int $quotationId, array $actor, string $response, ?string $remarks = null, ?string $at = null): void
+    {
+        if (! in_array($response, ['accepted', 'rejected'], true)) {
+            throw new CrmException('Response must be accepted or rejected.');
+        }
+        if (! AccessScope::can($actor, 'quotations.send') && ! AccessScope::can($actor, 'quotations.create')) {
+            throw new CrmException('You do not have permission to record customer responses.');
+        }
+        Crm::tx(static function ($db) use ($quotationId, $actor, $response, $remarks, $at) {
+            $q = self::loadQuotation($quotationId, $actor);
+            $q = $db->query('SELECT * FROM crm_quotations WHERE id = ? FOR UPDATE', [$quotationId])->getRowArray();
+            $v = $db->table('crm_quotation_versions')->where('id', $q['current_version_id'])->get()->getRowArray();
+            if ((int) $v['is_locked'] !== 1 || ! in_array($q['status'], ['sent', 'negotiation'], true)) {
+                throw new CrmException('Only a sent quotation can be accepted or rejected (current status: ' . $q['status'] . ').');
+            }
+            $when = $at ?? Crm::now();
+            $db->table('crm_quotations')->where('id', $quotationId)->update(['status' => $response, 'customer_response' => $response, 'responded_at' => $when]);
+            $db->table('crm_negotiations')->where('quotation_id', $quotationId)->whereIn('status', ['pending', 'approved', 'escalated', 'returned'])->update(['status' => 'withdrawn']);
+            AuditService::workflow('quotation.' . $response, 'quotation', $quotationId, [
+                'customer_id' => (int) $q['customer_id'], 'enquiry_id' => (int) $q['enquiry_id'], 'entity_ref' => $q['quotation_no'], 'user_id' => $actor['id'], 'is_demo' => (int) $q['is_demo'],
+                'prev' => ['status' => $q['status']], 'new' => ['status' => $response, 'version' => (int) $v['version_no'], 'grand_total' => $v['grand_total']], 'reason' => $remarks, 'created_at' => $when,
+            ]);
+            $e = $db->table('crm_enquiries')->where('id', $q['enquiry_id'])->get()->getRowArray();
+            if ($e['current_owner_id']) {
+                NotificationService::notify((int) $e['current_owner_id'], 'quotation.' . $response, "Customer {$response} quotation {$q['quotation_no']}", null, "crm/quotations/{$quotationId}", "qt-resp:{$quotationId}:{$response}", (int) $q['is_demo']);
+            }
+        });
+    }
+
+    private static function itemKey(array $i): string
+    {
+        return ($i['product_id'] ?: 'custom') . '|' . strtolower((string) ($i['variant'] ?? '')) . '|' . ($i['width'] !== null ? (float) $i['width'] : '') . 'x' . ($i['height'] !== null ? (float) $i['height'] : '') . '|' . ($i['product_id'] ? '' : strtolower($i['description']));
+    }
+
+    public static function itemLabel(array $i): string
+    {
+        $s = $i['description'];
+        if (! empty($i['variant'])) {
+            $s .= ' - ' . $i['variant'];
+        }
+        if ($i['width'] !== null && $i['height'] !== null) {
+            $s .= ' (' . (float) $i['width'] . 'x' . (float) $i['height'] . ' ' . $i['size_unit'] . ($i['nos'] ? ', ' . (float) $i['nos'] . ' nos' : '') . ')';
+        }
+
+        return $s;
+    }
+
+    /** Line-level diff between two item sets: added / removed / modified with per-field before/after. @return list<array<string,mixed>> */
+    public static function diffItems(array $a, array $b): array
+    {
+        $am = $bm = [];
+        foreach ($a as $i) {
+            $am[self::itemKey($i)] = $i;
+        }
+        foreach ($b as $i) {
+            $bm[self::itemKey($i)] = $i;
+        }
+        $out = [];
+        foreach ($bm as $k => $i) {
+            if (! isset($am[$k])) {
+                $out[] = ['type' => 'added', 'item' => self::itemLabel($i), 'detail' => ['quantity' => $i['quantity'], 'unit_price' => $i['unit_price'], 'line_total' => $i['line_total']]];
+                continue;
+            }
+            $d = [];
+            foreach (['quantity', 'unit', 'unit_price', 'discount_pct', 'discount_amount', 'tax_rate', 'nos', 'description', 'line_total'] as $f) {
+                $x = $am[$k][$f] ?? null;
+                $y = $i[$f] ?? null;
+                $same = is_numeric($x) && is_numeric($y) ? bccomp((string) $x, (string) $y, 3) === 0 : (string) $x === (string) $y;
+                if (! $same) {
+                    $d[$f] = ['from' => $x, 'to' => $y];
+                }
+            }
+            if ($d) {
+                $out[] = ['type' => 'modified', 'item' => self::itemLabel($i), 'detail' => $d];
+            }
+        }
+        foreach ($am as $k => $i) {
+            if (! isset($bm[$k])) {
+                $out[] = ['type' => 'removed', 'item' => self::itemLabel($i), 'detail' => ['quantity' => $i['quantity'], 'unit_price' => $i['unit_price'], 'line_total' => $i['line_total']]];
+            }
+        }
+
+        return $out;
+    }
+
+    /** Persist the item/total/terms differences of a revision (append-only record of every product change). */
+    private static function recordChanges(int $quotationId, int $fromVid, int $toVid, int $fromNo, int $toNo, string $reason, int $userId): void
+    {
+        $db  = Crm::db();
+        $ia  = $db->table('crm_quotation_items')->where('version_id', $fromVid)->get()->getResultArray();
+        $ib  = $db->table('crm_quotation_items')->where('version_id', $toVid)->get()->getResultArray();
+        $ins = static function (string $type, ?string $ref, array $detail) use ($db, $quotationId, $fromNo, $toNo, $reason, $userId) {
+            $db->table('crm_quotation_changes')->insert(['quotation_id' => $quotationId, 'from_version_no' => $fromNo, 'to_version_no' => $toNo, 'change_type' => $type, 'item_ref' => $ref ? mb_substr($ref, 0, 255) : null, 'detail' => json_encode($detail), 'reason' => mb_substr($reason, 0, 500), 'user_id' => $userId, 'created_at' => Crm::now()]);
+        };
+        foreach (self::diffItems($ia, $ib) as $c) {
+            $ins($c['type'], $c['item'], $c['detail']);
+        }
+        $va = $db->table('crm_quotation_versions')->where('id', $fromVid)->get()->getRowArray();
+        $vb = $db->table('crm_quotation_versions')->where('id', $toVid)->get()->getRowArray();
+        $t  = [];
+        foreach (['subtotal', 'discount_total', 'tax_total', 'charges_total', 'grand_total'] as $f) {
+            if (Money::cmp($va[$f], $vb[$f]) !== 0) {
+                $t[$f] = ['from' => $va[$f], 'to' => $vb[$f]];
+            }
+        }
+        if ($t) {
+            $ins('totals', null, $t);
+        }
+        $terms = [];
+        foreach (['terms', 'payment_terms', 'delivery_estimate', 'valid_until'] as $f) {
+            if ((string) $va[$f] !== (string) $vb[$f]) {
+                $terms[$f] = ['from' => $va[$f], 'to' => $vb[$f]];
+            }
+        }
+        if ($terms) {
+            $ins('terms', null, $terms);
+        }
+    }
+
+    /** @return list<array<string,mixed>> change log of a quotation, newest version first */
+    public static function changeLog(int $quotationId, array $actor): array
+    {
+        self::loadQuotation($quotationId, $actor);
+        $u = HistoryService::userNames();
+
+        return array_map(static fn ($r) => $r + ['user_name' => $r['user_id'] ? ($u[(int) $r['user_id']] ?? '?') : 'System', 'data' => json_decode((string) $r['detail'], true)],
+            Crm::db()->table('crm_quotation_changes')->where('quotation_id', $quotationId)->orderBy('to_version_no', 'DESC')->orderBy('id')->get()->getResultArray());
+    }
+
+    /** Side-by-side differences between two versions of one quotation. */
+    public static function compare(int $quotationId, int $versionA, int $versionB, array $actor): array
+    {
+        self::loadQuotation($quotationId, $actor);
+        $db  = Crm::db();
+        $get = static function (int $no) use ($db, $quotationId) {
+            $v = $db->table('crm_quotation_versions')->where(['quotation_id' => $quotationId, 'version_no' => $no])->get()->getRowArray() ?? throw new CrmException("Version {$no} not found.");
+            $v['items'] = $db->table('crm_quotation_items')->where('version_id', $v['id'])->orderBy('line_no')->get()->getResultArray();
+
+            return $v;
+        };
+        $a = $get($versionA);
+        $b = $get($versionB);
+        $totals = [];
+        foreach (['subtotal', 'discount_total', 'taxable_total', 'tax_total', 'charges_total', 'grand_total'] as $k) {
+            $totals[$k] = ['a' => $a[$k], 'b' => $b[$k], 'delta' => Money::round(Money::sub($b[$k], $a[$k]))];
+        }
+        $changes = array_map(static fn ($c) => ['item' => $c['item'], 'change' => $c['type'], 'fields' => $c['detail']], self::diffItems($a['items'], $b['items']));
+
+        return ['a' => $versionA, 'b' => $versionB, 'totals' => $totals, 'items' => $changes, 'reason' => $b['revision_reason']];
+    }
+}

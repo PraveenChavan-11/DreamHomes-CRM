@@ -1,0 +1,29 @@
+# TalentHub Consultant — Full System Documentation & Ecosystem Context (SEP-1649 / llms.txt)
+
+## Executive Summary
+TalentHub Consultant is an enterprise-grade recruitment and human resources technology platform based in Pune, Maharashtra, India. We bridge the talent gap between skilled technical candidates and growing organizations across Information Technology, Manufacturing, Automotive, Banking, Financial Services, Insurance, and Healthcare.
+
+- Website: https://talenthubconsultant.com/
+- Tagline: Find the perfect fit for your company.
+- Office: Office No. 4, Katraj-Kondhwa Road, Katraj, Pune, Maharashtra 411046, India
+- Recruiter Direct Line: +91 72761 46573
+- Official Hiring Email: hr@talenthubconsultant.com
+- Candidate Placement Fee: 100% Free / ₹0 (TalentHub never charges candidates for job placements or interviews)
+- Employer Guarantee: 90-day free candidate replacement guarantee on permanent placements
+
+## Key Operating Corridors in Pune
+1. **Hinjawadi Infotech Park (Phases 1, 2, 3)**: Software product engineering, cloud platforms, full-stack microservices, DevOps, and enterprise IT services.
+2. **Kharadi & Magarpatta Cybercity**: Banking & FinTech GCCs (Global Capability Centers), SaaS, digital transformation, and healthcare analytics.
+3. **Chakan & Bhosari Industrial Belts**: Automotive OEMs, auto-component manufacturers, CNC precision machining, robotics, fabrication, and plant operations.
+4. **Talegaon & Shirwal**: Heavy engineering, electronics manufacturing, cold storage logistics, and supply chain hubs.
+5. **Baner, Balewadi & Aundh**: High-growth tech product startups, leadership hubs, and sales offices.
+
+## Public Service Endpoints & Tools
+- Browse Jobs: GET https://talenthubconsultant.com/jobs (Faceted search by keyword, Pune corridor, experience bracket, and work mode)
+- View Job Posting: GET https://talenthubconsultant.com/jobs/{slug} (Structured JobPosting schema with salary range and responsibilities)
+- Employer Mandate Submission: POST https://talenthubconsultant.com/employers/enquiry (B2B staffing brief registration)
+- Confidential Resume Upload: POST https://talenthubconsultant.com/career-enquiry/submit (Secure DocumentVault CV registration)
+- General Contact Desk: POST https://talenthubconsultant.com/contact/submit (Direct client advisory desk)
+- Machine Sitemaps: GET https://talenthubconsultant.com/sitemap.xml (Comprehensive sitemap index)
+- Agent MCP Server Card: GET https://talenthubconsultant.com/.well-known/mcp/server-card.json (WebMCP capabilities)
+

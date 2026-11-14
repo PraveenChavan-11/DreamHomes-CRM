@@ -1,0 +1,474 @@
+openapi: 3.1.0
+info:
+  title: TalentHub Recruitment Platform API
+  description: >
+    Production RESTful API for TalentHub Consultant recruitment management platform.
+    Hosted on Hostinger Shared Hosting with PHP 8.2+ and MySQL InnoDB.
+  version: 1.0.0
+  contact:
+    name: TalentHub Engineering
+    email: hr@talenthubconsultant.com
+    url: https://talenthubconsultant.com
+servers:
+  - url: https://talenthubconsultant.com/api/v1
+    description: Production Server
+  - url: http://localhost:8000/api/v1
+    description: Local Development Server
+
+paths:
+  # ── PUBLIC ENDPOINTS ──────────────────────────────────────────────────────────
+  /jobs:
+    get:
+      summary: List published active jobs
+      description: Returns active jobs filtered by category, location, or search keywords.
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Search title, description, or skills
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Category slug
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Successful response with list of jobs and pagination metadata.
+
+  /jobs/{slug}:
+    get:
+      summary: Get job details by slug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job detail object.
+        '404':
+          description: Job not found or not currently published.
+
+  /applications:
+    post:
+      summary: Flow A - Apply for an active job
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - job_slug
+                - full_name
+                - email
+                - phone
+                - resume
+              properties:
+                job_slug:
+                  type: string
+                full_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                current_location:
+                  type: string
+                experience_years:
+                  type: number
+                primary_skills:
+                  type: string
+                cover_message:
+                  type: string
+                resume:
+                  type: string
+                  format: binary
+                  description: PDF, DOC, or DOCX up to 10MB
+      responses:
+        '201':
+          description: Application submitted successfully.
+
+  /resume-submissions:
+    post:
+      summary: Flow B - General resume submission (Career Enquiry)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - full_name
+                - email
+                - phone
+                - desired_role
+                - resume
+              properties:
+                full_name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                desired_role:
+                  type: string
+                current_location:
+                  type: string
+                preferred_location:
+                  type: string
+                experience_years:
+                  type: number
+                primary_skills:
+                  type: string
+                notice_period:
+                  type: string
+                message:
+                  type: string
+                resume:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Resume profile stored in candidate resume bank.
+
+  /contact-enquiries:
+    post:
+      summary: General contact enquiry submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - first_name
+                - email
+                - message
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                company:
+                  type: string
+                subject:
+                  type: string
+                message:
+                  type: string
+      responses:
+        '201':
+          description: Enquiry recorded and email acknowledgment queued.
+
+  /employer-enquiries:
+    post:
+      summary: B2B employer hiring requirement submission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - company_name
+                - contact_person
+                - email
+                - phone
+                - required_roles
+              properties:
+                company_name:
+                  type: string
+                contact_person:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                required_roles:
+                  type: string
+                number_of_positions:
+                  type: integer
+                location:
+                  type: string
+                experience_bracket:
+                  type: string
+                urgency:
+                  type: string
+                  enum: [IMMEDIATE, 15_DAYS, 30_DAYS, EXPLORATORY]
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Employer mandate received.
+
+  /blogs:
+    get:
+      summary: List published blog insights
+      responses:
+        '200':
+          description: Array of published blog posts.
+
+  /blogs/{slug}:
+    get:
+      summary: Get published blog post by slug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Blog post object.
+
+  /faqs:
+    get:
+      summary: List published FAQ items
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of FAQs.
+
+  /testimonials:
+    get:
+      summary: List published client and candidate testimonials
+      responses:
+        '200':
+          description: List of testimonials.
+
+  # ── ADMIN AUTH & SESSION ──────────────────────────────────────────────────────
+  /admin/login:
+    post:
+      summary: Authenticate administrator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Logged in successfully, HttpOnly session cookie issued.
+        '401':
+          description: Invalid credentials or account locked.
+
+  /admin/logout:
+    post:
+      summary: Terminate admin session
+      responses:
+        '200':
+          description: Session cleared.
+
+  /admin/session:
+    get:
+      summary: Verify active session and user permissions
+      responses:
+        '200':
+          description: Current user profile and permission list.
+        '401':
+          description: Not authenticated.
+
+  /admin/dashboard:
+    get:
+      summary: Get real dashboard KPI metrics and recent activity
+      responses:
+        '200':
+          description: Real dashboard metrics (active jobs, candidates, applications, etc.).
+
+  # ── ADMIN WORKFLOW CRUD ───────────────────────────────────────────────────────
+  /admin/jobs:
+    get:
+      summary: List all jobs (including drafts, closed, archived)
+    post:
+      summary: Create new job mandate
+  /admin/jobs/{id}:
+    get:
+      summary: Get job mandate by ID
+    put:
+      summary: Update job mandate
+    delete:
+      summary: Archive job mandate
+
+  /admin/candidates:
+    get:
+      summary: Search and paginate candidate directory
+  /admin/candidates/{id}:
+    get:
+      summary: Get candidate profile, documents, and application history
+
+  /admin/applications:
+    get:
+      summary: Search and filter applications by status and job
+  /admin/applications/{id}:
+    get:
+      summary: Get application details and status history
+    put:
+      summary: Update application recruitment status with notes
+
+  /admin/documents/{id}/stream:
+    get:
+      summary: Stream authorized candidate resume file
+      responses:
+        '200':
+          description: Binary file stream with Content-Disposition attachment.
+        '403':
+          description: Unauthorized to access candidate document.
+
+  /admin/employers:
+    get:
+      summary: List employers CRM directory
+    post:
+      summary: Create new employer profile
+  /admin/employers/{id}:
+    get:
+      summary: Get employer details and mandate history
+    put:
+      summary: Update employer details
+
+  /admin/enquiries:
+    get:
+      summary: List contact enquiries or employer hiring mandates
+  /admin/enquiries/{type}/{id}:
+    get:
+      summary: Get enquiry details
+    put:
+      summary: Update enquiry status and recruiter notes
+
+  /admin/reports:
+    get:
+      summary: Aggregate recruitment reports and pipeline conversion
+  /admin/audit-logs:
+    get:
+      summary: View tamper-evident administrator audit trail
+  /admin/users:
+    get:
+      summary: List admin users and role assignments
+  /admin/settings:
+    get:
+      summary: List configurable website settings
+    put:
+      summary: Update settings
+
+  # ── DYNAMIC CMS & PAGE MANAGEMENT ───────────────────────────────────────────
+  /pages/{slug}:
+    get:
+      summary: Get published dynamic page content for public website
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Published structured page content JSON.
+        '404':
+          description: Page not found.
+
+  /admin/pages:
+    get:
+      summary: List all website pages with draft and published versions
+      responses:
+        '200':
+          description: List of dynamic pages.
+
+  /admin/pages/{slug}:
+    get:
+      summary: Get page editing details including draft content
+    put:
+      summary: Update draft content for a page
+
+  /admin/pages/{slug}/publish:
+    post:
+      summary: Publish draft content live and increment version snapshot
+
+  /admin/pages/{slug}/rollback/{version}:
+    post:
+      summary: Roll back page content to an earlier version
+
+  # ── MEDIA ASSET LIBRARY ─────────────────────────────────────────────────────
+  /admin/media:
+    get:
+      summary: List media library assets with search and pagination
+    post:
+      summary: Upload new media asset (images up to 5MB)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                alt_text:
+                  type: string
+
+  /admin/media/{id}:
+    delete:
+      summary: Safely delete an unreferenced media asset
+
+  # ── EMAIL MANAGEMENT & OUTBOX TELEMETRY ─────────────────────────────────────
+  /admin/email-templates:
+    get:
+      summary: List all transactional email templates
+  /admin/email-templates/{id}:
+    put:
+      summary: Update template subject, HTML, or plain-text body
+  /admin/email-templates/test:
+    post:
+      summary: Send test email using rendered template placeholders
+
+  /admin/email-outbox:
+    get:
+      summary: List transactional email outbox queue with delivery telemetry
+  /admin/email-outbox/{id}/resend:
+    post:
+      summary: Resend a failed or deferred transactional email
+
+  # ── SECURITY CENTER & SYSTEM HEALTH ─────────────────────────────────────────
+  /admin/security/stats:
+    get:
+      summary: Telemetry metrics on failed logins, lockouts, and security posture checks
+  /admin/security/login-attempts:
+    get:
+      summary: Audit log of recent authentication attempts with IP and user agent
+
+  /admin/health:
+    get:
+      summary: System health diagnostics (DB ping, storage vault permissions, cron heartbeat)

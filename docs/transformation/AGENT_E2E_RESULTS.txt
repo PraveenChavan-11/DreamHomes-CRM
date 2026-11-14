@@ -1,0 +1,91 @@
+PASS  registry page loads, empty state
+PASS  permission form offers only the 8 whitelisted scopes (no publish/schedule/credentials/admin)  [social.accounts.read,social.guidelines.read,social.templates.read,social.drafts.create,social.drafts.submit,social.posts.read,social.calendar.read,social.analytics.read]
+PASS  wrong password: nothing created, error shown
+PASS  correct password: token page shows a thk_ token once
+PASS  DB stores only the hash; policy draft_only
+PASS  token cannot be retrieved afterwards (agent page + list)
+PASS  reload of the issuing page does not exist as GET (no token re-display)
+PASS  API: no token → 401 generic
+PASS  API: valid token → capabilities, draft_only, no direct publishing
+PASS  API: guidelines include platform limits
+PASS  API: templates
+PASS  API: accounts (no tokens/ids)
+PASS  API: calendar
+PASS  API: analytics aggregates
+PASS  API: draft created (201, status=draft, origin=agent)
+PASS  DB: draft has no schedule, no approver, no jobs
+PASS  API: retry with same Idempotency-Key replays (200), single row
+PASS  API: identical caption → 409 DUPLICATE_CONTENT
+PASS  API: smuggling status/approved_by/scheduled_at → 422 naming each field
+PASS  API: unapproved media → 422
+PASS  API: remote URL as media (SSRF attempt) → 422, nothing fetched
+PASS  API: off-domain destination URL → 422
+PASS  API: invalid JSON → 400
+PASS  API: wrong content-type → 415
+PASS  API: oversized body → 413
+PASS  API: POST social/posts/{id}/publish does not exist  [http 404]
+PASS  API: POST social/posts/{id}/approve does not exist  [http 404]
+PASS  API: POST social/posts/{id}/schedule does not exist  [http 404]
+PASS  API: PUT social/posts/{id} does not exist  [http 404]
+PASS  API: DELETE social/posts/{id} does not exist  [http 404]
+PASS  API: GET social/credentials does not exist  [http 404]
+PASS  API: submit-approval → pending_approval
+PASS  API: second submit → 409
+PASS  API IDOR: another agent gets 404 for this draft
+PASS  API scope: agent without scope → 403 INSUFFICIENT_SCOPE
+PASS  approvals queue shows the draft with the agent name
+PASS  existing posts list marks agent drafts "needs approval"
+PASS  existing post page shows AI-agent badge
+PASS  existing "publish now" on UNAPPROVED agent draft is refused by the engine  [http 303]
+PASS  existing "reschedule" on UNAPPROVED agent draft is refused  [http 303]
+PASS  review page shows content, platform previews and decision buttons
+PASS  edit over platform limit rejected
+PASS  valid human edit saved
+PASS  approve: status approved, approver + timestamp recorded
+PASS  approve: nothing scheduled/published by approval
+PASS  approve: audit log entry with admin id
+PASS  agent sees approved + note but cannot publish; reviewer identity hidden
+PASS  editing approved content returns it to review (approval voided)
+PASS  request changes without a note is refused
+PASS  request changes: agent sees decision + note
+PASS  reject: cancelled, no approver
+PASS  rejected draft cannot be published via the existing button either
+PASS  rotate with wrong password: old token still works, error shown
+PASS  rotate: OLD token revoked immediately
+PASS  rotate: new token works
+PASS  revoke (no password step): token dead at once
+PASS  disable: API returns 403 AGENT_DISABLED
+PASS  expired token → 401 TOKEN_EXPIRED
+PASS  registry warns about expired / revoked credentials
+PASS  rate limit: 5 allowed then 429 with Retry-After  [200,200,200,200,200,429,429]
+PASS  brute force: repeated bad tokens → 429 lockout, even a valid token is refused  [401,429,429]
+PASS  agent audit log covers auth failures, permission denials, rate limits, drafts, rotation, revocation  [AGENT_DISABLED,AGENT_ENABLED,AUTH_FAILED,AUTH_LOCKED_OUT,DRAFT_CREATED,DRAFT_SUBMITTED,DUPLICATE_CONTENT,INVALID_JSON,INVALID_STATE,NOT_FOUND,PAYLOAD_TOO_LARGE,PERMISSION_DENIED,RATE_LIMITED,REQUEST,TOKEN_ISSUED,TOKEN_REVOKED,TOKEN_ROTATED,UNSUPPORTED_MEDIA_TYPE,VALIDATION_FAILED]
+PASS  no token secret appears in any log
+PASS  agent detail page: log + matrix render, never tokens/paths
+PASS  no-permission user blocked from /admin/agents  [/admin]
+PASS  no-permission user blocked from /admin/agents/approvals  [/admin]
+PASS  no-permission user blocked from /admin/agents/create  [/admin]
+PASS  no-permission user blocked from /admin/agents/722  [/admin]
+PASS  agents.view user: sees registry, no "Register agent" button
+PASS  agents.view user: no rotate/revoke/disable controls
+PASS  viewer forged revoke POST refused (no CSRF / no permission)  [http 403]
+PASS  approver without agents.view cannot open registry
+PASS  approver (social.approve) can open approvals
+PASS  manage user, missing CSRF token on revoke → rejected  [http 403]
+PASS  sidebar lists External AI Agents + AI Draft Approvals
+PASS  sidebar highlights External AI Agents on its page
+PASS  desktop: no horizontal page scroll on /admin/agents
+PASS  desktop: no horizontal page scroll on /admin/agents/create
+PASS  desktop: no horizontal page scroll on /admin/agents/722
+PASS  desktop: no horizontal page scroll on /admin/agents/approvals
+PASS  desktop: no horizontal page scroll on /admin/agents/approvals/757
+PASS  mobile: no horizontal page scroll on /admin/agents
+PASS  mobile: no horizontal page scroll on /admin/agents/create
+PASS  mobile: no horizontal page scroll on /admin/agents/722
+PASS  mobile: no horizontal page scroll on /admin/agents/approvals
+PASS  mobile: no horizontal page scroll on /admin/agents/approvals/757
+PASS  no JS page errors
+
+FAIL COUNT: 0 of 87
+
+Harness: Microsoft Edge 157 headless + Playwright APIRequest (real HTTP, no cookies for API calls) against a PHP built-in server pinned (auto_prepend_file) to database talenthub_test; forged local sessions; test-only admin with known password. Re-run on 2026-11-08 after final code changes: 87/87 agent, 61/61 system, 33/33 sidebar checks passed. The pre-migration run (no agent tables / columns) is described in MILESTONE_2_PHASE_C_REPORT.md.

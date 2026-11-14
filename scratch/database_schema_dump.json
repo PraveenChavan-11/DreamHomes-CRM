@@ -1,0 +1,5084 @@
+{
+    "admin_users": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "username",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "password_hash",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "first_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "phone",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "totp_secret",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "totp_enabled",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "totp_backup_codes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_active",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "last_login_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "failed_login_count",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "locked_until",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "announcement_events": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "announcement_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "event_type",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "user_agent_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "session_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "announcements": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "internal_description",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "public_heading",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "public_content",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "image_url",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "cta_text",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "cta_url",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "announcement_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": "company_announcement",
+            "primary_key": 0
+        },
+        {
+            "name": "display_format",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "center_modal",
+            "primary_key": 0
+        },
+        {
+            "name": "start_date",
+            "type": "date",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "end_date",
+            "type": "date",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "start_time",
+            "type": "time",
+            "max_length": null,
+            "nullable": false,
+            "default": "00:00:00",
+            "primary_key": 0
+        },
+        {
+            "name": "end_time",
+            "type": "time",
+            "max_length": null,
+            "nullable": false,
+            "default": "23:59:59",
+            "primary_key": 0
+        },
+        {
+            "name": "timezone",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": "Asia\/Kolkata",
+            "primary_key": 0
+        },
+        {
+            "name": "audience",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "everyone",
+            "primary_key": 0
+        },
+        {
+            "name": "target_pages",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "frequency",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "once_per_session",
+            "primary_key": 0
+        },
+        {
+            "name": "priority",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "DRAFT",
+            "primary_key": 0
+        },
+        {
+            "name": "created_by",
+            "type": "int",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "application_status_history": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "application_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "previous_status",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "new_status",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "changed_by_user_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "comment",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "email_dispatched",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "notification_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "applications": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "job_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "candidate_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "document_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "cover_message",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "APPLIED",
+            "primary_key": 0
+        },
+        {
+            "name": "recruiter_notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "reopened_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "closed_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_contacted_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "rating",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "assigned_recruiter_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "source",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "WEBSITE",
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "idempotency_key",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_deadline",
+            "type": "date",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_status_note",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_closed",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        }
+    ],
+    "audit_logs": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "user_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "action",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "entity_type",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "entity_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "old_values",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "new_values",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "user_agent",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "blog_categories": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "blog_posts": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "category_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "summary",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "content",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "featured_image",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "meta_title",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "meta_description",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_published",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "published_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "author_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "candidate_documents": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "candidate_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "document_type",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "RESUME",
+            "primary_key": 0
+        },
+        {
+            "name": "original_name",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "storage_filename",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "file_path",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "file_size",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "mime_type",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "file_hash",
+            "type": "char",
+            "max_length": 64,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "uploaded_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "candidates": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "full_name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "phone",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "current_location",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "preferred_location",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "total_experience_years",
+            "type": "decimal",
+            "max_length": 4,
+            "nullable": true,
+            "default": "0.0",
+            "primary_key": 0
+        },
+        {
+            "name": "current_role",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "primary_skills",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "notice_period_days",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "30",
+            "primary_key": 0
+        },
+        {
+            "name": "consent_received",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "consent_timestamp",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "consent_policy_version",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "v1.0-DPDP-2026",
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "captcha_tokens": [
+        {
+            "name": "token_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "action",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "used_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "contact_enquiries": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "first_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "phone",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "company",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "message",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "reopened_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "closed_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_contacted_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "UNREAD",
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "idempotency_key",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "consent_received",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "consent_timestamp",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_deadline",
+            "type": "date",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_status_note",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_closed",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        }
+    ],
+    "cookie_consent_logs": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "consent_uuid",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "necessary",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "analytics",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "marketing",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "ip_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "user_agent_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "data_retention_logs": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "policy_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "records_purged",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "details",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "executed_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "db_factories": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 9,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 31,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "uid",
+            "type": "varchar",
+            "max_length": 31,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "class",
+            "type": "varchar",
+            "max_length": 63,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "icon",
+            "type": "varchar",
+            "max_length": 31,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "summary",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "deleted_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "db_migrations": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "version",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "class",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "group",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "namespace",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "time",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "batch",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "email_campaigns": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "campaign_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": "newsletter",
+            "primary_key": 0
+        },
+        {
+            "name": "template_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "preview_text",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_html",
+            "type": "mediumtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_text",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "audience_filter",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": "all",
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "DRAFT",
+            "primary_key": 0
+        },
+        {
+            "name": "scheduled_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "sent_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "total_recipients",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "sent_count",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "delivered_count",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "failed_count",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "created_by",
+            "type": "int",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "email_delivery_logs": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "campaign_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subscriber_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "recipient_email",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "provider",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": "smtp",
+            "primary_key": 0
+        },
+        {
+            "name": "provider_message_id",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "QUEUED",
+            "primary_key": 0
+        },
+        {
+            "name": "attempt_count",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "last_attempt",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "error_message",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "sent_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "email_outbox": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "template_code",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "recipient_email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "recipient_name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_html",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_text",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "PENDING",
+            "primary_key": 0
+        },
+        {
+            "name": "attempts",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "last_error",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "idempotency_key",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "scheduled_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "sent_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "email_templates": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "code",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_html",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_text",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "variables_help",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_active",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "employer_enquiries": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "company_name",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "contact_person",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "phone",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "required_roles",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "number_of_positions",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "location",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "experience_bracket",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "urgency",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "IMMEDIATE",
+            "primary_key": 0
+        },
+        {
+            "name": "notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "reopened_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "closed_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_contacted_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "NEW",
+            "primary_key": 0
+        },
+        {
+            "name": "assigned_to",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "idempotency_key",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "consent_received",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "consent_timestamp",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "follow_up_deadline",
+            "type": "date",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_status_note",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_closed",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        }
+    ],
+    "employers": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "contact_person",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "contact_email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "contact_phone",
+            "type": "varchar",
+            "max_length": 30,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "industry",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "location",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "website",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "description",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_active",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "enquiry_followups": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "enquiry_type",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "enquiry_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "scheduled_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "reminder_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "PENDING",
+            "primary_key": 0
+        },
+        {
+            "name": "assigned_to",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "outcome",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "enquiry_notes": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "enquiry_type",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "enquiry_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "author_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "note",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "factories": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 9,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 31,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "uid",
+            "type": "varchar",
+            "max_length": 31,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "class",
+            "type": "varchar",
+            "max_length": 63,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "icon",
+            "type": "varchar",
+            "max_length": 31,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "summary",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "deleted_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "faqs": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "category",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": "General",
+            "primary_key": 0
+        },
+        {
+            "name": "question",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "answer",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "order_num",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "is_published",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "general_resume_submissions": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "candidate_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "document_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "desired_role",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "preferred_location",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "notice_period",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "NEW",
+            "primary_key": 0
+        },
+        {
+            "name": "assigned_recruiter_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "idempotency_key",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "job_alert_subscriptions": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "job_category",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "category_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "preferred_location",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "experience_level",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "employment_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "frequency",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "weekly",
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "active",
+            "primary_key": 0
+        },
+        {
+            "name": "token_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_alert_sent_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "job_categories": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "description",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "order_num",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "is_active",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "job_locations": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "city",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": "Pune",
+            "primary_key": 0
+        },
+        {
+            "name": "state",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": "Maharashtra",
+            "primary_key": 0
+        },
+        {
+            "name": "country",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": "India",
+            "primary_key": 0
+        },
+        {
+            "name": "is_active",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "jobs": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "employer_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "category_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "experience_min",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "experience_max",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "experience_label",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "job_type",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "FT",
+            "primary_key": 0
+        },
+        {
+            "name": "work_mode",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "ONSITE",
+            "primary_key": 0
+        },
+        {
+            "name": "location",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "salary_min",
+            "type": "decimal",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "salary_max",
+            "type": "decimal",
+            "max_length": 10,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_salary_negotiable",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "is_salary_public",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "description",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "requirements",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "skills",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "benefits",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "DRAFT",
+            "primary_key": 0
+        },
+        {
+            "name": "is_featured",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "published_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "expires_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_by",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "deleted_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "login_attempts": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "user_agent",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "success",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "attempted_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "mail_activity_logs": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "admin_user_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "action",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "mailbox_resource_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "message_uid",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "details_json",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "mail_local_drafts": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "admin_user_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "mailbox_resource_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "to_recipients",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "cc_recipients",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "bcc_recipients",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_html",
+            "type": "mediumtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_text",
+            "type": "mediumtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "attachments_json",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "in_reply_to",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "thread_id",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "category",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "general",
+            "primary_key": 0
+        },
+        {
+            "name": "recruitment_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "recruitment_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "mail_message_index": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "mailbox_resource_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "message_uid",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "folder",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": "INBOX",
+            "primary_key": 0
+        },
+        {
+            "name": "thread_id",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "internet_message_id",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "in_reply_to",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "references_header",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "subject",
+            "type": "varchar",
+            "max_length": 500,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "from_name",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "from_email",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "to_recipients",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "cc_recipients",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "bcc_recipients",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "reply_to",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "snippet",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_html",
+            "type": "mediumtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "body_text",
+            "type": "mediumtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "has_attachments",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "attachments_meta",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_read",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "is_flagged",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "is_draft",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "category",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "general",
+            "primary_key": 0
+        },
+        {
+            "name": "recruitment_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "recruitment_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "internal_notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "assigned_to",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "message_date",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "mail_recruitment_links": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "mailbox_resource_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "message_uid",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "folder",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": "INBOX",
+            "primary_key": 0
+        },
+        {
+            "name": "entity_type",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "entity_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "notes",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_by",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "mail_webhook_events": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "event_id",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "event_type",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "mailbox_resource_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "payload_json",
+            "type": "mediumtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "PENDING",
+            "primary_key": 0
+        },
+        {
+            "name": "error_message",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "processed_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "mailbox_connections": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "mailbox_resource_id",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "display_name",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "ACTIVE",
+            "primary_key": 0
+        },
+        {
+            "name": "quota_used_bytes",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "quota_total_bytes",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "is_default",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "assigned_roles",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": "all",
+            "primary_key": 0
+        },
+        {
+            "name": "last_synced_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "sync_status",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "IDLE",
+            "primary_key": 0
+        },
+        {
+            "name": "sync_error",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "media_assets": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "filename",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "file_path",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "mime_type",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "file_size_bytes",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "alt_text",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "width",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "height",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "usage_count",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "uploaded_by",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "migrations": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "version",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "class",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "group",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "namespace",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "time",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "batch",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "newsletter_activity_logs": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "subscriber_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "activity_type",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "activity_timestamp",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "source",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "metadata",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "newsletter_preferences": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "subscriber_id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "category",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_enabled",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "newsletter_subscribers": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "first_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "unverified",
+            "primary_key": 0
+        },
+        {
+            "name": "verification_token_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "verification_expires_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "unsubscribe_token_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "consent_given",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "consent_timestamp",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "consent_source",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": "web_form",
+            "primary_key": 0
+        },
+        {
+            "name": "verified_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "unsubscribed_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "notification_logs": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "recipient",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "channel",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "EMAIL",
+            "primary_key": 0
+        },
+        {
+            "name": "event_type",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "metadata",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "notifications": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "user_id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "role_target",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "category",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "message",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "priority",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "MEDIUM",
+            "primary_key": 0
+        },
+        {
+            "name": "link",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "is_read",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "read_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "password_resets": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "email",
+            "type": "varchar",
+            "max_length": 191,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "token_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "ip_address",
+            "type": "varchar",
+            "max_length": 45,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "user_agent",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "expires_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "used_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "permissions": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "code",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "category",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "rate_limit_buckets": [
+        {
+            "name": "key_hash",
+            "type": "varchar",
+            "max_length": 64,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "rate_key",
+            "type": "varchar",
+            "max_length": 190,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "hits",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "reset_at",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "role_permissions": [
+        {
+            "name": "role_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "permission_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        }
+    ],
+    "roles": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "description",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "scheduled_job_runs": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "job_name",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "items_processed",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "error_details",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "duration_ms",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "started_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "completed_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        }
+    ],
+    "sitemap_log": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "trigger_source",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "total_urls",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "pages_count",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "jobs_count",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "insights_count",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "duration_ms",
+            "type": "int",
+            "max_length": 10,
+            "nullable": false,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": false,
+            "default": "SUCCESS",
+            "primary_key": 0
+        },
+        {
+            "name": "error_message",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "testimonials": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "name",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "designation",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "company",
+            "type": "varchar",
+            "max_length": 150,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "content",
+            "type": "text",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "rating",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "5",
+            "primary_key": 0
+        },
+        {
+            "name": "photo_path",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "order_num",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "0",
+            "primary_key": 0
+        },
+        {
+            "name": "is_published",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "user_roles": [
+        {
+            "name": "user_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "role_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        }
+    ],
+    "website_page_history": [
+        {
+            "name": "id",
+            "type": "bigint",
+            "max_length": 20,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "page_id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "version",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "content_json",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_by",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "website_pages": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "slug",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "title",
+            "type": "varchar",
+            "max_length": 200,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "meta_title",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "meta_description",
+            "type": "text",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "og_image",
+            "type": "varchar",
+            "max_length": 255,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "status",
+            "type": "enum",
+            "max_length": null,
+            "nullable": true,
+            "default": "PUBLISHED",
+            "primary_key": 0
+        },
+        {
+            "name": "content_json",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "draft_json",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "version",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "last_published_at",
+            "type": "datetime",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "last_updated_by",
+            "type": "int",
+            "max_length": 11,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ],
+    "website_settings": [
+        {
+            "name": "id",
+            "type": "int",
+            "max_length": 11,
+            "nullable": false,
+            "default": null,
+            "primary_key": 1
+        },
+        {
+            "name": "setting_key",
+            "type": "varchar",
+            "max_length": 100,
+            "nullable": false,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "setting_value",
+            "type": "longtext",
+            "max_length": null,
+            "nullable": true,
+            "default": null,
+            "primary_key": 0
+        },
+        {
+            "name": "setting_group",
+            "type": "varchar",
+            "max_length": 50,
+            "nullable": true,
+            "default": "general",
+            "primary_key": 0
+        },
+        {
+            "name": "is_public",
+            "type": "tinyint",
+            "max_length": 1,
+            "nullable": true,
+            "default": "1",
+            "primary_key": 0
+        },
+        {
+            "name": "updated_at",
+            "type": "timestamp",
+            "max_length": null,
+            "nullable": false,
+            "default": "current_timestamp()",
+            "primary_key": 0
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+Content-Signal: search=yes, ai-train=no
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /application/
+
+Sitemap: https://talenthubconsultant.com/sitemap.xml

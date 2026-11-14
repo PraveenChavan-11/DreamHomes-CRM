@@ -1,0 +1,67 @@
+PASS  4 real heartbeat rows exist from actual CLI runs  [engagement:run:SUCCESS, outbox:process:SUCCESS, mail:sync:FAILED, social:publish:SUCCESS]
+PASS  missing heartbeat: Scheduler page says Not Verified + "never recorded"
+PASS  missing heartbeat: no "Healthy" badge anywhere on Scheduler page
+PASS  missing heartbeat: Health scheduler card = Not Verified  [Not Verified]
+PASS  missing heartbeat: social queue badge "Cron worker: not verified"
+PASS  queue page: old hard-coded "Cron Worker: Active" is gone
+PASS  queue page: no server path in cron instructions
+PASS  successful: Health scheduler card = Healthy  [Healthy]
+PASS  successful: social:publish + engagement:run Healthy  [Social publishing queue php spark social:publish Healthy Ran under a minute ago and completed successfully. Expected every 5 min Last started 2026-11-08 15:26:42 Last successful 2026-11-08 15:26:42 Failures (24h) 0 Next expected 2026-11-08 15:31:42 || Engagement, alerts & email outbox php spark engagement:run Healthy Ran under a minute ago and completed successfully. Expected every 15 min Last started 2026-11-08 15:26:42 Last successful 2026-11-08 15:26:42 Failures (24h) 0 Next expected 2026-11-08 15:41:42]
+PASS  failed: mail:sync (optional) shows Warning with sanitised error and does not break required status  [Hostinger mailbox sync php spark mail:sync OPTIONAL Warning The most recent run failed. It has never succeeded. Expected every 60 min Last started 2026-11-08 15:26:42 Last successful never recorded Failures (24h) 1 Next expected 2026-11-08 16:26:42 Last error ErrorException: Undefined variable $msgUid]
+PASS  successful: social queue badge "Cron worker: running"
+PASS  missed runs: queue badge "missed runs"
+PASS  missed runs: Scheduler card Warning
+PASS  stale: queue badge "stopped"
+PASS  stale: Scheduler card Failed + "appears to have stopped"
+PASS  failed run: card Warning, error shown but redacted (no key, no path)
+PASS  stuck RUNNING row: reported as never finished / Failed
+PASS  jobs list renders with statuses & counts
+PASS  jobs list: no secret/path/raw HTML from error text
+PASS  jobs list: no XSS element injected
+PASS  filter by status=failed
+PASS  malicious filter params handled (200, no crash)
+PASS  detail page shows Retry button for failed job (manage)
+PASS  detail: sanitised problem text
+PASS  view-only: sees job, NO action buttons, sees explanation
+PASS  view-only: forged POST refused (CSRF/permission) and job unchanged  [http 403]
+PASS  manage user, missing CSRF token: rejected and job unchanged  [http 403]
+PASS  restricted user blocked from /admin/system/health  [/admin]
+PASS  restricted user blocked from /admin/system/jobs  [/admin]
+PASS  restricted user blocked from /admin/system/scheduler  [/admin]
+PASS  restricted user blocked from /admin/system/jobs/social/16  [/admin]
+PASS  restricted user: no System Health/Jobs/Scheduler in sidebar
+PASS  retry via UI: job is now queued
+PASS  retry via UI: success flash shown
+PASS  retry: attempts reset and post moved failed→scheduled
+PASS  retry: no Retry button remains (no duplicate retry from UI)
+PASS  second retry rejected, audited as REJECTED  [http 303]
+PASS  audit: JOB_RETRY recorded with acting user id
+PASS  cancel waiting job via UI
+PASS  processing job: no Retry/Cancel buttons offered
+PASS  forged cancel of a running job refused server-side  [http 303]
+PASS  unknown queue → 404
+PASS  missing job → friendly redirect with message
+PASS  no sensitive config/paths in /admin/system/health  [clean]
+PASS  no sensitive config/paths in /admin/system/jobs  [clean]
+PASS  no sensitive config/paths in /admin/system/scheduler  [clean]
+PASS  no sensitive config/paths in /admin/system/jobs/social/16  [clean]
+PASS  no sensitive config/paths in /admin/social/queue  [clean]
+PASS  health page shows application/db/storage cards with real data
+PASS  health: email card is NOT "Healthy" (SMTP secret set but nothing delivered)  [Not Verified]
+PASS  health: overall is never Healthy while evidence is missing
+PASS  sidebar: System group open + active item highlighted on Health page
+PASS  desktop: no page-level horizontal scroll on /admin/system/health
+PASS  desktop: no page-level horizontal scroll on /admin/system/jobs
+PASS  desktop: no page-level horizontal scroll on /admin/system/scheduler
+PASS  desktop: no page-level horizontal scroll on /admin/system/jobs/social/16
+PASS  mobile: no page-level horizontal scroll on /admin/system/health
+PASS  mobile: no page-level horizontal scroll on /admin/system/jobs
+PASS  mobile: no page-level horizontal scroll on /admin/system/scheduler
+PASS  mobile: no page-level horizontal scroll on /admin/system/jobs/social/16
+PASS  no JS page errors
+
+FAIL COUNT: 0 of 61
+
+Harness notes: Microsoft Edge 157 headless via playwright-core against a PHP built-in server on :8085 pinned (auto_prepend_file) to database `talenthub_test`
+with a sentinel fake SMTP secret (SENTINEL-SMTP-SECRET-4471) that must never appear in any page. Sessions were forged on the local machine only.
+Re-run on 2026-11-08 after the header "Mail sync" pill change: 61/61 system checks and 33/33 sidebar checks passed.

@@ -1,0 +1,11 @@
+{
+  "name": "talenthub-admin-css",
+  "private": true,
+  "description": "Build-time Tailwind CSS for the admin portal. Output (public/assets/css/admin-tailwind.css) is committed, so hosting needs no Node.",
+  "scripts": {
+    "build": "tailwindcss -c tailwind.config.js -i input.css -o ../../public/assets/css/admin-tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}

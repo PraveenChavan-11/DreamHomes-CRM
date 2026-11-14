@@ -1,0 +1,71 @@
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.secret
+*smtp_config*.php
+!*smtp_config.php
+!*smtp_config.sample.php
+.ht_smtp_config.php
+serviceAccountKey.json
+serviceAccountKey*.json
+*.pem
+*.key
+
+# Dependencies & Build
+node_modules/
+.next/
+dist/
+build/
+out/
+frontend/out/
+__pycache__/
+venv/
+env/
+/media/
+backend/media/
+
+# Backups and SQL dumps
+*.sql
+!deployment/migration_*.sql
+deployment/backup*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# CodeIgniter Writable Directory (Track structure and safety files, ignore runtime data)
+/writable/*.lock
+/writable/cache/*
+!/writable/cache/.gitkeep
+!/writable/cache/index.html
+/writable/debugbar/*
+!/writable/debugbar/.gitkeep
+!/writable/debugbar/index.html
+/writable/logs/*
+!/writable/logs/.gitkeep
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/.gitkeep
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/.gitkeep
+!/writable/uploads/index.html
+/writable/vault/resumes/*
+!/writable/vault/resumes/.gitkeep
+!/writable/vault/resumes/index.html
+!/writable/vault/.gitkeep
+!/writable/.gitkeep
+!/writable/.htaccess
+!/writable/index.html
+
+vendor/
+
+# DHIS CRM generated artefacts (PDFs, imports, demo snapshots) - may contain customer data
+/writable/crm/

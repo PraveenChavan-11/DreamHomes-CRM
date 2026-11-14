@@ -1,0 +1,32 @@
+# TalentHub Consultant - Hostinger Production Cron Jobs
+# Hostinger account: u139147679
+# PHP CLI:  /usr/bin/php
+# App root: /home/u139147679/public_html   (folder that contains the `spark` file)
+# If your production app lives in a different folder, change APP below in every line.
+#
+# Intervals match what Admin > System Administration > Scheduler & Cron expects. Required jobs
+# (1 and 2) turn that page from "Not Verified" to "Healthy" after their first successful run.
+# Add each line in hPanel > Advanced > Cron Jobs (Custom), or paste into `crontab -e` over SSH.
+
+# 1. REQUIRED - Social publishing queue (scheduled LinkedIn / Instagram posts). Every 5 minutes.
+*/5 * * * * /usr/bin/php /home/u139147679/public_html/spark social:publish >/dev/null 2>&1
+
+# 2. REQUIRED - Engagement scheduler (announcements, campaigns, job alerts, token hygiene, email outbox). Every 15 minutes.
+*/15 * * * * /usr/bin/php /home/u139147679/public_html/spark engagement:run >/dev/null 2>&1
+
+# 3. Optional - Standalone email outbox processor (faster delivery of queued emails). Every minute.
+* * * * * /usr/bin/php /home/u139147679/public_html/spark outbox:process >/dev/null 2>&1
+
+# 4. Optional - Hostinger mailbox synchronisation. Hourly.
+0 * * * * /usr/bin/php /home/u139147679/public_html/spark mail:sync >/dev/null 2>&1
+
+# 5. Optional - XML sitemap regeneration. Daily at 03:00 (server time).
+0 3 * * * /usr/bin/php /home/u139147679/public_html/spark sitemap:generate >/dev/null 2>&1
+
+# 6. Optional - Log pruning. Weekly, Sunday 02:00 (server time).
+0 2 * * 0 /usr/bin/php /home/u139147679/public_html/spark logs:clear --force >/dev/null 2>&1
+
+# --------------------------------------------------------------------------------------
+# HTTP CRON FALLBACK (shared plans without a CLI cron): GET https://talenthubconsultant.com/api/v1/cron/run?key=<CRON_SECRET_KEY>
+# Requires CRON_SECRET_KEY in .env. The secret appears in the URL, so prefer the CLI lines above.
+# --------------------------------------------------------------------------------------

@@ -1,0 +1,204 @@
+TALENTHUB & WORKSPHERE COMMERCIAL SOFTWARE LICENCE
+================================================================================
+Copyright (c) 2026 Praveen Chavan. All Rights Reserved.
+Author & Copyright Owner: Praveen Chavan / TalentHub Consultancy Services
+Website: https://www.talenthubconsultant.com
+WorkSphere Platform: https://www.worksphere.talenthubconsultant.com
+Contact: projects@talenthubconsultant.com | hr@talenthubconsultant.com
+
+IMPORTANT NOTICE:
+This software, source code, database architectures, user interfaces, documentation, 
+and proprietary business systems are protected by copyright, trademark, and trade secret 
+laws. Any use, evaluation, deployment, white-labelling, or redistribution of this software 
+is strictly subject to one of the two authorized commercial adoption models set forth below.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. Framework & Dual-Model Adoption Architecture
+2. Model 1: Hosted Subscription (Software as a Service — SaaS)
+3. Model 2: Commercial Licence with Source Code (For IT & Software Companies)
+4. Core Contractual & Discussion Pillars for Source Code Licences
+5. Intellectual Property, Copyright & Ownership Retention
+6. Third-Party Libraries & Framework Attributions
+7. Compliance, Confidentiality & Restrictions
+8. Warranties, Limitation of Liability & Governing Law
+
+================================================================================
+1. FRAMEWORK & DUAL-MODEL ADOPTION ARCHITECTURE
+================================================================================
+WorkSphere is engineered and licensed by Praveen Chavan under two distinct commercial 
+engagement models designed to serve operating employers and technology providers:
+
+  (A) MODEL 1: Hosted Subscription (SaaS) — For employers, HR teams, and corporate 
+      organisations seeking a fully managed, turn-key cloud platform with zero DevOps overhead.
+
+  (B) MODEL 2: Licence with Source Code — For IT companies, managed service providers (MSPs), 
+      software houses, and system integrators seeking to own the codebase, self-host, 
+      rebrand/white-label, customize, and deliver solutions to their own client base.
+
+All rights not expressly granted in this Licence or in an executed bilateral written 
+agreement signed by Praveen Chavan are strictly reserved.
+
+================================================================================
+2. MODEL 1: HOSTED SUBSCRIPTION (SOFTWARE AS A SERVICE — SaaS)
+================================================================================
+For organisations adopting WorkSphere as a cloud service:
+
+2.1. Grant of Use:
+Subject to prompt payment of the applicable subscription fees, Praveen Chavan grants 
+the subscribing organisation a non-exclusive, non-transferable, revocable right to access 
+and operate the hosted WorkSphere cloud platform through authorized user accounts 
+solely for its internal human resources, payroll, and workforce operations.
+
+2.2. Isolated Tenant Workspace:
+Each subscribing organisation is provisioned an isolated workspace and dedicated tenant 
+database boundary, ensuring multi-company data privacy, role-based access control (RBAC), 
+and compliance with statutory confidentiality requirements.
+
+2.3. Managed Infrastructure & Updates:
+TalentHub hosts, monitors, backups, and maintains the hosted infrastructure. Subscriptions 
+include routine platform upgrades, statutory payroll and tax formula updates, bug fixes, 
+and performance optimizations deployed automatically with zero server maintenance on the client.
+
+2.4. Subscription Tiers & Billing Cycles:
+Fees are determined by the customer's selected plan tier, employee headcount, and billing 
+frequency (monthly, quarterly, or yearly) as specified on the commercial invoice.
+
+2.5. Demo & Live Evaluation:
+Customers may commence use through a complimentary 7-day sandbox demo followed by a guided 
+live evaluation period. Transition to a paid plan occurs upon mutual agreement.
+
+2.6. Source Code Exclusion:
+UNDER MODEL 1, NO SOURCE CODE, DATABASE REPOSITORIES, OR DEVELOPER ASSETS ARE DELIVERED, 
+LICENSED, OR TRANSFERRED. THE CLIENT RECEIVES ONLY THE BENEFIT OF THE MANAGED CLOUD SERVICE.
+
+================================================================================
+3. MODEL 2: COMMERCIAL LICENCE WITH SOURCE CODE (FOR IT & SOFTWARE COMPANIES)
+================================================================================
+For IT companies, software consultancies, and system integrators wishing to own and adapt the product:
+
+3.1. Individual Scoping & Written Legal Agreement:
+A company seeking to license WorkSphere together with its underlying source code must enter 
+into a binding, written commercial agreement with Praveen Chavan / TalentHub prior to delivery. 
+No source code handover occurs without an executed written agreement and agreed payment milestone schedule.
+
+3.2. Scope of Delivery:
+Upon execution of the bilateral written agreement, Praveen Chavan shall hand over:
+  (a) The complete application codebase (PHP 8.2 / CodeIgniter 4 framework layer);
+  (b) Complete MariaDB/MySQL database schemas, migrations, seeds, and index definitions;
+  (c) Front-end assets, CSS design tokens, and client JavaScript components;
+  (d) Technical architecture blueprints, developer documentation, and deployment guides.
+
+3.3. Self-Hosting & Operational Freedom:
+The licensee possesses the right to deploy and host the platform on its own cloud infrastructure 
+(including AWS, Microsoft Azure, Google Cloud Platform, or private data centers) or on client-dedicated servers.
+
+3.4. White-Labelling & Rebranding:
+Subject to the written agreement terms, the licensee is granted the right to rebrand, re-skin, 
+modify user interfaces, bind custom domain names, apply custom corporate logos, and customize client 
+portals to present the software under the licensee's own commercial brand.
+
+3.5. Extension & Client Redistribution:
+The licensee may engineer custom proprietary modules, integrate third-party APIs, and offer 
+the configured solution or services to its own commercial clientele within the contractual boundaries 
+stipulated in the written agreement.
+
+================================================================================
+4. CORE CONTRACTUAL & DISCUSSION PILLARS FOR SOURCE CODE LICENCES
+================================================================================
+A licence discussion between Praveen Chavan / TalentHub and an IT company normally covers 
+seven foundational commercial and technical pillars:
+
+  1. Rights & Limits: The specific rights granted to the licensee (deployment boundaries, 
+     hosting scope, client volume, and geographical or vertical limits) defined in writing.
+  
+  2. Source Code & Documentation: Scope of the repository, database schemas, integration 
+     guides, and architectural documentation handed over to the licensee's technical team.
+  
+  3. Deployment & Knowledge-Transfer Support: Hands-on setup assistance, server hardening, 
+     CI/CD pipeline onboarding, and technical knowledge transfer from TalentHub engineers.
+  
+  4. Branding & White-Labelling: Permitted scope of cosmetic, domain, and portal re-branding 
+     to ensure seamless alignment with the licensee's corporate brand.
+  
+  5. Customisation Built to Order: Specifications, timelines, and deliverables for bespoke 
+     features, custom shift rules, or specialized enterprise integrations developed by TalentHub.
+  
+  6. Support & Maintenance Period: Defined post-handover warranty, framework security patches, 
+     bug fixes, and SLA-backed engineering consultation period.
+  
+  7. Price & Payment Milestones: Structured, transparent commercial terms and payment milestones 
+     aligned with delivery phases, technical verification, and formal sign-offs.
+
+These are discussion points, not a fixed price list. We scope each licence individually and put 
+the outcome in a written agreement. Organisations that only want to use WorkSphere do not need 
+a licence: a subscription gives full use of the hosted service.
+
+================================================================================
+5. INTELLECTUAL PROPERTY, COPYRIGHT & OWNERSHIP RETENTION
+================================================================================
+5.1. Moral & Author Rights:
+Praveen Chavan retains all moral rights, underlying copyright, authorship, title, and ownership 
+of the original WorkSphere and TalentHub software architectures, schemas, workflows, and core algorithms.
+
+5.2. No Implied Transfer:
+Nothing in this Licence, the public website, or general correspondence shall be construed as an 
+assignment or transfer of intellectual property ownership. Any transfer or exclusive rights must be 
+explicitly agreed upon in a formal bilateral contract executed by Praveen Chavan.
+
+5.3. Protection of Trade Secrets:
+The source code, database architectures, and engineering models constitute valuable confidential 
+information and trade secrets of Praveen Chavan. Licensees receiving source code must maintain strict 
+confidentiality and ensure that repository access is restricted to authorized personnel under appropriate NDA.
+
+================================================================================
+6. THIRD-PARTY LIBRARIES & FRAMEWORK ATTRIBUTIONS
+================================================================================
+6.1. CodeIgniter Framework:
+WorkSphere and the TalentHub platform utilize the CodeIgniter 4 open-source framework:
+  Copyright (c) 2014-2019 British Columbia Institute of Technology
+  Copyright (c) 2019-present CodeIgniter Foundation
+  Licensed under the MIT License (https://opensource.org/licenses/MIT).
+
+6.2. Distinction of Proprietary Assets:
+The MIT License applies strictly to the underlying generic CodeIgniter framework components. 
+All application controllers, models, services, business rules, database migrations, bespoke JavaScript, 
+CSS design systems, statutory payroll engines, biometric synchronization modules, and WorkSphere platform 
+features authored by Praveen Chavan are proprietary and governed exclusively by this Licence.
+
+================================================================================
+7. COMPLIANCE, CONFIDENTIALITY & RESTRICTIONS
+================================================================================
+Licensees, subscribers, and evaluators agree:
+  (a) Not to publicly publish, upload to open repositories (e.g. public GitHub/GitLab), leak, 
+      or freely redistribute the source code or database migrations;
+  (b) Not to reverse engineer, decompile, or disassemble hosted SaaS endpoints;
+  (c) Not to remove, obscure, or alter any copyright notices, watermark statements, or legal credits 
+      contained within the software source code;
+  (d) To comply with all applicable data privacy and labor regulations regarding employee records 
+      processed on the platform.
+
+================================================================================
+8. WARRANTIES, LIMITATION OF LIABILITY & GOVERNING LAW
+================================================================================
+8.1. Disclaimer of Warranties:
+Except as expressly stipulated in a signed written commercial agreement, the software and cloud services 
+are provided "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO 
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+8.2. Limitation of Liability:
+IN NO EVENT SHALL PRAVEEN CHAVAN, TALENTHUB CONSULTANCY SERVICES, OR THEIR AFFILIATES BE LIABLE 
+FOR ANY CLAIM, DAMAGES, LOSS OF PROFITS, BUSINESS INTERRUPTION, LOSS OF DATA, OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING OUT OF OR IN CONNECTION WITH THE USE, 
+EVALUATION, OR PERFORMANCE OF THE SOFTWARE, EXCEEDING THE FEES ACTUALLY PAID BY THE CUSTOMER UNDER 
+THE APPLICABLE WRITTEN AGREEMENT OR SUBSCRIPTION IN THE PRECEDING TWELVE (12) MONTHS.
+
+8.3. Governing Law & Jurisdiction:
+This Licence and any dispute arising out of or in connection with it shall be governed by and construed 
+in accordance with the substantive laws of India. Any legal action or proceeding arising under this 
+Licence shall be brought exclusively in the competent courts having jurisdiction in Mumbai / Maharashtra, India.
+
+================================================================================
+END OF LICENCE
+================================================================================

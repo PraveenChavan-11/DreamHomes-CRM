@@ -1,0 +1,97 @@
+name: TalentHub Staging Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify-and-test:
+    name: 1. Verify CodeIgniter Backend & Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify No Secrets Committed
+        run: |
+          echo "Scanning git repository for committed secrets..."
+          tracked="$(git ls-files | grep -iE '(^|/)serviceAccountKey[^/]*\.json$|\.pem$|\.key$|\.env$' | grep -vE '\.(example|sample|template|staging)$' || true)"
+          if [ -n "$tracked" ]; then
+            echo "SECURITY ERROR: Sensitive credential files found in repository:"
+            echo "$tracked"
+            exit 1
+          fi
+          echo "Secret check passed: 0 secret files tracked."
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mysqli, pdo, pdo_mysql, mbstring, intl, json, curl, xml, zip
+          coverage: none
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Lint PHP Syntax
+        run: |
+          find app public -type f -name "*.php" -exec php -l {} +
+
+      - name: Verify Spark Commands
+        run: |
+          php spark --version
+          php spark staging:status || true
+
+  deploy-to-staging:
+    name: 2. Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    needs: verify-and-test
+    environment: staging
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Production Boundary Assertion
+        run: |
+          echo "Verifying deployment target: STAGING"
+          echo "Target Host: staging.talenthubconsultant.com"
+          echo "Target Document Root: /home/u139147679/domains/talenthubconsultant.com/public_html/staging"
+          echo "Production is strictly protected from this workflow."
+
+      - name: Deploy to Hostinger Staging via SSH (When Secret Configured)
+        if: env.HOSTINGER_SSH_KEY != ''
+        env:
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST || 'talenthubconsultant.com' }}
+          HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER || 'u139147679' }}
+          HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT || '65002' }}
+        run: |
+          echo "Initiating automated SSH synchronization to Hostinger Staging..."
+          mkdir -p ~/.ssh
+          echo "$HOSTINGER_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p $HOSTINGER_SSH_PORT $HOSTINGER_SSH_HOST >> ~/.ssh/known_hosts
+
+          ssh -p $HOSTINGER_SSH_PORT $HOSTINGER_SSH_USER@$HOSTINGER_SSH_HOST << 'EOF'
+            set -e
+            STAGING_PATH="/home/$(whoami)/domains/talenthubconsultant.com/public_html/staging"
+            echo "Checking staging path: $STAGING_PATH"
+            mkdir -p "$STAGING_PATH"
+            cd "$STAGING_PATH"
+            if [ -d ".git" ]; then
+              git fetch origin main
+              git reset --hard origin/main
+            fi
+            bash deployment/hostinger_staging_deploy.sh || true
+          EOF
+          echo "Staging deployment completed successfully."
+

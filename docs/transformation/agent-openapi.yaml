@@ -1,0 +1,105 @@
+openapi: 3.1.0
+info:
+  title: TalentHub External Agent API
+  version: "1.0"
+  description: >
+    Draft-only integration for authorised AI agents. Agents can read guidelines/templates/status and create drafts;
+    they can never publish, schedule or approve. Every draft is reviewed by a person.
+servers:
+  - url: https://YOUR-DOMAIN/api/v1/integrations/agents
+security:
+  - bearerAuth: []
+paths:
+  /capabilities:
+    get:
+      operationId: getCapabilities
+      summary: Identity, policy, granted scopes, limits and credential expiry
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "401": { $ref: "#/components/responses/Error" } }
+  /social/accounts:
+    get:
+      operationId: getSocialAccounts
+      summary: Connected social accounts (status only; no tokens or platform ids)
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "403": { $ref: "#/components/responses/Error" } }
+  /social/content-guidelines:
+    get:
+      operationId: getContentGuidelines
+      summary: Platform limits and content rules
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "403": { $ref: "#/components/responses/Error" } }
+  /social/templates:
+    get:
+      operationId: getTemplates
+      summary: Active content templates
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "403": { $ref: "#/components/responses/Error" } }
+  /social/calendar:
+    get:
+      operationId: getCalendar
+      summary: Content calendar (UTC, max 92 days)
+      parameters:
+        - { name: from, in: query, schema: { type: string, format: date-time } }
+        - { name: to, in: query, schema: { type: string, format: date-time } }
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "422": { $ref: "#/components/responses/Error" } }
+  /social/analytics:
+    get:
+      operationId: getAnalytics
+      summary: 30-day aggregate publishing counts
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "403": { $ref: "#/components/responses/Error" } }
+  /social/posts/drafts:
+    post:
+      operationId: createDraft
+      summary: Create a social draft (status "draft"; cannot be published or scheduled by the agent)
+      parameters:
+        - { name: Idempotency-Key, in: header, required: false, schema: { type: string, minLength: 8, maxLength: 80, pattern: "^[A-Za-z0-9_.:-]+$" } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/DraftRequest" } } }
+      responses:
+        "201": { $ref: "#/components/responses/Ok" }
+        "200": { description: Idempotent replay of an earlier identical request }
+        "409": { $ref: "#/components/responses/Error" }
+        "422": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /social/posts/{id}:
+    get:
+      operationId: getDraft
+      summary: Status and review decision of one of this agent's own drafts
+      parameters: [ { $ref: "#/components/parameters/PostId" } ]
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "404": { $ref: "#/components/responses/Error" } }
+  /social/posts/{id}/submit-approval:
+    post:
+      operationId: submitForApproval
+      summary: Ask a human to review this agent's own draft (does not approve it)
+      parameters: [ { $ref: "#/components/parameters/PostId" } ]
+      requestBody: { required: false, content: { application/json: { schema: { type: object, additionalProperties: false } } } }
+      responses: { "200": { $ref: "#/components/responses/Ok" }, "404": { $ref: "#/components/responses/Error" }, "409": { $ref: "#/components/responses/Error" } }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, description: "thk_<prefix>_<secret>, issued by an administrator" }
+  parameters:
+    PostId: { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+  responses:
+    Ok:
+      description: Success envelope
+      content: { application/json: { schema: { type: object, properties: { success: { const: true }, data: { type: object }, request_id: { type: string } } } } }
+    Error:
+      description: Error envelope
+      content: { application/json: { schema: { type: object, properties: { success: { const: false }, error: { type: object, properties: { code: { type: string }, message: { type: string }, details: { type: object } } }, request_id: { type: string } } } } }
+  schemas:
+    DraftRequest:
+      type: object
+      additionalProperties: false
+      required: [title, platform, caption]
+      properties:
+        title: { type: string, maxLength: 191 }
+        platform: { enum: [linkedin, instagram, both] }
+        caption: { type: string, description: "Plain text. LinkedIn <=3000, Instagram <=2200 chars." }
+        hashtags: { type: array, maxItems: 30, items: { type: string, pattern: "^#?[\\p{L}\\p{N}_]{1,60}$" } }
+        cta: { type: string, maxLength: 120 }
+        destination_url: { type: string, format: uri, description: "https only; talenthubconsultant.com or a subdomain" }
+        media_ids: { type: array, maxItems: 10, items: { type: integer }, description: "Approved media-library ids. Instagram requires at least one." }
+        campaign_id: { type: integer }
+        proposed_publication_at: { type: string, format: date-time, description: "Suggestion only" }
+        platform_overrides:
+          type: object
+          properties:
+            linkedin: { type: object, additionalProperties: false, properties: { caption: { type: string }, hashtags: { type: array, items: { type: string } } } }
+            instagram: { type: object, additionalProperties: false, properties: { caption: { type: string }, hashtags: { type: array, items: { type: string } } } }

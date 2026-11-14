@@ -1,0 +1,69 @@
+{
+  "name": "TalentHub",
+  "short_name": "TalentHub",
+  "description": "TalentHub Recruitment Operations & Administration Portal.",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#072412",
+  "theme_color": "#1D6A34",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Job Applications",
+      "short_name": "Applications",
+      "description": "View and review candidate applications",
+      "url": "/admin/applications",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Resume Bank",
+      "short_name": "Resumes",
+      "description": "Access candidate general resume submissions",
+      "url": "/admin/resume-bank",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Job Mandates",
+      "short_name": "Jobs",
+      "description": "Publish and manage hiring mandates",
+      "url": "/admin/jobs",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Employer Enquiries",
+      "short_name": "Employers",
+      "description": "Manage corporate hiring enquiries",
+      "url": "/admin/enquiries/employers",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
+

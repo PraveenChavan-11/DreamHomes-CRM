@@ -1,0 +1,80 @@
+{
+  "name": "TalentHub",
+  "short_name": "TalentHub",
+  "description": "Professional Recruitment Consulting, Talent Acquisition, Executive Search, and Placement Services in Pune, Maharashtra.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FAF9F5",
+  "theme_color": "#1D6A34",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Admin Portal",
+      "short_name": "Admin",
+      "description": "Open TalentHub Administration Console",
+      "url": "/admin",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Explore Career Opportunities",
+      "short_name": "Jobs",
+      "description": "View live recruitment job mandates",
+      "url": "/jobs",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Candidate Applications",
+      "short_name": "Applications",
+      "description": "Manage candidate pipeline and resumes",
+      "url": "/admin/applications",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hire Talent",
+      "short_name": "Employers",
+      "description": "Register employer hiring mandate",
+      "url": "/employers",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

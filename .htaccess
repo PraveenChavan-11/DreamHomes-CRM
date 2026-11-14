@@ -1,0 +1,27 @@
+# ==============================================================================
+# TalentHub Consultant — Hostinger Root Web Router (.htaccess)
+# Designed for deployments where the repository is cloned directly in public_html
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Force HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # 2. Block direct web access to sensitive server files and directories
+    RewriteRule ^(\.env|composer\.(json|lock)|spark|writable|app|tests|docs) - [F,L]
+
+    # 3. Environment Isolation: Block access to staging files via production domain
+    RewriteCond %{HTTP_HOST} !^staging\. [NC]
+    RewriteRule ^staging(/.*)?$ - [F,L]
+
+    # 4. Transparently route all traffic to the public/ folder
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>
+
+# Fallback DirectoryIndex if mod_rewrite is not active
+DirectoryIndex public/index.php index.php
+

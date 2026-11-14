@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "talenthub-recruitment-agent",
+  "version": "1.0.0",
+  "description": "TalentHub Consultant Pune Recruitment & Talent Discovery WebMCP Server. Provides real-time job discovery, salary benchmarks, and employer mandate registration.",
+  "homepage": "https://talenthubconsultant.com/",
+  "endpoint": "https://talenthubconsultant.com/api/v1",
+  "capabilities": {
+    "tools": [
+      {
+        "name": "search_jobs",
+        "description": "Search active job openings across Pune corridors by keyword, location, experience, and role.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": { "type": "string", "description": "Keywords or title" },
+            "location": { "type": "string", "description": "Pune locality (e.g., Hinjawadi, Chakan, Katraj)" },
+            "experience": { "type": "string", "description": "Years of experience bracket" }
+          }
+        }
+      },
+      {
+        "name": "get_job_details",
+        "description": "Retrieve comprehensive job description, CTC range, and requirements by job slug.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["slug"],
+          "properties": {
+            "slug": { "type": "string", "description": "Job slug identifier" }
+          }
+        }
+      },
+      {
+        "name": "register_employer_mandate",
+        "description": "Submit a corporate talent acquisition brief or staffing request to TalentHub Consultant Pune.",
+        "inputSchema": {
+          "type": "object",
+          "required": ["company_name", "contact_person", "email", "phone", "required_roles"],
+          "properties": {
+            "company_name": { "type": "string" },
+            "contact_person": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" },
+            "required_roles": { "type": "string" },
+            "number_of_positions": { "type": "string" },
+            "location": { "type": "string" }
+          }
+        }
+      },
+      {
+        "name": "get_contact_info",
+        "description": "Get verified contact numbers, Katraj Pune office address, and recruiter email.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    ]
+  }
+}
+
