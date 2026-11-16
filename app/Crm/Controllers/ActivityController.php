@@ -126,7 +126,45 @@ class ActivityController extends CrmController
         $rows  = $mk()->orderBy('v.scheduled_at', $tab === 'completed' ? 'DESC' : 'ASC')->limit(self::PER, ($page - 1) * self::PER)->get()->getResultArray();
 
         return $this->render('activity/visits', ['tab' => $tab, 'rows' => $rows, 'total' => $total,
-            'pager' => view('Crm\Views\enquiries\_pager', ['total' => $total, 'per' => self::PER, 'page' => $page, 'query' => ['tab' => $tab]])], 'Site visits', 'followups');
+            'pager' => view('Crm\Views\enquiries\_pager', ['total' => $total, 'per' => self::PER, 'page' => $page, 'query' => ['tab' => $tab]])], 'Site visits', 'visits');
+    }
+
+    public function measurements(): string
+    {
+        $db = Crm::db();
+        $q = trim((string) $this->request->getGet('q'));
+        $b = $db->table('crm_site_measurements m')
+            ->select("m.*, v.visit_no, v.scheduled_at, e.enquiry_no, e.project_name, c.name AS customer_name, c.mobile AS customer_mobile, CONCAT(u.first_name, ' ', u.last_name) AS recorded_by_name")
+            ->join('crm_site_visits v', 'v.id = m.visit_id')
+            ->join('crm_enquiries e', 'e.id = v.enquiry_id')
+            ->join('crm_customers c', 'c.id = v.customer_id')
+            ->join('admin_users u', 'u.id = m.recorded_by', 'left');
+        AccessScope::scopeEnquiries($b, $this->user(), 'e');
+
+        if ($q !== '') {
+            $b->groupStart()
+                ->like('v.visit_no', $q)
+                ->orLike('e.enquiry_no', $q)
+                ->orLike('e.project_name', $q)
+                ->orLike('c.name', $q)
+                ->orLike('m.revision_note', $q)
+                ->groupEnd();
+        }
+
+        $page = $this->page();
+        $total = $b->countAllResults(false);
+        $rows = $b->orderBy('m.id', 'DESC')->limit(self::PER, ($page - 1) * self::PER)->get()->getResultArray();
+
+        foreach ($rows as &$r) {
+            $r['items'] = json_decode((string) $r['data'], true) ?: [];
+        }
+
+        return $this->render('activity/measurements', [
+            'rows' => $rows,
+            'total' => $total,
+            'q' => $q,
+            'pager' => view('Crm\Views\enquiries\_pager', ['total' => $total, 'per' => self::PER, 'page' => $page, 'query' => ['q' => $q]]),
+        ], 'Site Measurements & Dimensions', 'measurements');
     }
 
     public function visit(int $id): string
@@ -151,7 +189,7 @@ class ActivityController extends CrmController
             $d['user_name'] = $d['uploaded_by'] ? ($u[(int) $d['uploaded_by']] ?? '?') : 'System';
         }
 
-        return $this->render('activity/visit', ['v' => $v, 'versions' => $versions, 'current' => $current, 'docs' => $docs, 'exts' => array_keys(self::DOC_TYPES)], $v['visit_no'] . ' · Site visit', 'followups');
+        return $this->render('activity/visit', ['v' => $v, 'versions' => $versions, 'current' => $current, 'docs' => $docs, 'exts' => array_keys(self::DOC_TYPES)], $v['visit_no'] . ' · Site visit', 'visits');
     }
 
     /** @return array<string,string> label => "W × H unit — notes" from the posted measurement rows */

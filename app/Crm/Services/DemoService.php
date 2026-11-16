@@ -71,6 +71,12 @@ final class DemoService
         };
         $E = self::in($s['enq']); $C = self::in($s['cust']); $Q = self::in($s['qt']); $U = self::in($s['usr']); $P = self::in($s['prod']);
         $db->query('SET FOREIGN_KEY_CHECKS=0');
+        $del('crm_service_requests', "customer_id IN ({$C}) OR order_id IN (SELECT id FROM crm_sales_orders WHERE enquiry_id IN ({$E}))");
+        $del('crm_installations', "order_id IN (SELECT id FROM crm_sales_orders WHERE enquiry_id IN ({$E}))");
+        $del('crm_deliveries', "order_id IN (SELECT id FROM crm_sales_orders WHERE enquiry_id IN ({$E}))");
+        $del('crm_payments', "order_id IN (SELECT id FROM crm_sales_orders WHERE enquiry_id IN ({$E}))");
+        $del('crm_projects', "customer_id IN ({$C})");
+        $del('crm_customer_addresses', "customer_id IN ({$C})");
         $del('crm_email_log', "customer_id IN ({$C}) OR enquiry_id IN ({$E})");
         $del('crm_notifications', "user_id IN ({$U})");
         $del('crm_workflow_events', "customer_id IN ({$C}) OR enquiry_id IN ({$E})");

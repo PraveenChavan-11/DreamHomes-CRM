@@ -1,20 +1,25 @@
 {
-  "name": "DHIS Sales CRM",
+  "name": "Drem Homes CRM — Sales Operations Platform",
   "short_name": "DHIS CRM",
   "description": "Enterprise Sales Operations Platform for Dream Homes Interior Solutions, powered by TalentHub Consultant.",
   "start_url": "/crm",
   "scope": "/crm",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#F5F7F7",
-  "theme_color": "#070D0E",
+  "background_color": "#FAF9F5",
+  "theme_color": "#1D6A34",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/favicon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     },
     {
       "src": "/favicon.png",
@@ -25,9 +30,9 @@
   ],
   "shortcuts": [
     {
-      "name": "New Enquiry",
-      "short_name": "New Enquiry",
-      "url": "/crm/enquiries/new",
+      "name": "Leads Pipeline",
+      "short_name": "Leads",
+      "url": "/crm/leads",
       "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
     },
     {
@@ -37,9 +42,15 @@
       "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
     },
     {
-      "name": "Follow-ups",
-      "short_name": "Follow-ups",
-      "url": "/crm/followups",
+      "name": "Sales Orders",
+      "short_name": "Orders",
+      "url": "/crm/orders",
+      "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Payments",
+      "short_name": "Payments",
+      "url": "/crm/payments",
       "icons": [{ "src": "/favicon.png", "sizes": "96x96" }]
     }
   ]

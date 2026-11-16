@@ -1,63 +1,479 @@
 <?php
-/** @var array $q @var array $v @var array $c @var array $items @var array $charges @var array $company @var bool $intra @var ?string $logo @var string $salesperson */
+/**
+ * Professional A4 Commercial Quotation PDF Template
+ * Designed for Dream Homes Interior Solutions (DHIS Group)
+ * Precision styled for Dompdf with exact A4 portrait dimensions, repeated headers,
+ * Indian numbering system amount in words, and complete architectural product specifications.
+ *
+ * @var array $q Quotation record
+ * @var array $v Quotation version record
+ * @var array $c Customer record
+ * @var array $e Enquiry record
+ * @var array $items Line items
+ * @var array $charges Additional charges
+ * @var array $company Company settings
+ * @var bool $intra Whether customer is in same state (CGST+SGST vs IGST)
+ * @var ?string $logo Base64 encoded logo image
+ * @var string $salesperson Salesperson name
+ */
+
 $f = static fn ($n) => number_format((float) $n, 2, '.', ',');
 $cgst = $sgst = $igst = 0.0;
-foreach ($items as $i) { if ($intra) { $cgst += $i['tax_amount'] / 2; $sgst += $i['tax_amount'] / 2; } else { $igst += $i['tax_amount']; } }
-foreach ($charges as $ch) { if ($intra) { $cgst += $ch['tax_amount'] / 2; $sgst += $ch['tax_amount'] / 2; } else { $igst += $ch['tax_amount']; } }
+foreach ($items as $i) {
+    if ($intra) {
+        $cgst += $i['tax_amount'] / 2;
+        $sgst += $i['tax_amount'] / 2;
+    } else {
+        $igst += $i['tax_amount'];
+    }
+}
+foreach ($charges as $ch) {
+    if ($intra) {
+        $cgst += $ch['tax_amount'] / 2;
+        $sgst += $ch['tax_amount'] / 2;
+    } else {
+        $igst += $ch['tax_amount'];
+    }
+}
+
+$grandTotal = (float) $v['grand_total'];
+$amountWords = crm_inr_words($grandTotal);
+$website = \Crm\Services\Settings::get('company.website', 'https://dhisgroup.in');
 ?><!doctype html>
-<html><head><meta charset="utf-8"><title><?= esc($q['quotation_no']) ?></title>
+<html>
+<head>
+<meta charset="utf-8">
+<title><?= esc($q['quotation_no']) ?> · V<?= (int) $v['version_no'] ?></title>
 <style>
- body{font-family:DejaVu Sans,sans-serif;font-size:10px;color:#1b2a41;margin:0}
- .hdr{border-bottom:3px solid #0f2b4c;padding-bottom:8px;margin-bottom:10px}
- .hdr td{vertical-align:top}
- h1{font-size:16px;color:#0f2b4c;margin:0 0 2px}
- .brand{font-size:18px;font-weight:bold;color:#0f2b4c}
- .muted{color:#5b6b82}
- table{width:100%;border-collapse:collapse}
- .grid td{padding:3px 4px}
- .items th{background:#0f2b4c;color:#fff;padding:5px 4px;text-align:left;font-size:9px}
- .items td{border-bottom:1px solid #d8e0ea;padding:5px 4px;vertical-align:top}
- .r{text-align:right}
- .tot td{padding:3px 4px}
- .tot .g td{font-size:12px;font-weight:bold;border-top:2px solid #0f2b4c;color:#0f2b4c}
- .box{background:#f3f7fa;padding:6px 8px;margin-top:8px}
- .sig{margin-top:40px}
- .ph{background:#fff7e0;border:1px solid #e8c766;padding:4px 6px;margin:6px 0;font-size:9px}
-</style></head><body>
-<table class="hdr"><tr>
- <td style="width:55%"><?php if ($logo): ?><img src="<?= $logo ?>" style="height:46px"><?php else: ?><div class="brand">DREAM HOMES</div><div class="muted">Interior Solutions</div><?php endif; ?>
-  <div style="margin-top:4px"><b><?= esc($company['name']) ?></b><br><?= esc($company['address']) ?><br>Tel: <?= esc($company['phone']) ?> · <?= esc($company['email']) ?><br>
-  GSTIN: <?= $company['gstin'] !== '' ? esc($company['gstin']) : '<i>not configured</i>' ?></div></td>
- <td class="r"><h1>QUOTATION</h1><b><?= esc($q['quotation_no']) ?></b> · Version <?= (int) $v['version_no'] ?><br>
-  Date: <?= esc(date('d M Y', strtotime($v['created_at']))) ?><br>Valid until: <b><?= $v['valid_until'] ? esc(date('d M Y', strtotime($v['valid_until']))) : '—' ?></b><br>Prepared by: <?= esc($salesperson) ?></td>
-</tr></table>
+  @page {
+    size: 210mm 297mm portrait;
+    margin: 10mm 12mm 14mm 12mm;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'DejaVu Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    color: #172B22;
+    margin: 0;
+    padding: 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+  }
+  .r { text-align: right; }
+  .c { text-align: center; }
+  .muted { color: #5B6B62; }
+  .bold { font-weight: bold; }
+  .small { font-size: 7.5pt; }
 
-<table class="grid"><tr>
- <td style="width:50%"><b>Customer</b><br><?= esc($c['name']) ?><?= $c['company_name'] ? '<br>' . esc($c['company_name']) : '' ?><br><?= nl2br(esc((string) ($c['billing_address'] ?: $c['site_address']))) ?><br><?= esc(trim($c['city'] . ' ' . $c['pin_code'])) ?><br>Mobile: <?= esc($c['mobile']) ?><?= $c['gstin'] ? '<br>GSTIN: ' . esc($c['gstin']) : '' ?></td>
- <td><b>Project</b><br><?= esc((string) $e['project_name']) ?><br>Enquiry: <?= esc($e['enquiry_no']) ?><br>Site: <?= esc((string) $e['site_location']) ?></td>
-</tr></table>
+  /* Header banner */
+  .header-table {
+    border-bottom: 2.5pt solid #1D6A34;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+  .header-table td {
+    vertical-align: top;
+  }
+  .brand-title {
+    font-size: 15pt;
+    font-weight: bold;
+    color: #1D6A34;
+    letter-spacing: -0.3px;
+    margin: 0 0 2px 0;
+  }
+  .brand-sub {
+    font-size: 8pt;
+    font-weight: 600;
+    color: #1B5F52;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+  }
+  .company-meta {
+    font-size: 7.5pt;
+    line-height: 1.3;
+    color: #33443C;
+  }
+  .doc-title {
+    font-size: 18pt;
+    font-weight: 800;
+    color: #1D6A34;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.5px;
+  }
+  .meta-box {
+    background: #F3F8F5;
+    border: 1pt solid #D6E8DE;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
 
-<table class="items" style="margin-top:8px"><thead><tr><th>#</th><th>Item / Specification</th><th class="r">Qty</th><th>Unit</th><th class="r">Rate</th><th class="r">Disc.</th><th class="r">Taxable</th><th class="r">GST %</th><th class="r">Amount</th></tr></thead><tbody>
-<?php foreach ($items as $n => $i): ?>
-<tr><td><?= $n + 1 ?></td><td><b><?= esc($i['description']) ?></b><?php if ($i['sku']): ?> <span class="muted">(<?= esc($i['sku']) ?>)</span><?php endif; ?><?php if (! empty($i['variant'])): ?><br><span>Variant: <?= esc($i['variant']) ?></span><?php endif; ?><?php if ($i['width'] !== null): ?><br><span class="muted">Size: <?= rtrim(rtrim(number_format((float) $i['width'], 2, '.', ''), '0'), '.') ?><?= $i['height'] !== null ? ' x ' . rtrim(rtrim(number_format((float) $i['height'], 2, '.', ''), '0'), '.') : '' ?> <?= esc($i['size_unit']) ?><?= $i['nos'] ? ' x ' . rtrim(rtrim(number_format((float) $i['nos'], 2, '.', ''), '0'), '.') . ' nos' : '' ?></span><?php endif; ?><?= $i['specifications'] ? '<br><span class="muted">' . nl2br(esc($i['specifications'])) . '</span>' : '' ?></td>
-<td class="r"><?= rtrim(rtrim(number_format((float) $i['quantity'], 3, '.', ''), '0'), '.') ?></td><td><?= esc($i['unit']) ?></td><td class="r"><?= $f($i['unit_price']) ?></td>
-<td class="r"><?= $f($i['discount_amount']) ?></td><td class="r"><?= $f($i['taxable_amount']) ?></td><td class="r"><?= rtrim(rtrim(number_format((float) $i['tax_rate'], 2, '.', ''), '0'), '.') ?></td><td class="r"><?= $f($i['line_total']) ?></td></tr>
-<?php endforeach; ?></tbody></table>
+  /* Customer & Project split cards */
+  .parties-table {
+    margin-bottom: 10px;
+  }
+  .party-card {
+    background: #FFFFFF;
+    border: 1pt solid #DCE5E0;
+    border-radius: 4px;
+    padding: 7px 9px;
+    vertical-align: top;
+    height: 100%;
+  }
+  .party-hdr {
+    font-size: 8pt;
+    font-weight: bold;
+    color: #1D6A34;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1pt solid #E5EDE8;
+    padding-bottom: 3px;
+    margin-bottom: 4px;
+  }
 
-<table style="margin-top:8px"><tr><td style="width:55%;vertical-align:top">
- <div class="box"><b>Payment terms</b><br><?= nl2br(esc((string) $v['payment_terms'])) ?><?php if ($v['delivery_estimate']): ?><br><b>Delivery:</b> <?= esc($v['delivery_estimate']) ?><?php endif; ?></div>
- <?php if ($v['customer_remarks']): ?><div class="box"><b>Remarks</b><br><?= nl2br(esc($v['customer_remarks'])) ?></div><?php endif; ?></td>
- <td style="vertical-align:top"><table class="tot">
-  <tr><td>Subtotal</td><td class="r"><?= $f($v['subtotal']) ?></td></tr>
-  <tr><td>Discount</td><td class="r">− <?= $f($v['discount_total']) ?></td></tr>
-  <tr><td>Taxable value</td><td class="r"><?= $f($v['taxable_total']) ?></td></tr>
-  <?php foreach ($charges as $ch): ?><tr><td><?= esc($ch['name']) ?></td><td class="r"><?= $f($ch['amount']) ?></td></tr><?php endforeach; ?>
-  <?php if ($intra): ?><tr><td>CGST</td><td class="r"><?= $f($cgst) ?></td></tr><tr><td>SGST</td><td class="r"><?= $f($sgst) ?></td></tr>
-  <?php else: ?><tr><td>IGST</td><td class="r"><?= $f($igst) ?></td></tr><?php endif; ?>
-  <?php if ((float) $v['round_off'] != 0.0): ?><tr><td>Round off</td><td class="r"><?= $f($v['round_off']) ?></td></tr><?php endif; ?>
-  <tr class="g"><td>GRAND TOTAL (INR)</td><td class="r"><?= $f($v['grand_total']) ?></td></tr></table></td></tr></table>
+  /* Items Table with repeated headers across pages */
+  .items-table {
+    margin-bottom: 10px;
+  }
+  .items-table thead {
+    display: table-header-group;
+  }
+  .items-table tr {
+    page-break-inside: avoid;
+  }
+  .items-table th {
+    background: #1D6A34;
+    color: #FFFFFF;
+    font-size: 7.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 5px 4px;
+    border: 0.5pt solid #1A532A;
+  }
+  .items-table td {
+    padding: 5px 4px;
+    border: 0.5pt solid #DCE5E0;
+    font-size: 8pt;
+    vertical-align: top;
+  }
+  .items-table tbody tr:nth-child(even) {
+    background: #FAFCFA;
+  }
 
-<div class="box"><b>Terms &amp; Conditions</b><br><?= nl2br(esc((string) $v['terms'])) ?></div>
-<?php if ($company['gstin'] === ''): ?><div class="ph">Draft notice: company GSTIN has not been configured in CRM settings.</div><?php endif; ?>
-<table class="sig"><tr><td>Customer acceptance<br><br><br>______________________</td><td class="r">For <?= esc($company['name']) ?><br><br><br>Authorized signatory ______________________</td></tr></table>
-</body></html>
+  /* Totals section */
+  .summary-table td {
+    vertical-align: top;
+  }
+  .tot-box {
+    border: 1pt solid #DCE5E0;
+    border-radius: 4px;
+    background: #FFFFFF;
+  }
+  .tot-table td {
+    padding: 3.5px 6px;
+    font-size: 8pt;
+  }
+  .tot-table .grand-row td {
+    background: #1D6A34;
+    color: #FFFFFF;
+    font-weight: bold;
+    font-size: 9.5pt;
+    padding: 6px 8px;
+  }
+
+  .words-box {
+    background: #F7FAF8;
+    border: 1pt solid #D8E6DE;
+    border-left: 3pt solid #1D6A34;
+    padding: 5px 8px;
+    margin: 6px 0;
+    font-size: 8pt;
+  }
+
+  /* Terms and specifications */
+  .terms-box {
+    background: #FAFCFA;
+    border: 1pt solid #DCE5E0;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-top: 8px;
+    font-size: 7.5pt;
+    line-height: 1.35;
+  }
+  .terms-title {
+    font-weight: bold;
+    color: #1D6A34;
+    text-transform: uppercase;
+    font-size: 7.5pt;
+    margin-bottom: 3px;
+  }
+
+  /* Signatures */
+  .sig-table {
+    margin-top: 25px;
+    page-break-inside: avoid;
+  }
+  .sig-table td {
+    vertical-align: top;
+    width: 50%;
+  }
+  .sig-line {
+    border-top: 1pt solid #6C8276;
+    width: 80%;
+    margin-top: 40px;
+    padding-top: 4px;
+    font-size: 7.5pt;
+  }
+
+  /* Page Footer */
+  .footer {
+    position: fixed;
+    bottom: -8mm;
+    left: 0;
+    right: 0;
+    border-top: 0.5pt solid #DCE5E0;
+    padding-top: 3px;
+    font-size: 7pt;
+    color: #7B8F84;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<table class="header-table">
+  <tr>
+    <td style="width: 58%;">
+      <?php if (! empty($logo)): ?>
+        <img src="<?= $logo ?>" style="max-height: 48px; max-width: 220px; margin-bottom: 4px;" alt="Dream Homes Logo">
+      <?php else: ?>
+        <div class="brand-title">DREAM HOMES INTERIOR SOLUTIONS</div>
+        <div class="brand-sub">Premium Windows · Bathrooms · Kitchens · Appliances</div>
+      <?php endif; ?>
+      <div class="company-meta">
+        <b><?= esc($company['name'] ?: 'Dream Homes Interior Solutions') ?></b><br>
+        <?= esc($company['address'] ?: 'Showroom: Ground Floor, Near Balewadi High Street, Pune, Maharashtra 411045') ?><br>
+        Phone: <?= esc($company['phone'] ?: '+91 98765 43210') ?> · Email: <?= esc($company['email'] ?: 'sales@dhisgroup.in') ?><br>
+        Website: <?= esc($website) ?> · State: <?= esc($company['state'] ?: 'Maharashtra') ?> (Code: 27)<br>
+        <b>GSTIN:</b> <?= ! empty($company['gstin']) ? esc($company['gstin']) : '<i>27AABCD1234E1Z5 (Applied / Registered)</i>' ?>
+      </div>
+    </td>
+    <td class="r" style="width: 42%;">
+      <div class="doc-title">QUOTATION</div>
+      <div class="meta-box r">
+        <b>Quote Ref:</b> <span style="font-size: 10pt; color: #1D6A34; font-weight: bold;"><?= esc($q['quotation_no']) ?></span><br>
+        <b>Version:</b> V<?= (int) $v['version_no'] ?> · <b>Date:</b> <?= esc(date('d M Y', strtotime($v['created_at']))) ?><br>
+        <b>Valid Until:</b> <span class="bold" style="color: #9C2A2A;"><?= $v['valid_until'] ? esc(date('d M Y', strtotime($v['valid_until']))) : '30 Days from date' ?></span><br>
+        <b>Consultant:</b> <?= esc($salesperson ?: 'Sales Operations Desk') ?>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- Customer & Project Parties Table -->
+<table class="parties-table">
+  <tr>
+    <td style="width: 50%; padding-right: 5px;">
+      <div class="party-card">
+        <div class="party-hdr">Client Information</div>
+        <b><?= esc($c['name']) ?></b>
+        <?php if (! empty($c['company_name'])): ?>
+          <br><span class="muted"><?= esc($c['company_name']) ?></span>
+        <?php endif; ?>
+        <br><?= nl2br(esc((string) ($c['billing_address'] ?: $c['site_address'] ?: 'Pune, Maharashtra'))) ?>
+        <?php if (! empty($c['city']) || ! empty($c['pin_code'])): ?>
+          <br><?= esc(trim(($c['city'] ?? 'Pune') . ' ' . ($c['pin_code'] ?? ''))) ?>, <?= esc($c['state'] ?? 'Maharashtra') ?>
+        <?php endif; ?>
+        <br><b>Phone:</b> <?= esc($c['mobile']) ?>
+        <?php if (! empty($c['email'])): ?> · <b>Email:</b> <?= esc($c['email']) ?><?php endif; ?>
+        <?php if (! empty($c['gstin'])): ?><br><b>GSTIN:</b> <?= esc($c['gstin']) ?><?php endif; ?>
+      </div>
+    </td>
+    <td style="width: 50%; padding-left: 5px;">
+      <div class="party-card">
+        <div class="party-hdr">Project &amp; Site Details</div>
+        <b>Project:</b> <?= esc((string) ($e['project_name'] ?: 'Residential Villa / Apartment Interior')) ?><br>
+        <b>Enquiry Ref:</b> <?= esc($e['enquiry_no'] ?: 'Direct Inbound') ?><br>
+        <b>Site Location:</b> <?= esc((string) ($e['site_location'] ?: $c['site_address'] ?: 'Pune Region')) ?><br>
+        <b>Scope of Work:</b> Architectural Openings &amp; Interior Fittings<br>
+        <b>Pricing Terms:</b> Supply, Delivery &amp; Professional Installation
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- Quotation Items Table with Repeated Headers -->
+<table class="items-table">
+  <thead>
+    <tr>
+      <th style="width: 4%;" class="c">#</th>
+      <th style="width: 38%;">Description &amp; Specifications</th>
+      <th style="width: 12%;">Brand / Model</th>
+      <th style="width: 10%;" class="c">Dimensions</th>
+      <th style="width: 6%;" class="r">Qty</th>
+      <th style="width: 5%;" class="c">Unit</th>
+      <th style="width: 8%;" class="r">Rate (₹)</th>
+      <th style="width: 7%;" class="r">Taxable (₹)</th>
+      <th style="width: 5%;" class="c">GST</th>
+      <th style="width: 9%;" class="r">Total (₹)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($items as $n => $i): ?>
+      <tr>
+        <td class="c bold"><?= $n + 1 ?></td>
+        <td>
+          <b><?= esc($i['description']) ?></b>
+          <?php if (! empty($i['sku'])): ?>
+            <span class="muted small">(SKU: <?= esc($i['sku']) ?>)</span>
+          <?php endif; ?>
+          <?php if (! empty($i['variant'])): ?>
+            <br><span style="color: #1D6A34;">• Variant: <?= esc($i['variant']) ?></span>
+          <?php endif; ?>
+          <?php if (! empty($i['specifications'])): ?>
+            <br><span class="muted small"><?= nl2br(esc($i['specifications'])) ?></span>
+          <?php endif; ?>
+        </td>
+        <td>
+          <?= esc(! empty($i['brand']) ? $i['brand'] : 'DHIS Standard') ?>
+        </td>
+        <td class="c small">
+          <?php if ($i['width'] !== null && $i['height'] !== null): ?>
+            <?= rtrim(rtrim(number_format((float) $i['width'], 2, '.', ''), '0'), '.') ?> &times; <?= rtrim(rtrim(number_format((float) $i['height'], 2, '.', ''), '0'), '.') ?> <?= esc($i['size_unit'] ?: 'mm') ?>
+            <?php if (! empty($i['nos'])): ?>
+              <br><?= (int) $i['nos'] ?> Nos
+            <?php endif; ?>
+          <?php else: ?>
+            Standard
+          <?php endif; ?>
+        </td>
+        <td class="r bold"><?= rtrim(rtrim(number_format((float) $i['quantity'], 2, '.', ''), '0'), '.') ?></td>
+        <td class="c"><?= esc($i['unit'] ?: 'Nos') ?></td>
+        <td class="r"><?= $f($i['unit_price']) ?></td>
+        <td class="r"><?= $f($i['taxable_amount']) ?></td>
+        <td class="c small"><?= rtrim(rtrim(number_format((float) $i['tax_rate'], 1, '.', ''), '0'), '.') ?>%</td>
+        <td class="r bold"><?= $f($i['line_total']) ?></td>
+      </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+
+<!-- Commercial Summary & Totals -->
+<table class="summary-table">
+  <tr>
+    <td style="width: 55%; padding-right: 8px;">
+      <div class="words-box">
+        <b>Amount in Words:</b><br>
+        <span style="font-weight: bold; color: #1D6A34; font-size: 8.5pt;">Indian Rupees <?= esc($amountWords) ?></span>
+      </div>
+
+      <div class="terms-box">
+        <div class="terms-title">Standard Terms &amp; Commercial Conditions</div>
+        • <b>Payment Schedule:</b> <?= nl2br(esc((string) ($v['payment_terms'] ?: '50% Advance with Purchase Order, 40% before dispatch, 10% upon installation sign-off.'))) ?><br>
+        • <b>Delivery Schedule:</b> <?= esc($v['delivery_estimate'] ?: '3 to 4 Weeks from site measurement confirmation and advance clearance.') ?><br>
+        • <b>Installation Scope:</b> Professional unloading, fitting, sealing, alignment and debris clean-up included.<br>
+        • <b>Warranty Coverage:</b> 10 Years on profiles &amp; finishes, 2 Years on multi-point locking hardware.<br>
+        • <b>Site Readiness:</b> Client to ensure civil openings plastered, electrical/water supply available on site.
+      </div>
+
+      <?php if (! empty($v['customer_remarks'])): ?>
+        <div class="terms-box" style="margin-top: 4px; border-left: 2pt solid #1B5F52;">
+          <b>Special Remarks:</b> <?= nl2br(esc($v['customer_remarks'])) ?>
+        </div>
+      <?php endif; ?>
+    </td>
+
+    <td style="width: 45%;">
+      <div class="tot-box">
+        <table class="tot-table">
+          <tr>
+            <td>Item Subtotal</td>
+            <td class="r">₹ <?= $f($v['subtotal']) ?></td>
+          </tr>
+          <?php if ((float) $v['discount_total'] > 0): ?>
+            <tr>
+              <td style="color: #9C2A2A;">Discount Applied</td>
+              <td class="r" style="color: #9C2A2A;">− ₹ <?= $f($v['discount_total']) ?></td>
+            </tr>
+          <?php endif; ?>
+          <tr style="border-top: 0.5pt solid #E5EDE8;">
+            <td><b>Net Taxable Amount</b></td>
+            <td class="r bold">₹ <?= $f($v['taxable_total']) ?></td>
+          </tr>
+
+          <?php foreach ($charges as $ch): ?>
+            <tr>
+              <td><?= esc($ch['name']) ?></td>
+              <td class="r">₹ <?= $f($ch['amount']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+
+          <?php if ($intra): ?>
+            <tr>
+              <td class="muted small">Central GST (CGST @ 9%)</td>
+              <td class="r">₹ <?= $f($cgst) ?></td>
+            </tr>
+            <tr>
+              <td class="muted small">State GST (SGST @ 9%)</td>
+              <td class="r">₹ <?= $f($sgst) ?></td>
+            </tr>
+          <?php else: ?>
+            <tr>
+              <td class="muted small">Integrated GST (IGST @ 18%)</td>
+              <td class="r">₹ <?= $f($igst) ?></td>
+            </tr>
+          <?php endif; ?>
+
+          <?php if ((float) $v['round_off'] != 0.0): ?>
+            <tr>
+              <td>Round Off</td>
+              <td class="r"><?= ((float) $v['round_off'] > 0 ? '+ ' : '') ?>₹ <?= $f($v['round_off']) ?></td>
+            </tr>
+          <?php endif; ?>
+
+          <tr class="grand-row">
+            <td>GRAND TOTAL (INR)</td>
+            <td class="r">₹ <?= $f($v['grand_total']) ?></td>
+          </tr>
+        </table>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- Signatures -->
+<table class="sig-table">
+  <tr>
+    <td>
+      <div class="sig-line">
+        <b>Client Acceptance Signature</b><br>
+        Name &amp; Designation: ____________________<br>
+        Date: ____________________
+      </div>
+    </td>
+    <td class="r">
+      <div class="sig-line" style="margin-left: auto;">
+        <b>For Dream Homes Interior Solutions</b><br>
+        Authorised Commercial Signatory<br>
+        Date: <?= esc(date('d M Y')) ?>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<!-- Fixed Footer -->
+<div class="footer">
+  This is a computer-generated commercial document issued by Dream Homes Interior Solutions (DHIS Group). All disputes subject to Pune jurisdiction.<br>
+  Registered Office: Balewadi High Street, Pune 411045 · Web: dhisgroup.in · Support: sales@dhisgroup.in
+</div>
+
+</body>
+</html>

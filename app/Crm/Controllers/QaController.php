@@ -79,5 +79,16 @@ class QaController extends CrmController
         TourService::resetTour((int) ($this->user()['id'] ?? 0), $tourKey);
         return $this->response->setJSON(['status' => 'ok']);
     }
+
+    /**
+     * Dedicated Help Centre & Guided Tour Hub
+     */
+    public function guide(): string
+    {
+        $tour = TourService::getTourForUser($this->user());
+        return $this->render('tour/guide', [
+            'tour' => $tour,
+        ], 'Help Centre & Interactive Product Tour', 'tour_guide');
+    }
 }
 

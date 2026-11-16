@@ -16,9 +16,10 @@ class CustomerController extends CrmController
 {
     private const FIELDS = ['name', 'customer_type', 'company_name', 'primary_contact', 'mobile', 'alt_mobile', 'email', 'billing_address', 'site_address', 'city', 'state', 'pin_code', 'gstin', 'source_id', 'owner_user_id', 'remarks'];
     public const TABS = [
-        'overview' => 'Overview', 'enquiries' => 'Enquiries', 'salespeople' => 'Assigned salespeople', 'followups' => 'Follow-ups', 'activities' => 'Activities', 'visits' => 'Site visits',
-        'measurements' => 'Measurements', 'quotations' => 'Quotations', 'negotiations' => 'Negotiations', 'approvals' => 'Discount approvals', 'emails' => 'Emails', 'orders' => 'Orders',
-        'documents' => 'Documents', 'workflow' => 'Workflow history', 'audit' => 'Audit history',
+        'overview' => 'Overview', 'projects' => 'Projects', 'enquiries' => 'Enquiries', 'salespeople' => 'Assigned salespeople', 'followups' => 'Follow-ups', 'activities' => 'Activities', 'visits' => 'Site visits',
+        'measurements' => 'Measurements', 'quotations' => 'Quotations', 'negotiations' => 'Negotiations', 'approvals' => 'Discount approvals', 'orders' => 'Orders',
+        'payments' => 'Payments', 'deliveries' => 'Deliveries', 'installations' => 'Installations', 'service_requests' => 'Service requests',
+        'emails' => 'Emails', 'documents' => 'Documents', 'workflow' => 'Workflow history', 'audit' => 'Audit history',
     ];
 
     /** Filtered + scoped query (shared by list and export). */

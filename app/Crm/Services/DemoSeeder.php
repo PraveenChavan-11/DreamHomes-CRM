@@ -175,17 +175,114 @@ final class DemoSeeder
     {
         $db  = Crm::db();
         $tax = (int) $db->table('crm_tax_rates')->where('is_default', 1)->get()->getRow()->id;
+
+        // 1. Seed Brands
+        $brands = [
+            ['name' => 'Vitrum', 'code' => 'VITRUM', 'website' => 'https://dhisgroup.in/vitrum', 'desc' => 'Precision Engineered Aluminium Windows & Doors'],
+            ['name' => 'Saint-Gobain', 'code' => 'SGOB', 'website' => 'https://saint-gobain.com', 'desc' => 'High-Performance Glass & UPVC Profiles'],
+            ['name' => 'Grohe', 'code' => 'GROHE', 'website' => 'https://grohe.co.in', 'desc' => 'German Luxury Bathroom Fittings & Showers'],
+            ['name' => 'American Standard', 'code' => 'AMSTD', 'website' => 'https://americanstandard.in', 'desc' => 'Premium Sanitaryware & Ceramics'],
+            ['name' => 'Mr. Kitchen', 'code' => 'MRKIT', 'website' => 'https://dhisgroup.in/mrkitchen', 'desc' => 'Custom European Modular Kitchens'],
+            ['name' => 'Häfele', 'code' => 'HAFELE', 'website' => 'https://hafeleindia.com', 'desc' => 'German Architectural Hardware & Built-in Appliances'],
+            ['name' => 'DHIS Group', 'code' => 'DHIS', 'website' => 'https://dhisgroup.in', 'desc' => 'Dream Homes Interior Solutions Custom Fabrication'],
+        ];
+        $brandIds = [];
+        foreach ($brands as $b) {
+            $db->query('INSERT INTO crm_product_brands (name, code, website, description, is_active, created_at, updated_at) VALUES (?,?,?,?,1,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name)',
+                [$b['name'], $b['code'], $b['website'], $b['desc'], Crm::now(), Crm::now()]);
+            $brandIds[$b['name']] = (int) $db->table('crm_product_brands')->where('code', $b['code'])->get()->getRow()->id;
+        }
+
+        // 2. Seed Master Products
         foreach (self::CATALOGUE as $cat => $items) {
             $cid = (int) $db->table('crm_product_categories')->where('name', $cat)->get()->getRow()->id;
             foreach ($items as [$sku, $name, $brand, $unit, $model, $std, $spec]) {
                 $pid = ProductService::save(null, [
                     'sku' => 'DEMO-' . $sku, 'name' => $name, 'brand' => $brand, 'category_id' => $cid, 'unit' => $unit, 'pricing_model' => $model, 'tax_rate_id' => $tax,
                     'standard_price' => $std, 'base_price' => (int) round($std * 0.68), 'min_price' => (int) round($std * 0.88), 'specifications' => $spec,
+                    'image' => self::productImageFor($sku),
                     'description' => 'DEMONSTRATION ITEM - price and specification are illustrative, not a DHIS price list.',
                 ], $this->admin, 1);
                 $this->prodByCat[$cat][] = $pid;
+
+                // 3. Seed 2 Variants per Product
+                $vBrandId = $brandIds[$brand] ?? null;
+                $db->table('crm_product_variants')->insert([
+                    'product_id' => $pid,
+                    'sku' => 'DEMO-' . $sku . '-V1',
+                    'variant_name' => $name . ' (Matte Black Finish)',
+                    'brand_id' => $vBrandId,
+                    'finish' => 'Anodized',
+                    'colour' => 'Matte Black',
+                    'glass_type' => 'Toughened Clear Glass',
+                    'cost_price' => round($std * 0.70),
+                    'selling_price' => $std,
+                    'tax_rate' => 18.00,
+                    'is_active' => 1,
+                    'created_at' => Crm::now(),
+                    'updated_at' => Crm::now(),
+                ]);
+                $db->table('crm_product_variants')->insert([
+                    'product_id' => $pid,
+                    'sku' => 'DEMO-' . $sku . '-V2',
+                    'variant_name' => $name . ' (Champagne Bronze Finish)',
+                    'brand_id' => $vBrandId,
+                    'finish' => 'Powder Coated',
+                    'colour' => 'Champagne Bronze',
+                    'glass_type' => 'Double Glazed DGU Glass',
+                    'cost_price' => round($std * 0.78),
+                    'selling_price' => round($std * 1.15),
+                    'tax_rate' => 18.00,
+                    'is_active' => 1,
+                    'created_at' => Crm::now(),
+                    'updated_at' => Crm::now(),
+                ]);
             }
         }
+    }
+
+    public static function productImageFor(string $sku): string
+    {
+        $clean = preg_replace('/^DEMO-/', '', $sku);
+        $map = [
+            'WIN-001' => 'uploads/crm-products/vitrum-sliding-window.svg',
+            'WIN-002' => 'uploads/crm-products/vitrum-sliding-window.svg',
+            'WIN-003' => 'uploads/crm-products/vitrum-casement-window.svg',
+            'WIN-004' => 'uploads/crm-products/saintgobain-upvc-window.svg',
+            'WIN-005' => 'uploads/crm-products/vitrum-sliding-door.svg',
+            'WIN-006' => 'uploads/crm-products/vitrum-bifold-door.svg',
+            'WIN-007' => 'uploads/crm-products/saintgobain-upvc-window.svg',
+            'WIN-008' => 'uploads/crm-products/saintgobain-upvc-window.svg',
+            'WIN-009' => 'uploads/crm-products/saintgobain-upvc-window.svg',
+            'WIN-010' => 'uploads/crm-products/saintgobain-upvc-window.svg',
+            'WIN-011' => 'uploads/crm-products/vitrum-sliding-door.svg',
+            'WIN-012' => 'uploads/crm-products/saintgobain-upvc-window.svg',
+            'BTH-001' => 'uploads/crm-products/grohe-rainshower-system.svg',
+            'BTH-002' => 'uploads/crm-products/grohe-basin-mixer.svg',
+            'BTH-003' => 'uploads/crm-products/amstd-wallhung-wc.svg',
+            'BTH-004' => 'uploads/crm-products/amstd-wallhung-wc.svg',
+            'BTH-005' => 'uploads/crm-products/grohe-rainshower-system.svg',
+            'BTH-006' => 'uploads/crm-products/amstd-wallhung-wc.svg',
+            'BTH-007' => 'uploads/crm-products/grohe-basin-mixer.svg',
+            'BTH-008' => 'uploads/crm-products/amstd-freestanding-bathtub.svg',
+            'BTH-009' => 'uploads/crm-products/amstd-freestanding-bathtub.svg',
+            'BTH-010' => 'uploads/crm-products/grohe-basin-mixer.svg',
+            'BTH-011' => 'uploads/crm-products/grohe-rainshower-system.svg',
+            'BTH-012' => 'uploads/crm-products/grohe-basin-mixer.svg',
+            'KIT-001' => 'uploads/crm-products/mrkitchen-base-cabinet.svg',
+            'KIT-002' => 'uploads/crm-products/mrkitchen-base-cabinet.svg',
+            'KIT-003' => 'uploads/crm-products/mrkitchen-tall-pantry.svg',
+            'KIT-004' => 'uploads/crm-products/mrkitchen-base-cabinet.svg',
+            'KIT-005' => 'uploads/crm-products/mrkitchen-base-cabinet.svg',
+            'KIT-006' => 'uploads/crm-products/hafele-builtin-hob.svg',
+            'KIT-007' => 'uploads/crm-products/hafele-island-chimney.svg',
+            'KIT-008' => 'uploads/crm-products/hafele-builtin-oven.svg',
+            'KIT-009' => 'uploads/crm-products/hafele-builtin-dishwasher.svg',
+            'SRV-001' => 'uploads/crm-products/vitrum-sliding-window.svg',
+            'SRV-002' => 'uploads/crm-products/vitrum-sliding-window.svg',
+        ];
+
+        return $map[$clean] ?? 'uploads/crm-products/vitrum-sliding-window.svg';
     }
 
     private function customers(): void
@@ -240,6 +337,31 @@ final class DemoSeeder
         $lost = array_column($db->table('crm_lost_reasons')->get()->getResultArray(), 'id');
         $pcts = [6, 8, 10, 12, 14, 9, 11, 13, 7, 15, 18, 22, 16, 20, 25, 30, 8, 10, 12, 17];
 
+        // Seed 15 Architectural Customer Projects
+        $projects = [];
+        for ($p = 0; $p < 15; $p++) {
+            $c = $this->cust[$p];
+            $projTypes = ['Luxury Villa', 'Modern Apartment', 'Penthouse Duplex', 'Residential Bungalow', 'Commercial Studio'];
+            $db->table('crm_projects')->insert([
+                'project_no' => 'PRJ-' . sprintf('%04d', $p + 1),
+                'customer_id' => $c['id'],
+                'name' => "{$c['surname']} " . $projTypes[$p % 5] . " - {$c['area']}",
+                'site_location' => 'Plot ' . (10 + $p) . ', Road 4, ' . $c['area'],
+                'city' => 'Pune',
+                'state' => 'Maharashtra',
+                'pin_code' => self::PIN[$c['area']],
+                'status' => ['planning', 'in_progress', 'completed'][$p % 3],
+                'budget' => 500000 + ($p * 150000),
+                'assigned_to' => $this->execs[$p % 6],
+                'remarks' => 'Architectural execution project covering Vitrum windows, Grohe bathrooms, and Hafele modular kitchen.',
+                'is_demo' => 1,
+                'created_at' => Crm::now(),
+                'updated_at' => Crm::now(),
+            ]);
+            $projects[$p] = (int) $db->insertID();
+            $this->reg('crm_projects', $projects[$p]);
+        }
+
         for ($i = 0; $i < 100; $i++) {
             $d0   = $this->dayAgo($i);
             $c    = $this->cust[$i % 40];
@@ -247,7 +369,8 @@ final class DemoSeeder
             $catId = (int) $db->table('crm_product_categories')->where('name', $cat)->get()->getRow()->id;
             $this->clock($d0, '09:30');
             $enq = EnquiryService::create([
-                'customer_id' => $c['id'], 'project_name' => "{$c['surname']} " . ['Residence', 'Villa', 'Apartment', 'Bungalow', 'Office'][$i % 5] . " #{$i} - {$c['area']}", 'product_category_id' => $catId,
+                'customer_id' => $c['id'], 'project_id' => $projects[$i % 15], 'is_lead' => ($i < 20 ? 1 : 0),
+                'project_name' => "{$c['surname']} " . ['Residence', 'Villa', 'Apartment', 'Bungalow', 'Office'][$i % 5] . " #{$i} - {$c['area']}", 'product_category_id' => $catId,
                 'requirements' => "{$cat} for new project (demo)", 'est_budget' => (string) (150000 + (($i * 53) % 12) * 85000), 'expected_purchase_date' => date('Y-m-d', strtotime('+' . (10 + $i % 60) . ' days')),
                 'source_id' => $srcs[$chan[$i % count($chan)]], 'source_channel' => $chan[$i % count($chan)], 'priority' => ['low', 'medium', 'high', 'urgent'][$i % 4],
                 'description' => 'Fictional demo enquiry',
@@ -395,6 +518,40 @@ final class DemoSeeder
         OrderService::markWon($eid, $M, null, Crm::now());
         EmailService::queue('placeholder-order@demo.invalid', ['template' => 'order_confirmation', 'customer_id' => (int) Crm::db()->table('crm_enquiries')->where('id', $eid)->get()->getRow()->customer_id, 'enquiry_id' => $eid, 'is_demo' => 1,
             'automation' => 'order_confirmation', 'vars' => ['customer_name' => 'Customer', 'order_no' => $o['order_no'], 'grand_total' => 'INR ' . Money::fmt($o['grand_total']), 'company_name' => Settings::get('company.name')]]);
+
+        $db = Crm::db();
+        $cid = (int) $db->table('crm_enquiries')->where('id', $eid)->get()->getRow()->customer_id;
+        $orderTotal = (float) $o['grand_total'];
+        $advPaid = round($orderTotal * 0.40, 2);
+
+        // 1. Seed Advance Payment Record
+        $db->query('INSERT INTO crm_payments (payment_no, receipt_no, order_id, customer_id, payment_type, amount, payment_mode, transaction_reference, payment_date, status, notes, recorded_by, is_demo, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)',
+            ['PAY-' . sprintf('%04d', $k + 1), 'RCP-' . sprintf('%04d', $k + 1), $o['id'], $cid, 'advance', $advPaid, ['bank_transfer', 'upi', 'cheque'][$k % 3], 'UTR-DEMO-' . sprintf('%06d', $k * 91 + 1045), date('Y-m-d', strtotime('-' . max(1, $day) . ' days')), 'paid', 'Initial 40% manufacturing advance', $this->admin['id'], Crm::now(), Crm::now()]);
+
+        // 2. Seed Progress Payments & Fulfilment
+        if ($k < 8) {
+            $partPaid = round($orderTotal * 0.45, 2);
+            $db->query('INSERT INTO crm_payments (payment_no, receipt_no, order_id, customer_id, payment_type, amount, payment_mode, transaction_reference, payment_date, status, notes, recorded_by, is_demo, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)',
+                ['PAY-' . sprintf('%04d', $k + 16), 'RCP-' . sprintf('%04d', $k + 16), $o['id'], $cid, 'partial', $partPaid, ['bank_transfer', 'upi'][$k % 2], 'UTR-DEMO-' . sprintf('%06d', $k * 87 + 2099), date('Y-m-d', strtotime('-' . max(1, $day - 10) . ' days')), 'paid', 'Pre-dispatch inspection milestone payment', $this->admin['id'], Crm::now(), Crm::now()]);
+
+            // Seed Delivery Challan
+            $delStatus = $k < 6 ? 'delivered' : 'dispatched';
+            $db->query('INSERT INTO crm_deliveries (delivery_no, challan_no, order_id, customer_id, status, scheduled_date, delivered_date, vehicle_details, driver_name, driver_phone, recipient_name, notes, is_demo, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)',
+                ['DEL-' . sprintf('%04d', $k + 1), 'DC-' . sprintf('%04d', $k + 1), $o['id'], $cid, $delStatus, date('Y-m-d', strtotime('-' . max(1, $day - 12) . ' days')), ($k < 6 ? Crm::now() : null), 'MH 12 AB ' . sprintf('%04d', 2000 + $k * 13), 'Santosh Shinde', '98220 54321', 'Site Supervisor', 'Delivered at site in sound condition with transit protection', Crm::now(), Crm::now()]);
+
+            // Seed Installation Handover
+            if ($k < 6) {
+                $db->query('INSERT INTO crm_installations (installation_no, order_id, customer_id, status, scheduled_date, started_at, completed_at, technician_name, technician_phone, customer_signoff_name, signoff_date, remarks, is_demo, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,?,?)',
+                    ['INS-' . sprintf('%04d', $k + 1), $o['id'], $cid, 'completed', date('Y-m-d', strtotime('-' . max(1, $day - 16) . ' days')), Crm::now(), Crm::now(), 'Ganesh Kadam', '98900 12345', 'Client Signoff Verified', date('Y-m-d'), 'All windows and fittings installed, sealed, and aligned successfully', Crm::now(), Crm::now()]);
+            }
+        }
+
+        // 3. Seed After-Sales Service Tickets
+        if ($k < 5) {
+            $db->query('INSERT INTO crm_service_requests (ticket_no, customer_id, order_id, request_type, priority, status, issue_description, resolution_notes, resolved_at, is_demo, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,1,?,?)',
+                ['SRV-' . sprintf('%04d', $k + 1), $cid, $o['id'], ['service_request', 'warranty_claim', 'maintenance_visit'][$k % 3], 'medium', ($k < 3 ? 'resolved' : 'in_progress'), 'Post-installation routine alignment check and gasket sealing inspection for balcony sliding window', ($k < 3 ? 'Technician inspected on site, lubricated rollers, and verified smooth sliding.' : null), ($k < 3 ? Crm::now() : null), Crm::now(), Crm::now()]);
+        }
+
         if ($k === 9) {
             OrderService::setStatus($o['id'], 'on_hold', $M, 'Customer site not ready');
         }

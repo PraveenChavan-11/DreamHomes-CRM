@@ -42,6 +42,20 @@ final class ReferenceData
         'audit.view'                => ['View audit history', 'admin'],
         'emails.view'               => ['View email log', 'communication'],
         'emails.send'               => ['Send manual emails', 'communication'],
+        'leads.view'                => ['View leads pipeline', 'leads'],
+        'leads.manage'              => ['Manage leads & conversion', 'leads'],
+        'projects.view'             => ['View customer projects', 'projects'],
+        'projects.manage'           => ['Manage customer projects', 'projects'],
+        'payments.view'             => ['View payments & receipts', 'finance'],
+        'payments.manage'           => ['Manage payments & receipts', 'finance'],
+        'deliveries.view'           => ['View delivery dispatches & challans', 'fulfilment'],
+        'deliveries.manage'         => ['Manage deliveries & dispatch', 'fulfilment'],
+        'installations.view'        => ['View installation schedules', 'fulfilment'],
+        'installations.manage'      => ['Manage installations & sign-offs', 'fulfilment'],
+        'service.view'              => ['View after-sales service tickets', 'service'],
+        'service.manage'            => ['Manage after-sales & complaints', 'service'],
+        'masters.view'              => ['View master data catalogue', 'masters'],
+        'masters.manage'            => ['Manage CRM master data', 'masters'],
         'demo.reset'                => ['Reset demo data', 'admin'],
     ];
 
@@ -51,19 +65,26 @@ final class ReferenceData
         'admin'           => ['Admin', 'Manages configuration, customers, users, products, sales and reports', 'all', '*'],
         'sales_manager'   => ['Sales Manager', 'Runs team pipeline, approves discounts within limit', 'team', [
             'dashboard.view', 'customers.view', 'customers.create', 'customers.edit', 'customers.export', 'customers.import',
+            'leads.view', 'leads.manage', 'projects.view', 'projects.manage',
             'enquiries.view', 'enquiries.create', 'enquiries.edit', 'enquiries.assign', 'enquiries.reassign', 'enquiries.close', 'enquiries.reopen',
             'followups.manage', 'visits.manage', 'products.view', 'quotations.view', 'quotations.create', 'quotations.send',
-            'negotiations.create', 'discounts.approve_manager', 'orders.view', 'orders.manage', 'history.view', 'reports.view', 'reports.export', 'emails.view', 'emails.send',
+            'negotiations.create', 'discounts.approve_manager', 'orders.view', 'orders.manage',
+            'payments.view', 'payments.manage', 'deliveries.view', 'deliveries.manage', 'installations.view', 'installations.manage',
+            'service.view', 'service.manage', 'masters.view', 'history.view', 'reports.view', 'reports.export', 'emails.view', 'emails.send',
         ]],
         'sales_executive' => ['Sales Executive', 'Works own enquiries, follow-ups, visits and quotations', 'own', [
             'dashboard.view', 'customers.view', 'customers.create', 'customers.edit',
+            'leads.view', 'leads.manage', 'projects.view',
             'enquiries.view', 'enquiries.create', 'enquiries.edit', 'enquiries.close',
             'followups.manage', 'visits.manage', 'products.view', 'quotations.view', 'quotations.create', 'quotations.send',
-            'negotiations.create', 'orders.view', 'history.view', 'emails.view', 'emails.send',
+            'negotiations.create', 'orders.view', 'payments.view', 'deliveries.view', 'installations.view', 'service.view',
+            'history.view', 'emails.view', 'emails.send',
         ]],
         'management'      => ['Management (Read-only)', 'Consolidated read-only visibility', 'all', [
-            'dashboard.view', 'customers.view', 'customers.export', 'enquiries.view', 'products.view', 'quotations.view',
-            'orders.view', 'history.view', 'reports.view', 'reports.export', 'audit.view', 'emails.view',
+            'dashboard.view', 'customers.view', 'customers.export', 'leads.view', 'projects.view',
+            'enquiries.view', 'products.view', 'quotations.view', 'orders.view', 'payments.view',
+            'deliveries.view', 'installations.view', 'service.view', 'masters.view',
+            'history.view', 'reports.view', 'reports.export', 'audit.view', 'emails.view',
         ]],
     ];
 
@@ -136,6 +157,7 @@ final class ReferenceData
             }
             Settings::seedDefaults();
             self::seedEmailTemplates($db);
+            MasterService::seedDefaultMasters();
         });
     }
 

@@ -125,7 +125,7 @@ final class DemoDataTest extends CrmTestCase
         $this->assertSame(bcadd($db->query("SELECT SUM(grand_total) s FROM crm_sales_orders WHERE status <> 'cancelled'")->getRow()->s, '0', 2), bcadd($m['won_value'], '0', 2), 'won value equals order value');
         $this->assertSame(15, $m['orders_count']);
         $this->assertSame((int) $db->table('crm_customers')->countAllResults(), $m['customers_total']);
-        $this->assertSame((int) $db->query("SELECT COUNT(*) c FROM crm_followups WHERE (status='pending' AND due_at < NOW()) OR status='missed'")->getRow()->c, $m['followups_overdue']);
+        $this->assertSame((int) $db->query("SELECT COUNT(*) c FROM crm_followups WHERE (status='pending' AND due_at < ?) OR status='missed'", [Crm::now()])->getRow()->c, $m['followups_overdue']);
         $this->assertGreaterThan(0, $m['followups_overdue'], 'overdue demo scenario present');
         $this->assertSame(array_sum(array_column($m['team_performance'], 'enquiries')), $m['enquiries_total']);
         $this->assertSame((int) $db->table('crm_negotiations')->whereIn('status', ['pending', 'escalated'])->countAllResults(), $m['approvals_pending']);

@@ -58,6 +58,17 @@ $enqLink = static fn ($r) => ! empty($r['enquiry_id']) ? '<a href="' . site_url(
   </div>
 </div>
 
+<?php elseif ($tab === 'projects'): ?>
+<div class="card"><div class="bd flush"><?= $tbl([
+    'Project' => static fn ($r) => '<a href="' . site_url('crm/projects/' . (int) $r['id']) . '"><strong>' . esc($r['project_no']) . ' · ' . esc($r['name']) . '</strong></a>',
+    'Location' => static fn ($r) => esc($r['site_location'] ?? '—'),
+    'Type' => static fn ($r) => esc(crm_label($r['project_type'] ?? '')),
+    'Status' => static fn ($r) => crm_badge($r['status']),
+    'Budget' => static fn ($r) => $r['budget_estimate'] ? crm_money0($r['budget_estimate']) : '—',
+    'Manager' => static fn ($r) => $e($r['manager_name']),
+    'Created' => static fn ($r) => esc(crm_dt($r['created_at'])),
+], $t['projects'], 'No projects linked to this customer.') ?></div></div>
+
 <?php elseif ($tab === 'enquiries'): ?>
 <div class="card"><div class="bd flush"><?= $tbl([
     'Enquiry' => static fn ($r) => '<a href="' . site_url('crm/enquiries/' . (int) $r['id']) . '"><strong>' . esc($r['enquiry_no']) . '</strong></a><div class="muted small">' . esc($r['project_name'] ?? '') . '</div>',
@@ -136,6 +147,49 @@ $enqLink = static fn ($r) => ! empty($r['enquiry_id']) ? '<a href="' . site_url(
     'Order' => static fn ($r) => '<a href="' . site_url('crm/orders/' . (int) $r['id']) . '"><strong>' . esc($r['order_no']) . '</strong></a>', 'Quotation' => static fn ($r) => $e($r['quotation_no']), 'Status' => static fn ($r) => crm_badge($r['status']),
     'Value' => static fn ($r) => crm_money($r['grand_total']), 'Confirmed' => static fn ($r) => esc(crm_date($r['confirmed_at'] ?? null)), 'Expected delivery' => static fn ($r) => esc(crm_date($r['expected_delivery'] ?? null)),
 ], $t['orders'], 'No sales orders yet.') ?></div></div>
+
+<?php elseif ($tab === 'payments'): ?>
+<div class="card"><div class="bd flush"><?= $tbl([
+    'Payment Ref' => static fn ($r) => '<a href="' . site_url('crm/payments/' . (int) $r['id']) . '"><strong>' . esc($r['payment_no']) . '</strong></a>',
+    'Order' => static fn ($r) => $r['order_id'] ? '<a href="' . site_url('crm/orders/' . (int) $r['order_id']) . '">' . esc($r['order_no'] ?? ('#' . $r['order_id'])) . '</a>' : '—',
+    'Type' => static fn ($r) => esc(crm_label($r['payment_type'] ?? '')),
+    'Mode' => static fn ($r) => esc(crm_label($r['payment_mode'] ?? '')),
+    'Amount' => static fn ($r) => '<strong>' . crm_money($r['amount']) . '</strong>',
+    'Status' => static fn ($r) => crm_badge($r['status']),
+    'Date' => static fn ($r) => esc(crm_date($r['payment_date'])),
+    'Receipt' => static fn ($r) => '<a class="btn alt sm" href="' . site_url('crm/payments/' . (int) $r['id'] . '/receipt') . '" target="_blank">PDF Receipt</a>',
+], $t['payments'], 'No payment records for this customer.') ?></div></div>
+
+<?php elseif ($tab === 'deliveries'): ?>
+<div class="card"><div class="bd flush"><?= $tbl([
+    'Challan' => static fn ($r) => '<a href="' . site_url('crm/deliveries/' . (int) $r['id']) . '"><strong>' . esc($r['challan_no'] . ' (' . $r['delivery_no'] . ')') . '</strong></a>',
+    'Order' => static fn ($r) => '<a href="' . site_url('crm/orders/' . (int) $r['order_id']) . '">' . esc($r['order_no'] ?? ('#' . $r['order_id'])) . '</a>',
+    'Status' => static fn ($r) => crm_badge($r['status']),
+    'Destination' => static fn ($r) => esc(mb_strimwidth($r['delivery_address'] ?? '—', 0, 40, '…')),
+    'Dispatched' => static fn ($r) => esc(crm_dt($r['dispatched_at'])),
+    'Delivered' => static fn ($r) => esc(crm_dt($r['delivered_at'])),
+], $t['deliveries'], 'No deliveries logged for this customer.') ?></div></div>
+
+<?php elseif ($tab === 'installations'): ?>
+<div class="card"><div class="bd flush"><?= $tbl([
+    'Installation Ref' => static fn ($r) => '<a href="' . site_url('crm/installations/' . (int) $r['id']) . '"><strong>' . esc($r['installation_no']) . '</strong></a>',
+    'Order' => static fn ($r) => '<a href="' . site_url('crm/orders/' . (int) $r['order_id']) . '">' . esc($r['order_no'] ?? ('#' . $r['order_id'])) . '</a>',
+    'Type' => static fn ($r) => esc(crm_label($r['installation_type'] ?? '')),
+    'Status' => static fn ($r) => crm_badge($r['status']),
+    'Technician' => static fn ($r) => $e($r['tech_name']),
+    'Completed' => static fn ($r) => esc(crm_dt($r['completed_at'])),
+], $t['installations'], 'No installations scheduled for this customer.') ?></div></div>
+
+<?php elseif ($tab === 'service_requests'): ?>
+<div class="card"><div class="bd flush"><?= $tbl([
+    'Ticket No' => static fn ($r) => '<a href="' . site_url('crm/service/' . (int) $r['id']) . '"><strong>' . esc($r['ticket_no']) . '</strong></a>',
+    'Subject' => static fn ($r) => esc($r['subject']),
+    'Category' => static fn ($r) => esc(crm_label($r['category'] ?? '')),
+    'Priority' => static fn ($r) => crm_badge($r['priority'] ?? 'medium'),
+    'Status' => static fn ($r) => crm_badge($r['status']),
+    'Technician' => static fn ($r) => $e($r['tech_name']),
+    'Logged' => static fn ($r) => esc(crm_dt($r['created_at'])),
+], $t['service_requests'], 'No service requests or complaints logged for this customer.') ?></div></div>
 
 <?php elseif ($tab === 'documents'): ?>
 <div class="card"><div class="bd flush"><?= $tbl([

@@ -24,16 +24,27 @@ $row = static function (int $i, array $l) use ($products, $all, $e, $val, $num, 
     $model = $p['pricing_model'] ?? (in_array($val($l, 'unit'), ['sqft', 'rft'], true) ? $val($l, 'unit') : '');
     ob_start(); ?>
 <tr class="ln" data-model="<?= $e($model) ?>">
-  <td style="min-width:250px">
-    <select name="lines[<?= $i ?>][product_id]" data-f="product" aria-label="Product">
-      <option value="">— Custom / free-typed item —</option>
-      <?php foreach ($products as $cat => $ps): ?><optgroup label="<?= $e($cat) ?>">
-        <?php foreach ($ps as $pr): ?><option value="<?= (int) $pr['id'] ?>" data-price="<?= $e((float) $pr['standard_price']) ?>" data-tax="<?= $e((float) $pr['tax_rate']) ?>" data-unit="<?= $e($pr['unit']) ?>" data-name="<?= $e($pr['name']) ?>" data-min="<?= $e($pr['min_price'] !== null ? (float) $pr['min_price'] : '') ?>" data-model="<?= $e($pr['pricing_model']) ?>"<?= crm_sel($pid, $pr['id']) ?>><?= esc($pr['sku'] . ' · ' . $pr['name']) ?></option><?php endforeach; ?>
-      </optgroup><?php endforeach; ?>
-    </select>
-    <input type="text" name="lines[<?= $i ?>][description]" data-f="desc" value="<?= $e($val($l, 'description')) ?>" maxlength="500" placeholder="Description" aria-label="Description" style="margin-top:4px">
-    <input type="text" name="lines[<?= $i ?>][variant]" value="<?= $e($val($l, 'variant')) ?>" maxlength="150" placeholder="Variant (e.g. 3-track, bronze)" aria-label="Variant" style="margin-top:4px">
-    <input type="text" name="lines[<?= $i ?>][specifications]" value="<?= $e($val($l, 'specifications')) ?>" placeholder="Specification (optional)" aria-label="Specification" style="margin-top:4px">
+  <td style="min-width:280px">
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <div data-f="imgpreview" style="width:44px;height:44px;border-radius:6px;border:1px solid var(--line-2,#cbd5e1);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;margin-top:2px">
+        <?php if (! empty($p['image'])): ?>
+          <img src="<?= esc(base_url($p['image'])) ?>" alt="" style="width:100%;height:100%;object-fit:cover">
+        <?php else: ?>
+          <span style="font-size:18px;color:#94a3b8">📐</span>
+        <?php endif; ?>
+      </div>
+      <div style="flex:1;min-width:0">
+        <select name="lines[<?= $i ?>][product_id]" data-f="product" aria-label="Product" style="width:100%">
+          <option value="">— Custom / free-typed item —</option>
+          <?php foreach ($products as $cat => $ps): ?><optgroup label="<?= $e($cat) ?>">
+            <?php foreach ($ps as $pr): ?><option value="<?= (int) $pr['id'] ?>" data-price="<?= $e((float) $pr['standard_price']) ?>" data-tax="<?= $e((float) $pr['tax_rate']) ?>" data-unit="<?= $e($pr['unit']) ?>" data-name="<?= $e($pr['name']) ?>" data-min="<?= $e($pr['min_price'] !== null ? (float) $pr['min_price'] : '') ?>" data-model="<?= $e($pr['pricing_model']) ?>" data-image="<?= $e(! empty($pr['image']) ? base_url($pr['image']) : '') ?>"<?= crm_sel($pid, $pr['id']) ?>><?= esc($pr['sku'] . ' · ' . $pr['name']) ?></option><?php endforeach; ?>
+          </optgroup><?php endforeach; ?>
+        </select>
+        <input type="text" name="lines[<?= $i ?>][description]" data-f="desc" value="<?= $e($val($l, 'description')) ?>" maxlength="500" placeholder="Description" aria-label="Description" style="margin-top:4px;width:100%">
+        <input type="text" name="lines[<?= $i ?>][variant]" value="<?= $e($val($l, 'variant')) ?>" maxlength="150" placeholder="Variant (e.g. 3-track, bronze)" aria-label="Variant" style="margin-top:4px;width:100%">
+        <input type="text" name="lines[<?= $i ?>][specifications]" value="<?= $e($val($l, 'specifications')) ?>" placeholder="Specification (optional)" aria-label="Specification" style="margin-top:4px;width:100%">
+      </div>
+    </div>
   </td>
   <td style="min-width:150px">
     <div class="gap" style="flex-wrap:nowrap"><input type="number" step="any" min="0" data-f="w" name="lines[<?= $i ?>][width]" value="<?= $e($num($val($l, 'width'))) ?>" placeholder="Width" aria-label="Width" style="min-width:64px"><span>×</span><input type="number" step="any" min="0" data-f="h" name="lines[<?= $i ?>][height]" value="<?= $e($num($val($l, 'height'))) ?>" placeholder="Height" aria-label="Height" style="min-width:64px"></div>
@@ -157,8 +168,11 @@ $chargeList[] = ['name' => '', 'amount' => ''];
     var price = $('[data-f=price]', tr); price.value = r2(T / den).toFixed(2); price.dataset.auto = '1'; fire(price);
   }
   function initRow(tr) {
-    var sel = $('[data-f=product]', tr), d = $('[data-f=desc]', tr), o = sel.options[sel.selectedIndex];
+    var sel = $('[data-f=product]', tr), d = $('[data-f=desc]', tr), o = sel && sel.options[sel.selectedIndex], img = $('[data-f=imgpreview]', tr);
     if (o && o.dataset.name && d.value === o.dataset.name) d.dataset.autoName = o.dataset.name;
+    if (img && o && o.dataset.image) {
+      img.innerHTML = '<img src="' + o.dataset.image + '" alt="" style="width:100%;height:100%;object-fit:cover">';
+    }
   }
   $$('tr.ln', lines).forEach(initRow);
 
@@ -166,8 +180,15 @@ $chargeList[] = ['name' => '', 'amount' => ''];
   lines.addEventListener('change', function (e) {
     var f = e.target.getAttribute('data-f'), tr = e.target.closest('tr.ln'); if (!tr) return;
     if (f === 'product') {
-      var o = e.target.options[e.target.selectedIndex], d = $('[data-f=desc]', tr);
+      var o = e.target.options[e.target.selectedIndex], d = $('[data-f=desc]', tr), img = $('[data-f=imgpreview]', tr);
       tr.dataset.model = (o && o.dataset.model) || '';
+      if (img) {
+        if (o && o.dataset.image) {
+          img.innerHTML = '<img src="' + o.dataset.image + '" alt="" style="width:100%;height:100%;object-fit:cover">';
+        } else {
+          img.innerHTML = '<span style="font-size:18px;color:#94a3b8">📐</span>';
+        }
+      }
       if (o && o.dataset.name && (!d.value || d.value === d.dataset.autoName)) { d.value = o.dataset.name; d.dataset.autoName = o.dataset.name; }
       $('[data-f=override]', tr).value = '';
       $('[data-f=std]', tr).textContent = o && o.dataset.price ? 'std ' + inr(num(o.dataset.price)) : '';

@@ -13,7 +13,19 @@
 <table class="t"><thead><tr><th>SKU</th><th>Product</th><th>Category</th><th>Pricing</th><th class="num">Standard</th><th class="num">Minimum</th><th class="num">Tax</th><th>Status</th><th></th></tr></thead><tbody>
 <?php foreach ($rows as $r): ?>
 <tr><td class="nowrap"><a href="<?= site_url('crm/products/' . $r['id']) ?>"><?= esc($r['sku']) ?></a></td>
-<td><strong><?= esc($r['name']) ?></strong><div class="small muted"><?= esc($r['brand'] ?? '') ?></div></td>
+<td>
+  <div style="display:flex;align-items:center;gap:12px">
+    <?php if (! empty($r['image'])): ?>
+      <img src="<?= esc(base_url($r['image'])) ?>" alt="<?= esc($r['name']) ?>" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--line-2,#e2e8f0);background:#fff;flex-shrink:0;">
+    <?php else: ?>
+      <div style="width:44px;height:44px;border-radius:6px;background:var(--bg-2,#f8fafc);border:1px solid var(--line-2,#e2e8f0);display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:18px;flex-shrink:0;">📐</div>
+    <?php endif; ?>
+    <div>
+      <strong><?= esc($r['name']) ?></strong>
+      <div class="small muted"><?= esc($r['brand'] ?? '') ?></div>
+    </div>
+  </div>
+</td>
 <td><?= esc($r['category'] ?? '—') ?></td><td><?= esc(crm_label($r['pricing_model'])) ?> <span class="muted small">/ <?= esc($r['unit']) ?></span></td>
 <td class="num"><?= crm_money($r['standard_price']) ?></td><td class="num"><?= crm_money($r['min_price']) ?></td><td class="num"><?= esc(rtrim(rtrim((string) $r['tax_rate'], '0'), '.')) ?>%</td>
 <td><?= crm_badge((int) $r['is_active'] ? 'active' : 'inactive') ?></td>

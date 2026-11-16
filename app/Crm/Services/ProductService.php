@@ -85,4 +85,109 @@ final class ProductService
             return $pid;
         });
     }
+
+    /** List product variants, optionally filtered by product ID */
+    public static function listVariants(?int $productId = null): array
+    {
+        $db = Crm::db();
+        $builder = $db->table('crm_product_variants v')
+            ->select('v.*, p.name as product_name, p.sku as parent_sku, b.name as brand_name')
+            ->join('crm_products p', 'p.id = v.product_id', 'left')
+            ->join('crm_product_brands b', 'b.id = v.brand_id', 'left');
+
+        if ($productId !== null) {
+            $builder->where('v.product_id', $productId);
+        }
+
+        return $builder->orderBy('v.id', 'ASC')->get()->getResultArray();
+    }
+
+    /** Save or update a product variant */
+    public static function saveVariant(?int $id, array $data, array $actor): int
+    {
+        $db = Crm::db();
+        $productId = (int) ($data['product_id'] ?? 0);
+        $sku = trim((string) ($data['sku'] ?? ''));
+        $name = trim((string) ($data['variant_name'] ?? ''));
+
+        if ($productId <= 0) {
+            throw new CrmException('A parent product is required.');
+        }
+        if ($sku === '') {
+            throw new CrmException('Variant SKU is required.');
+        }
+        if ($name === '') {
+            throw new CrmException('Variant name is required.');
+        }
+
+        $payload = [
+            'product_id' => $productId,
+            'sku' => $sku,
+            'variant_name' => $name,
+            'brand_id' => ! empty($data['brand_id']) ? (int) $data['brand_id'] : null,
+            'finish' => trim((string) ($data['finish'] ?? '')),
+            'colour' => trim((string) ($data['colour'] ?? '')),
+            'glass_type' => trim((string) ($data['glass_type'] ?? '')),
+            'tracks' => trim((string) ($data['tracks'] ?? '')),
+            'width' => ! empty($data['width']) ? (float) $data['width'] : null,
+            'height' => ! empty($data['height']) ? (float) $data['height'] : null,
+            'depth' => ! empty($data['depth']) ? (float) $data['depth'] : null,
+            'size_unit' => $data['size_unit'] ?? 'mm',
+            'cost_price' => (float) ($data['cost_price'] ?? 0.0),
+            'selling_price' => (float) ($data['selling_price'] ?? 0.0),
+            'tax_rate' => (float) ($data['tax_rate'] ?? 18.0),
+            'discount_eligible' => isset($data['discount_eligible']) ? (int) (bool) $data['discount_eligible'] : 1,
+            'warranty_months' => (int) ($data['warranty_months'] ?? 12),
+            'attributes_json' => ! empty($data['attributes']) ? json_encode($data['attributes'], JSON_UNESCAPED_UNICODE) : null,
+            'is_active' => isset($data['is_active']) ? (int) (bool) $data['is_active'] : 1,
+            'updated_at' => Crm::now(),
+        ];
+
+        if ($id) {
+            $dup = $db->table('crm_product_variants')->where('sku', $sku)->where('id !=', $id)->countAllResults();
+            if ($dup > 0) {
+                throw new CrmException("Variant SKU '{$sku}' already exists.");
+            }
+            $db->table('crm_product_variants')->where('id', $id)->update($payload);
+            return $id;
+        }
+
+        $dup = $db->table('crm_product_variants')->where('sku', $sku)->countAllResults();
+        if ($dup > 0) {
+            throw new CrmException("Variant SKU '{$sku}' already exists.");
+        }
+        $payload['created_at'] = Crm::now();
+        $db->table('crm_product_variants')->insert($payload);
+        return (int) $db->insertID();
+    }
+
+    /** Calculate area and dimensions for custom-sized architectural openings */
+    public static function calculateDimensions(float $width, float $height, string $unit = 'mm'): array
+    {
+        // Convert to millimeters first
+        $wMm = match (strtolower($unit)) {
+            'inch', 'in' => $width * 25.4,
+            'ft', 'feet' => $width * 304.8,
+            'm', 'meter' => $width * 1000.0,
+            default => $width,
+        };
+        $hMm = match (strtolower($unit)) {
+            'inch', 'in' => $height * 25.4,
+            'ft', 'feet' => $height * 304.8,
+            'm', 'meter' => $height * 1000.0,
+            default => $height,
+        };
+
+        $sqM = ($wMm * $hMm) / 1000000.0;
+        $sqFt = $sqM * 10.7639;
+        $rft = (2 * ($wMm + $hMm)) / 304.8; // Perimeter in running feet
+
+        return [
+            'width_mm' => round($wMm, 2),
+            'height_mm' => round($hMm, 2),
+            'sq_meters' => round($sqM, 3),
+            'sq_feet' => round($sqFt, 2),
+            'perimeter_rft' => round($rft, 2),
+        ];
+    }
 }

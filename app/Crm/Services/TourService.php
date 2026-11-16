@@ -12,7 +12,34 @@ class TourService
      * Default role-specific guided tours
      */
     private const TOURS = [
-        'executive_onboarding' => [
+        'master_enterprise_tour' => [
+            'role' => 'all',
+            'title' => 'Drem Homes CRM — Complete 20-Step Walkthrough',
+            'description' => 'Comprehensive end-to-end demonstration of all 20 modules from Lead capture to Delivery, Payment, and After-Sales.',
+            'version' => 2,
+            'steps' => [
+                ['target' => '.brand', 'title' => '1. Welcome to Drem Homes CRM', 'content' => 'Premium enterprise sales operations platform designed for Dream Homes Interior Solutions (DHIS Group).', 'position' => 'bottom'],
+                ['target' => '.nav a[href$="/crm"]', 'title' => '2. Dashboard Overview', 'content' => 'Live business KPIs, revenue won, quotation pipeline, and team performance calculated directly from database records.', 'position' => 'right'],
+                ['target' => '.side', 'title' => '3. Sidebar Navigation', 'content' => 'Clean 20-module workflow categorized into commercial sales, execution operations, reports, and master controls.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/leads"]', 'title' => '4. Understanding Leads', 'content' => 'Track incoming prospects across 11 stages from New Lead to Qualified with visual Kanban cards.', 'position' => 'right'],
+                ['target' => '#cmd-k-trigger', 'title' => '5. Creating a New Lead', 'content' => 'Use Ctrl+K Command Launcher or Quick Lead Capture to record customer expectations and budget in seconds.', 'position' => 'bottom'],
+                ['target' => '.nav a[href*="crm/customers"]', 'title' => '6. Managing Customers', 'content' => 'Complete Customer 360 view for Individuals, Architects, Builders, and Corporate accounts with multi-address support.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/masters"]', 'title' => '7. Adding Products & Variants', 'content' => 'Configurable architectural catalogue featuring Vitrum, Saint-Gobain, Grohe, Häfele, and Mr. Kitchen.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/visits"]', 'title' => '8. Scheduling Site Visits', 'content' => 'Dispatch technical representatives to site locations with appointment dates and address tracking.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/measurements"]', 'title' => '9. Recording Measurements', 'content' => 'Record millimeter dimensions, room tags, and custom opening calculations with immutable revision versioning.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/quotations"]', 'title' => '10. Preparing Quotations', 'content' => 'Dynamic proposal builder supporting custom sizes, items, taxes, and installation charges with server-side math.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/quotations"]', 'title' => '11. Understanding Quotation Approval', 'content' => 'Automatic margin checks route requests above authorized salesperson limits to Sales Managers or Directors.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/quotations"]', 'title' => '12. Generating & Downloading A4 PDFs', 'content' => 'Generate pixel-perfect A4 portrait commercial proposals with DHIS branding, GST breakdown, and INR words.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/orders"]', 'title' => '13. Converting Quotations to Sales Orders', 'content' => 'Single-click conversion locks quote items and initiates procurement across 17 commercial statuses.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/payments"]', 'title' => '14. Recording Payments', 'content' => 'Record advance, milestone, or full payments via UPI, NEFT, Cheque or Cash with official receipt generation.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/deliveries"]', 'title' => '15. Tracking Deliveries', 'content' => 'Issue delivery challans, assign drivers, vehicle numbers, and verify on-site delivery completion.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/installations"]', 'title' => '16. Managing Installations', 'content' => 'Assign technicians, monitor work in progress, and capture client sign-off on completed installations.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/service"]', 'title' => '17. Handling After-Sales Requests', 'content' => 'Log customer complaints, repair requests, and 10-year profile warranty claims with resolution logs.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/reports"]', 'title' => '18. Viewing Reports & Analytics', 'content' => 'Deep business intelligence on conversion funnels, salesperson rankings, lead-source ROI, and XLSX exports.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/masters"]', 'title' => '19. Managing Master Data', 'content' => 'Unified Master Data Management for all Organisation, Customer, Product, Sales, and System settings.', 'position' => 'right'],
+                ['target' => '.nav a[href*="crm/settings"]', 'title' => '20. User Settings & Permissions', 'content' => 'Configure multi-tier RBAC, audit logs, background scheduler jobs, and system health checks.', 'position' => 'right'],
+            ],
+        ],
             'role' => 'sales_executive',
             'title' => 'Sales Executive Quickstart',
             'description' => 'Master your daily sales workflow: Leads, Customer Contact, Follow-ups, and Quotations.',
@@ -133,12 +160,7 @@ class TourService
         }
 
         $roles = $user['roles'] ?? [];
-        $tourKey = 'executive_onboarding';
-        if (in_array('admin', $roles, true)) {
-            $tourKey = 'admin_onboarding';
-        } elseif (in_array('sales_manager', $roles, true)) {
-            $tourKey = 'manager_onboarding';
-        }
+        $tourKey = 'master_enterprise_tour';
 
         $tour = self::TOURS[$tourKey] ?? self::TOURS['executive_onboarding'];
 

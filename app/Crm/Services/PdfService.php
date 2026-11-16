@@ -38,6 +38,7 @@ final class PdfService
     /** @return array{html:string,data:array<string,mixed>} */
     public static function quotationHtml(int $versionId): array
     {
+        helper(['crm', 'url', 'number']);
         $db = Crm::db();
         $v  = $db->table('crm_quotation_versions')->where('id', $versionId)->get()->getRowArray() ?? throw new CrmException('Quotation version not found.');
         $q  = $db->table('crm_quotations')->where('id', $v['quotation_id'])->get()->getRowArray();
@@ -92,5 +93,21 @@ final class PdfService
         file_put_contents($path, $bin);
 
         return ['path' => $path, 'sha256' => hash('sha256', $bin), 'bytes' => strlen($bin)];
+    }
+
+    /** Render a payment receipt to PDF bytes */
+    public static function receiptBytes(int $paymentId): string
+    {
+        $html = PaymentService::receiptHtml($paymentId);
+        $opts = new Options();
+        $opts->set('isRemoteEnabled', false);
+        $opts->set('isHtml5ParserEnabled', true);
+        $opts->set('defaultFont', 'DejaVu Sans');
+        $pdf  = new Dompdf($opts);
+        $pdf->loadHtml($html);
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->render();
+
+        return $pdf->output();
     }
 }

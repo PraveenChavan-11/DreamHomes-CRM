@@ -160,6 +160,64 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
         $routes->post('demo/reset', 'AdminController::demoReset', ['filter' => 'crmperm:demo.reset']);
         $routes->get('health', 'AdminController::health', ['filter' => 'crmperm:settings.manage']);
 
+        // leads pipeline
+        $routes->group('leads', ['filter' => 'crmperm:leads.view,enquiries.view'], static function ($routes) {
+            $routes->get('', 'LeadController::index');
+            $routes->post('create', 'LeadController::create', ['filter' => 'crmperm:enquiries.create']);
+            $routes->post('(:num)/stage', 'LeadController::moveStage/$1', ['filter' => 'crmperm:enquiries.edit']);
+        });
+
+        // customer projects
+        $routes->group('projects', ['filter' => 'crmperm:projects.view,customers.view'], static function ($routes) {
+            $routes->get('', 'ProjectController::index');
+            $routes->get('(:num)', 'ProjectController::show/$1');
+            $routes->post('save', 'ProjectController::save', ['filter' => 'crmperm:customers.edit']);
+            $routes->post('(:num)/save', 'ProjectController::save/$1', ['filter' => 'crmperm:customers.edit']);
+        });
+
+        // payments & receipts
+        $routes->group('payments', ['filter' => 'crmperm:payments.view,orders.view'], static function ($routes) {
+            $routes->get('', 'PaymentController::index');
+            $routes->get('(:num)', 'PaymentController::show/$1');
+            $routes->post('record', 'PaymentController::record', ['filter' => 'crmperm:orders.manage']);
+            $routes->get('(:num)/receipt', 'PaymentController::receiptPdf/$1');
+        });
+
+        // fulfilment: deliveries & installations
+        $routes->group('deliveries', ['filter' => 'crmperm:deliveries.view,orders.view'], static function ($routes) {
+            $routes->get('', 'FulfilmentController::deliveries');
+            $routes->get('(:num)', 'FulfilmentController::deliveryShow/$1');
+            $routes->post('save', 'FulfilmentController::deliverySave', ['filter' => 'crmperm:orders.manage']);
+            $routes->post('(:num)/save', 'FulfilmentController::deliverySave/$1', ['filter' => 'crmperm:orders.manage']);
+        });
+        $routes->group('installations', ['filter' => 'crmperm:installations.view,orders.view'], static function ($routes) {
+            $routes->get('', 'FulfilmentController::installations');
+            $routes->get('(:num)', 'FulfilmentController::installationShow/$1');
+            $routes->post('save', 'FulfilmentController::installationSave', ['filter' => 'crmperm:orders.manage']);
+            $routes->post('(:num)/save', 'FulfilmentController::installationSave/$1', ['filter' => 'crmperm:orders.manage']);
+        });
+
+        // after-sales service
+        $routes->group('service', ['filter' => 'crmperm:service.view,customers.view'], static function ($routes) {
+            $routes->get('', 'ServiceController::index');
+            $routes->get('(:num)', 'ServiceController::show/$1');
+            $routes->post('save', 'ServiceController::save');
+            $routes->post('(:num)/save', 'ServiceController::save/$1');
+        });
+
+        // measurements view
+        $routes->get('measurements', 'ActivityController::measurements', ['filter' => 'crmperm:visits.manage']);
+
+        // master data management
+        $routes->group('masters', ['filter' => 'crmperm:masters.view,products.view,settings.manage'], static function ($routes) {
+            $routes->get('', 'MasterController::index');
+            $routes->get('(:segment)', 'MasterController::view/$1');
+            $routes->post('(:segment)/save', 'MasterController::save/$1', ['filter' => 'crmperm:settings.manage,products.manage']);
+            $routes->post('(:segment)/save/(:num)', 'MasterController::save/$1/$2', ['filter' => 'crmperm:settings.manage,products.manage']);
+            $routes->post('(:segment)/toggle/(:num)', 'MasterController::toggle/$1/$2', ['filter' => 'crmperm:settings.manage,products.manage']);
+            $routes->get('(:segment)/export', 'MasterController::export/$1');
+        });
+
         // Global Command Launcher Search (Ctrl+K)
         $routes->get('search', 'SearchController::search');
 
@@ -170,6 +228,7 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
         });
         $routes->group('tour', static function ($routes) {
             $routes->get('get', 'QaController::getTour');
+            $routes->get('guide', 'QaController::guide');
             $routes->post('update', 'QaController::updateTour');
             $routes->post('reset', 'QaController::resetTour');
         });

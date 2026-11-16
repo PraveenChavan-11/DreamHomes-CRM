@@ -359,7 +359,7 @@
   // --------------------------------------------------------------------------
   // Service Worker Registration for PWA Standalone Operation
   // --------------------------------------------------------------------------
-  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('/sw.js').catch(function () {});
     });
