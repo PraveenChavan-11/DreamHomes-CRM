@@ -48,17 +48,18 @@ $resLoginGet = req($baseUrl . '/crm/login', 'GET', [], $cookieFile);
 echo "GET /crm/login -> HTTP {$resLoginGet['code']}\n";
 
 // Grab CSRF token if present
-preg_match('/name="csrf_test_name" value="([^"]+)"/', $resLoginGet['body'], $csrfMatch);
-$csrfToken = $csrfMatch[1] ?? '';
-echo "CSRF token: " . ($csrfToken ? substr($csrfToken, 0, 10) . '...' : 'none found') . "\n";
+preg_match('/name="([^"]*csrf[^"]*)" value="([^"]+)"/i', $resLoginGet['body'], $csrfMatch);
+$csrfName = $csrfMatch[1] ?? 'csrf_test_name';
+$csrfToken = $csrfMatch[2] ?? '';
+echo "CSRF: {$csrfName} = " . ($csrfToken ? substr($csrfToken, 0, 10) . '...' : 'none') . "\n";
 
 echo "\n=== 3. Authenticating demo.admin1 ===\n";
 $postData = [
-    'username' => 'demo.admin1',
+    'identity' => 'demo.admin1',
     'password' => 'Demo@DHIS#2026',
 ];
 if ($csrfToken) {
-    $postData['csrf_test_name'] = $csrfToken;
+    $postData[$csrfName] = $csrfToken;
 }
 $resLoginPost = req($baseUrl . '/crm/login', 'POST', $postData, $cookieFile);
 echo "POST /crm/login -> HTTP {$resLoginPost['code']} [Final: {$resLoginPost['url']}]\n";
@@ -80,6 +81,7 @@ $endpoints = [
     '/crm/products' => 'Products Catalogue',
     '/crm/reports' => 'Reports Engine',
     '/crm/tour/get' => 'Tour JSON API',
+    '/crm/quotations/1/pdf/1' => 'Self-Healing Quotation PDF (V1)',
 ];
 
 $passCount = 0;
@@ -93,7 +95,7 @@ foreach ($endpoints as $uri => $label) {
     } else {
         $failCount++;
     }
-    echo sprintf("[%s] %-25s HTTP %d - %s\n", $status, $uri, $res['code'], $label);
+    echo sprintf("[%s] %-25s HTTP %d (URL: %s) - %s\n", $status, $uri, $res['code'], $res['url'], $label);
     if ($res['code'] !== 200) {
         echo "   Error: " . substr(strip_tags($res['body']), 0, 150) . "...\n";
     }
