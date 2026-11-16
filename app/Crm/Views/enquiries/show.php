@@ -198,9 +198,19 @@ $curStep = $stOrder[$e['status']] ?? 1;
 
 <?php elseif ($tab === 'negotiations'): ?>
 <div class="card"><div class="hd"><h2>Negotiations &amp; discount requests</h2></div><div class="bd flush">
-  <?php if (! $negotiations): ?><div class="empty">No negotiations recorded.</div><?php else: ?><div class="tablewrap"><table class="t"><thead><tr><th>Negotiation</th><th>Quotation</th><th>Requested by</th><th class="num">Requested %</th><th class="num">Proposed price</th><th>Status</th><th>Raised</th></tr></thead><tbody>
+  <?php if (! $negotiations): ?><div class="empty">No negotiations recorded.</div><?php else: ?><div class="tablewrap"><table class="t"><thead><tr><th>Negotiation</th><th>Quotation</th><th>Requested by</th><th class="num">Requested %</th><th class="num">Proposed price</th><th>Status</th><th>Raised</th><th style="text-align:right">Actions</th></tr></thead><tbody>
     <?php foreach ($negotiations as $n): ?><tr><td><a href="<?= site_url('crm/negotiations/' . (int) $n['id']) ?>"><strong><?= esc($n['negotiation_no']) ?></strong></a></td><td><a href="<?= site_url('crm/quotations/' . (int) $n['quotation_id']) ?>"><?= esc($n['quotation_no']) ?></a></td>
-      <td><?= esc($n['requester']) ?></td><td class="num"><?= esc($num($n['requested_discount_pct'])) ?>%</td><td class="num"><?= $n['proposed_price'] !== null ? crm_money($n['proposed_price']) : '—' ?></td><td><?= crm_badge($n['status']) ?></td><td class="nowrap"><?= crm_dt($n['created_at']) ?></td></tr><?php endforeach; ?>
+      <td><?= esc($n['requester']) ?></td><td class="num"><?= esc($num($n['requested_discount_pct'])) ?>%</td><td class="num"><?= $n['proposed_price'] !== null ? crm_money($n['proposed_price']) : '—' ?></td><td><?= crm_badge($n['status']) ?></td><td class="nowrap"><?= crm_dt($n['created_at']) ?></td>
+      <td class="nowrap" style="text-align:right">
+        <?php if ($n['status'] === 'approved'): ?>
+          <a href="<?= site_url('crm/negotiations/' . (int) $n['id']) ?>" class="btn sm" style="background:#E8F5E9;color:#2E7D32;font-weight:600">⚡ Create Revised vX</a>
+        <?php elseif ($n['status'] === 'rejected'): ?>
+          <a href="<?= site_url('crm/quotations/' . (int) $n['quotation_id'] . '/revise') ?>" class="btn sm" style="background:#FFEBEE;color:#C62828;font-weight:600">✏️ Revise Cost / Quote</a>
+        <?php else: ?>
+          <a href="<?= site_url('crm/negotiations/' . (int) $n['id']) ?>" class="btn sm alt">Open</a>
+        <?php endif; ?>
+      </td>
+    </tr><?php endforeach; ?>
   </tbody></table></div><?php endif; ?></div></div>
 
 <?php elseif ($tab === 'orders'): ?>

@@ -37,8 +37,14 @@ class ActivityController extends CrmController
     private function followupQuery(string $tab, ?int $assignee)
     {
         $b = Crm::db()->table('crm_followups f')
-            ->select("f.*, e.enquiry_no, e.project_name, c.name AS customer_name, c.mobile AS customer_mobile, CONCAT(u.first_name,' ',u.last_name) AS user_name")
-            ->join('crm_enquiries e', 'e.id = f.enquiry_id', 'left')->join('crm_customers c', 'c.id = f.customer_id')->join('admin_users u', 'u.id = f.assigned_to', 'left');
+            ->select("f.*, e.enquiry_no, e.project_name, c.name AS customer_name, c.mobile AS customer_mobile, CONCAT(u.first_name,' ',u.last_name) AS user_name,
+                      q.id AS quotation_id, q.quotation_no, q.status AS quotation_status,
+                      n.id AS negotiation_id, n.negotiation_no, n.status AS negotiation_status, n.requested_discount_pct")
+            ->join('crm_enquiries e', 'e.id = f.enquiry_id', 'left')
+            ->join('crm_customers c', 'c.id = f.customer_id')
+            ->join('admin_users u', 'u.id = f.assigned_to', 'left')
+            ->join('crm_quotations q', 'q.enquiry_id = f.enquiry_id AND q.id = (SELECT MAX(q2.id) FROM crm_quotations q2 WHERE q2.enquiry_id = f.enquiry_id)', 'left')
+            ->join('crm_negotiations n', 'n.quotation_id = q.id AND n.id = (SELECT MAX(n2.id) FROM crm_negotiations n2 WHERE n2.quotation_id = q.id)', 'left');
         $this->scopeFollowups($b);
         $today = date('Y-m-d');
         match ($tab) {
@@ -80,9 +86,29 @@ class ActivityController extends CrmController
     {
         $p = $this->request;
         $n = trim((string) $p->getPost('next_due_at'));
+        $u = $this->user();
 
-        return $this->act(fn () => ActivityService::completeFollowup($id, $this->user(), trim((string) $p->getPost('outcome')), trim((string) $p->getPost('remarks')) ?: null,
-            $n !== '' ? $n : null, trim((string) $p->getPost('next_action')) ?: null), 'Follow-up completed and logged.');
+        return $this->act(function () use ($id, $p, $n, $u) {
+            ActivityService::completeFollowup($id, $u, trim((string) $p->getPost('outcome')), trim((string) $p->getPost('remarks')) ?: null,
+                $n !== '' ? $n : null, trim((string) $p->getPost('next_action')) ?: null);
+
+            $qid = (int) $p->getPost('quotation_id');
+            $askPct = trim((string) $p->getPost('requested_discount_pct'));
+            $expAmt = trim((string) $p->getPost('customer_expected_amount'));
+            $negReason = trim((string) $p->getPost('negotiation_reason'));
+
+            if ($qid > 0 && ($askPct !== '' || $expAmt !== '') && $negReason !== '') {
+                if ($askPct === '' && $expAmt !== '') {
+                    $q = \Crm\Services\QuotationService::loadQuotation($qid, $u);
+                    $askPct = \Crm\Services\NegotiationService::pctForTarget((int) $q['current_version_id'], $expAmt);
+                }
+                if ($askPct !== '') {
+                    \Crm\Services\NegotiationService::request($qid, $u, $askPct, $negReason, $expAmt !== '' ? $expAmt : null);
+                }
+            }
+
+            return 'crm/followups';
+        }, 'Follow-up completed and logged.');
     }
 
     public function rescheduleFollowup(int $id)

@@ -18,8 +18,9 @@ $canNeg = crm_can('negotiations.create') && $locked && in_array($q['status'], ['
       <?php if (! $locked): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/edit') ?>">Edit draft</a>
       <?php else: ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/revise') ?>">Revise (new version)</a><?php endif; ?>
     <?php endif; ?>
-    <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $sel['version_no']) ?>">PDF<?= $sel['pdf_path'] ? '' : ' (draft)' ?></a>
-    <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/preview/' . (int) $sel['version_no']) ?>">Preview</a>
+    <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $sel['version_no']) ?>">📄 View A4 PDF<?= $sel['pdf_path'] ? '' : ' (draft)' ?></a>
+    <a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $sel['version_no'] . '?download=1') ?>">⬇️ Download PDF</a>
+    <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/preview/' . (int) $sel['version_no']) ?>">Preview HTML</a>
     <?php if (count($versions) > 1): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/compare') ?>">Compare versions</a><?php endif; ?>
     <?php if (crm_can('quotations.send') && ! $closed): ?>
       <?php if (! $locked): ?><button class="btn teal" type="button" data-modal="m-send">Send to customer</button><?php else: ?><button class="btn alt" type="button" data-modal="m-resend">Resend email</button><?php endif; ?>
@@ -108,10 +109,12 @@ $canNeg = crm_can('negotiations.create') && $locked && in_array($q['status'], ['
         <div class="what">v<?= (int) $v['version_no'] ?> · <?= crm_money($v['grand_total']) ?> · <?= (int) $v['is_locked'] ? 'locked' : 'draft' ?><?= (int) $v['id'] === (int) $cur['id'] ? ' · current' : '' ?></div>
         <div class="meta">By <?= esc($v['author']) ?><?= $v['sent_at'] ? ' · sent ' . crm_dt($v['sent_at']) : '' ?><?= $v['revision_reason'] ? ' · reason: ' . esc($v['revision_reason']) : '' ?>
           <?php if ($v['negotiation']): ?> · from negotiation <a href="<?= site_url('crm/negotiations/' . (int) $v['negotiation']['id']) ?>"><?= esc($v['negotiation']['negotiation_no']) ?></a><?php endif; ?></div>
-        <div class="gap small" style="margin-top:4px">
-          <a href="<?= site_url('crm/quotations/' . (int) $q['id'] . '?v=' . (int) $v['version_no']) ?>">View v<?= (int) $v['version_no'] ?></a>
-          <?php if ($v['pdf_path']): ?><a target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $v['version_no']) ?>">Original PDF</a><?php endif; ?>
-          <?php if ($prev): ?><a href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/compare?a=' . (int) $prev['version_no'] . '&b=' . (int) $v['version_no']) ?>">Compare with v<?= (int) $prev['version_no'] ?></a><?php endif; ?></div>
+        <div class="gap small" style="margin-top:6px">
+          <a class="btn sm alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '?v=' . (int) $v['version_no']) ?>">View v<?= (int) $v['version_no'] ?></a>
+          <a class="btn sm alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $v['version_no']) ?>">📄 View A4 PDF</a>
+          <a class="btn sm alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $v['version_no'] . '?download=1') ?>">⬇️ Download PDF</a>
+          <?php if ($prev): ?><a class="btn sm alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/compare?a=' . (int) $prev['version_no'] . '&b=' . (int) $v['version_no']) ?>">Compare with v<?= (int) $prev['version_no'] ?></a><?php endif; ?>
+        </div>
         <?php if ($v['changes']): ?><details style="margin-top:6px"<?= (int) $v['version_no'] === (int) $sel['version_no'] ? ' open' : '' ?>><summary class="small">Tracked changes (<?= count($v['changes']) ?>)</summary><div style="margin-top:8px"><?= view('Crm\Views\quotations\_changes', ['changes' => $v['changes']]) ?></div></details><?php endif; ?>
       </li>
     <?php endforeach; ?>

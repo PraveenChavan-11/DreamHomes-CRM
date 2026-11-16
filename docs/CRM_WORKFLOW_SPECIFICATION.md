@@ -22,6 +22,7 @@ Auto-assignment (`AssignmentService::pick`) walks active `crm_assignment_rules` 
 
 ## Follow-ups, activities, visits
 * Follow-up: `pending → completed | rescheduled | missed | cancelled`; types call / meeting / whatsapp / email / visit / other. Completing records outcome, remarks, next action and (optionally) schedules the next one. Completed items stay in history.
+* **Daily Sales Activity & Price Negotiation Integration**: Follow-ups directly surface linked quotations and active negotiation approval statuses (`Pending Approval`, `Approved - X%`, `Rejected - Revise`). When completing a follow-up, salespeople can simultaneously check "Client Wants Price Concession" to specify requested discount % or customer expected total ₹, and submit it directly to senior managers for price approval while logging the client discussion.
 * `crm:reminders` (cron) sends due reminders once (dedupe keys), marks missed, and **escalates** overdue items to the manager after `followup.escalate_after_hours` (**ASSUMED** 24 h).
 * Site visit: `scheduled → completed | cancelled | rescheduled`. Completing stores measurements as a new **version** (`crm_site_measurements.version_no`, `is_current`), observations, product requirements and a follow-up action. Reminder `visit.reminder_hours_before` (**ASSUMED** 24 h).
 * Customer requirements per enquiry (variant, width × height, unit, nos, expected price) are tracked with a before/after change log (`crm_requirement_changes`) and can seed quotation lines.
@@ -33,7 +34,7 @@ Auto-assignment (`AssignmentService::pick`) walks active `crm_assignment_rules` 
 1. **Create** from an enquiry (executive/manager/admin with `quotations.create`). Each line: product (optional), description, **variant, width, height, size unit, nos**, quantity, unit, **unit price (catalogue or manually overridden)**, line discount, tax. `price_source` records `catalogue` or `manual`; size-priced products (sqft / rft) derive quantity from the entered size on the server.
 2. **Server pricing** (`QuotationService::price`): bcmath; subtotal = qty × price; discount % or amount (capped at subtotal); taxable; GST per line; additional charges (with tax); grand total, optional round-off to the rupee (`quotation.round_off`). It then enforces authority: overall discount ≤ the user's personal limit (or an approved ceiling), and every line's net price ≥ the product **minimum selling price** unless an approved negotiation ceiling or Admin authority applies.
 3. **Draft** can be edited in place (`updateDraft`). **Send** (PDF generated with Dompdf, SHA-256 stored, e-mail logged) **locks** that version; further changes are only possible by **revising**.
-4. **Revise** creates version N+1 (reason mandatory; optional link to a negotiation and follow-up). Prior versions, their PDFs, values, terms and timestamps are never altered. The item-level change log (added / removed / modified / totals / terms) and a side-by-side **compare** are available at `/crm/quotations/{id}/compare`.
+4. **Revise** creates version N+1 (reason mandatory; optional link to a negotiation and follow-up). Prior versions, their PDFs, values, terms and timestamps are never altered. The item-level change log (added / removed / modified / totals / terms) and a side-by-side **compare** are available at `/crm/quotations/{id}/compare`. All versions support both **View A4 PDF** (inline) and **Download A4 PDF** (`?download=1`).
 5. **Response**: customer accepted / rejected / pending is recorded with remarks and date; acceptance moves the enquiry toward order conversion.
 6. Validity default 15 days (**ASSUMED**), terms and payment terms are **placeholders** until DHIS supplies wording; GSTIN is empty until supplied and is printed only when set. CGST/SGST vs IGST depends on `company.state` vs customer state.
 
@@ -43,8 +44,15 @@ Statuses: `pending → approved | rejected | returned | escalated`, then `applie
 
 * Executive/manager raises a request: requested **total discount %** (or customer's expected amount, converted to the closest uniform %), reason (mandatory), original quotation version snapshot.
 * **Required level** (`NegotiationService::levelFor`): ≤ the requester's personal limit → `self` (auto-recorded, no approval); ≤ `discount.limit.manager_pct` (**ASSUMED** 15 %) → `manager`; above → `admin`.
-* **Decide** (`approve / reject / return / escalate`): remarks mandatory except for approve; approver needs `discounts.approve_manager` or `…_admin`, must be inside the enquiry's scope, within their own limit, and **cannot decide their own request** unless `discount.allow_self_approval` = 1. Row-locked, so double clicks cannot double-decide. `returned` lets the salesperson **resubmit** with a new % / reason.
-* Only an **approved** request lifts the discount ceiling used when creating the **revised quotation**; the original quotation and every negotiation round remain intact (`crm_negotiations`, `crm_discount_approvals`).
+* **Decide** (`approve / reject / return / escalate`): remarks mandatory except for approve; approver needs `discounts.approve_manager` or `…_admin`, must be inside the enquiry's scope, within their own limit, and **cannot decide their own request** unless `discount.allow_self_approval` = 1. Row-locked, so double clicks cannot double-decide.
+* **When Approved**: The salesperson receives a notification and can immediately:
+  1. Generate the revised quotation version (vX) pre-loaded with the approved discount ceiling and audit reason.
+  2. Adjust line items, dimensions, quantities, or prices if customer requirements shifted.
+  3. View or download the official A4 PDF and send the approved version to the client.
+* **When Rejected**: The manager's rejection remarks are prominently displayed to the sales executive. As per workflow, the sales executive can:
+  1. Re-cost the project by adjusting product specifications, dimensions (Width × Height), quantities, or materials as a new version (v2, v3...).
+  2. Or submit a revised negotiation round with an adjusted ask within the manager's guidance.
+* Every negotiation round links to the quotation version it originated from and the resulting version it produced (`crm_negotiations`, `crm_discount_approvals`).
 
 ## Sales order
 

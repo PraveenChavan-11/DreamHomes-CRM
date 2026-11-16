@@ -49,13 +49,43 @@ $isMine = (int) $n['requested_by'] === (int) ($user['id'] ?? 0);
     <?php elseif (in_array($n['status'], ['pending', 'escalated'], true)): ?>
       <p class="muted"><?= $isMine && \Crm\Services\Settings::get('discount.allow_self_approval') !== '1' ? 'You raised this request, so you cannot decide it. ' : '' ?>Waiting for a <?= esc($n['required_level']) ?>-level approver.</p>
     <?php elseif ($n['status'] === 'returned' && $isMine): ?>
-      <p>Your request was returned. Resubmit with a revised ask:</p>
+      <div class="flash info" style="margin-bottom:12px">
+        <strong>Returned for Revision by Senior:</strong>
+        <p style="margin:4px 0 0">Remarks: <em>“<?= esc(end($approvals)['remarks'] ?? 'Please adjust figures.') ?>”</em></p>
+      </div>
+      <p>Resubmit with a revised ask:</p>
       <form method="post" action="<?= site_url('crm/negotiations/' . (int) $n['id'] . '/resubmit') ?>" data-validate><?= csrf_field() ?>
         <div class="form"><div><label class="req" for="rp">New discount %</label><input id="rp" type="number" step="0.001" min="0.001" max="100" name="requested_discount_pct" required></div>
         <div class="full"><label class="req" for="rr">Reason</label><textarea id="rr" name="reason" required></textarea></div></div>
         <button class="btn teal mt" type="submit">Resubmit</button></form>
     <?php elseif ($n['status'] === 'approved'): ?>
-      <p><span class="badge badge-green">Approved</span> — prepare the revised quotation below. The approved ceiling of <?= esc(number_format((float) $n['requested_discount_pct'], 2)) ?>% covers the discount you apply.</p>
+      <div class="flash ok" style="margin-bottom:14px">
+        <strong style="color:var(--green);display:block;margin-bottom:4px;font-size:14px">✅ Price Concession Approved by Senior / Manager</strong>
+        <span>Approved discount ceiling: <strong><?= esc(number_format((float) $n['requested_discount_pct'], 2)) ?>%</strong> (Proposed final price: <?= crm_money($n['proposed_price']) ?>).</span>
+      </div>
+      <p style="font-size:13px">Prepare the revised quotation below with updated sizes, quantities, or prices. Once saved, it creates a new official quotation version ready to send to the client with an A4 PDF.</p>
+      <?php if ($result): ?>
+        <div class="flash info" style="margin-top:12px">
+          <strong>Revised Quotation v<?= (int) $result['version_no'] ?> Generated:</strong> <?= crm_money($result['grand_total']) ?>
+          <div class="gap mt" style="margin-top:8px">
+            <a href="<?= site_url('crm/quotations/' . $qid . '/pdf/' . (int) $result['version_no']) ?>" target="_blank" class="btn alt sm">📄 View A4 PDF</a>
+            <a href="<?= site_url('crm/quotations/' . $qid . '/pdf/' . (int) $result['version_no'] . '?download=1') ?>" class="btn alt sm">⬇️ Download A4 PDF</a>
+            <a href="<?= site_url('crm/quotations/' . $qid . '?v=' . (int) $result['version_no']) ?>" class="btn teal sm">🚀 Open Version &amp; Send to Client</a>
+          </div>
+        </div>
+      <?php endif; ?>
+    <?php elseif ($n['status'] === 'rejected'): ?>
+      <?php $lastApproval = end($approvals) ?: null; ?>
+      <div class="flash danger" style="margin-bottom:14px">
+        <strong style="color:var(--red);display:block;margin-bottom:4px;font-size:14px">❌ Discount Request Rejected by Senior / Manager</strong>
+        <p style="margin:4px 0 0">Approver Remarks: <em>“<?= esc($lastApproval['remarks'] ?? 'Requested discount not approved at this level.') ?>”</em></p>
+      </div>
+      <p style="font-size:13px">As per workflow, you can adjust product sizes, quantities, specifications, or explore alternative materials to re-cost the project and generate a new quotation version for the customer:</p>
+      <div class="gap mt">
+        <a href="<?= site_url('crm/quotations/' . $qid . '/revise') ?>" class="btn teal">✏️ Create Revised Cost / Quotation (New Version)</a>
+        <a href="<?= site_url('crm/quotations/' . $qid) ?>" class="btn alt">Quotation Details</a>
+        <a href="<?= site_url('crm/followups') ?>" class="btn alt">Daily Follow-ups</a>
+      </div>
     <?php else: ?>
       <p class="muted">This request is <?= crm_label($n['status']) ?>.</p>
     <?php endif; ?>

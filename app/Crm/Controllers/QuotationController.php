@@ -380,7 +380,9 @@ class QuotationController extends CrmController
             $bytes = PdfService::quotationBytes((int) $v['id']);   // draft: rendered on demand, not stored
         }
 
-        return $this->response->setHeader('Content-Type', 'application/pdf')->setHeader('Content-Disposition', 'inline; filename="' . $q['quotation_no'] . '-V' . $no . ($v['pdf_path'] ? '' : '-DRAFT') . '.pdf"')
+        $disposition = $this->request->getGet('download') ? 'attachment' : 'inline';
+
+        return $this->response->setHeader('Content-Type', 'application/pdf')->setHeader('Content-Disposition', $disposition . '; filename="' . $q['quotation_no'] . '-V' . $no . ($v['pdf_path'] ? '' : '-DRAFT') . '.pdf"')
             ->setHeader('X-Content-Type-Options', 'nosniff')->setBody($bytes);
     }
 
