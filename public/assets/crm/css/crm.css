@@ -175,23 +175,13 @@ h4 { font-size: 13px; font-weight: 600; }
   flex-direction: column;
   z-index: 40;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-  scrollbar-gutter: stable;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 .side::-webkit-scrollbar {
-  width: 4px;
-}
-.side::-webkit-scrollbar-track {
-  background: transparent;
-}
-.side::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  transition: background 0.2s ease;
-}
-.side:hover::-webkit-scrollbar-thumb {
-  background: rgba(83, 161, 172, 0.45);
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .brand {
@@ -604,26 +594,20 @@ button.btn + a.btn,
 a.btn + button.btn,
 .btn + form,
 form + .btn {
-  margin-left: 12px !important;
+  margin-left: 10px !important;
 }
 
-/* Inside flex containers that already define gap, prevent double spacing */
-.gap > .btn + .btn,
-.gap > a.btn + a.btn,
-.gap > .btn + a.btn,
-.gap > a.btn + .btn,
-.pagehead > .btn + .btn,
-.pagehead > a.btn + a.btn,
-.header-action > .btn + .btn,
-.header-action > a.btn + a.btn,
-.filters > .btn + .btn,
-.filters > form + .btn,
-.actions > .btn + .btn,
-.modal-actions > .btn + .btn,
-.form-actions > .btn + .btn,
-.ft > .btn + .btn,
-.btn-group > .btn + .btn {
-  margin-left: 0 !important;
+.gap,
+.pagehead-actions,
+.pagehead .gap,
+.header-action .gap,
+.modal-footer,
+.modal-actions,
+.form-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px 14px !important;
+  flex-wrap: wrap !important;
 }
 
 .btn.alt,
@@ -736,36 +720,42 @@ form + .btn {
 .flash.info { background: var(--blue-bg); border-color: var(--blue-border); color: #145084; }
 
 /* Tables */
-table.t {
+table.t,
+table.table,
+.table {
   width: 100%;
   border-collapse: collapse;
 }
-.t th {
-  background: #F8FAFC;
+.t th,
+.table th {
+  background: #F8FAFC !important;
   text-align: left;
   font-size: 11.5px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  padding: 10px 14px;
+  padding: 12px 16px !important;
   border-bottom: 1px solid var(--line);
-  white-space: nowrap;
   font-weight: 700;
   font-family: var(--font-display);
 }
-.t td {
-  padding: 12px 14px;
+.t td,
+.table td {
+  padding: 13px 16px !important;
   border-bottom: 1px solid var(--line-2);
   vertical-align: middle;
   font-size: 13.5px;
 }
-.t tr:hover td {
+.t tr:hover td,
+.table tr:hover td {
   background: #F8FAFC;
 }
-.t tr:last-child td {
+.t tr:last-child td,
+.table tr:last-child td {
   border-bottom: 0;
 }
-.t td.num, .t th.num {
+.t td.num, .t th.num,
+.table td.num, .table th.num {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -837,6 +827,25 @@ input:focus, select:focus, textarea:focus {
 .form .full {
   grid-column: 1 / -1;
 }
+.f, .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.f label, .field label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.f input, .f select, .f textarea,
+.field input, .field select, .field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .form label {
   display: block;
   font-weight: 600;
@@ -1126,32 +1135,62 @@ dl.kv dd {
 .modal.open {
   display: flex;
 }
-.modal .box {
+.modal .box,
+.modal-dialog,
+.modal-box {
   background: #FFFFFF;
   border-radius: var(--r-lg);
   width: 100%;
-  max-width: 540px;
+  max-width: 580px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--line);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
 }
-.modal .box .hd {
+.modal .box .hd,
+.modal-header {
   padding: 16px 22px;
   border-bottom: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #FAFCFB;
 }
-.modal .box .bd {
+.modal-header h3,
+.modal-header h4 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 750;
+  color: var(--th-dark);
+}
+.modal-close {
+  background: transparent;
+  border: 0;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+.modal-close:hover {
+  color: var(--text);
+}
+.modal .box .bd,
+.modal-body {
   padding: 22px;
+  overflow-y: auto;
 }
-.modal .box .ft {
+.modal .box .ft,
+.modal-footer {
   padding: 14px 22px;
   border-top: 1px solid var(--line);
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   background: #F8FAFC;
 }
 

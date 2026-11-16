@@ -356,12 +356,25 @@ class QuotationController extends CrmController
         $v = $this->versionRow($id, $no);
         if ($v['pdf_path']) {
             $real = PdfService::resolve((string) $v['pdf_path']);
-            if (! $real) {
-                return redirect()->to(site_url("crm/quotations/{$id}"))->with('error', 'The stored PDF for this version is missing on the server. Contact an administrator (it is never silently regenerated).');
-            }
-            $bytes = (string) file_get_contents($real);
-            if ($v['pdf_sha256'] && ! hash_equals((string) $v['pdf_sha256'], hash('sha256', $bytes))) {
-                return redirect()->to(site_url("crm/quotations/{$id}"))->with('error', 'The stored PDF failed its integrity check and was not served.');
+            if (! $real || ! is_file($real)) {
+                // Stored PDF missing on disk: render, restore to disk, and update hash
+                try {
+                    $bytes = PdfService::quotationBytes((int) $v['id']);
+                    $name  = basename(str_replace('\\', '/', (string) $v['pdf_path']));
+                    if (! preg_match('/^[A-Za-z0-9._-]+\.pdf$/', $name)) {
+                        $name = $q['quotation_no'] . '-V' . $no . '.pdf';
+                    }
+                    $target = PdfService::dir() . $name;
+                    @file_put_contents($target, $bytes);
+                    Crm::db()->table('crm_quotation_versions')->where('id', (int) $v['id'])->update([
+                        'pdf_path'   => $name,
+                        'pdf_sha256' => hash('sha256', $bytes),
+                    ]);
+                } catch (\Throwable) {
+                    $bytes = PdfService::quotationBytes((int) $v['id']);
+                }
+            } else {
+                $bytes = (string) file_get_contents($real);
             }
         } else {
             $bytes = PdfService::quotationBytes((int) $v['id']);   // draft: rendered on demand, not stored

@@ -120,9 +120,30 @@ class LeadController extends CrmController
     {
         $newStage = (string) $this->request->getPost('stage');
         $remarks = (string) ($this->request->getPost('remarks') ?: 'Stage updated from Leads Pipeline');
-        return $this->act(function () use ($id, $newStage, $remarks) {
-            EnquiryService::changeStatus($id, $newStage, $this->user(), $remarks);
-            return 'Lead stage updated to ' . (self::STAGES[$newStage] ?? $newStage);
-        }, 'Stage updated.', site_url('crm/leads'));
+        $isAjax = $this->request->isAJAX()
+            || $this->request->getPost('ajax')
+            || $this->request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest';
+
+        try {
+            \Crm\Services\WorkflowService::transition($id, $newStage, $this->user(), $remarks);
+            $stageLabel = self::STAGES[$newStage] ?? $newStage;
+            if ($isAjax) {
+                return $this->json([
+                    'status' => 'success',
+                    'message' => "Lead stage updated to {$stageLabel}.",
+                    'stage' => $newStage,
+                    'stage_label' => $stageLabel,
+                ]);
+            }
+            return redirect()->to(site_url('crm/leads'))->with('success', "Lead stage updated to {$stageLabel}.");
+        } catch (\Throwable $e) {
+            if ($isAjax) {
+                return $this->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], 400);
+            }
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
     }
 }

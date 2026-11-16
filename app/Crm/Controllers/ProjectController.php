@@ -20,7 +20,7 @@ class ProjectController extends CrmController
             'limit' => 20,
         ];
         $data = ProjectService::listProjects($params, $this->user());
-        $customers = Crm::db()->table('crm_customers')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $customers = Crm::db()->table('crm_customers')->where('status', 'active')->orderBy('name')->get()->getResultArray();
         $salesUsers = Crm::db()->table('admin_users')->where('is_active', 1)->orderBy('first_name')->get()->getResultArray();
 
         return $this->render('projects/index', [

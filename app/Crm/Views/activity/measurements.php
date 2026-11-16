@@ -25,17 +25,17 @@
 <!-- Table Card -->
 <div class="card" style="margin-top:16px;overflow:hidden">
   <div style="overflow-x:auto">
-    <table class="table">
+    <table class="table t">
       <thead>
         <tr>
-          <th>Visit #</th>
-          <th>Version</th>
-          <th>Client &amp; Project</th>
-          <th>Recorded Measurements (Width &times; Height)</th>
-          <th>Recorded By</th>
-          <th>Revision Reason</th>
-          <th>Date</th>
-          <th style="text-align:right">Action</th>
+          <th style="min-width:110px">Visit #</th>
+          <th style="min-width:110px">Version</th>
+          <th style="min-width:180px">Client &amp; Project</th>
+          <th style="min-width:240px">Recorded Measurements (Width &times; Height)</th>
+          <th style="min-width:140px">Recorded By</th>
+          <th style="min-width:200px">Revision Reason</th>
+          <th style="min-width:110px">Date</th>
+          <th style="min-width:100px;text-align:right">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -58,9 +58,9 @@
                 <b><?= esc($m['customer_name']) ?></b><br>
                 <span class="muted small"><?= esc($m['project_name'] ?: 'Site Opening') ?></span>
               </td>
-              <td style="max-width:320px">
+              <td style="min-width:240px;max-width:340px">
                 <?php if (! empty($m['items'])): ?>
-                  <ul style="margin:0;padding-left:16px;font-size:12px;line-height:1.4">
+                  <ul style="margin:0;padding-left:16px;font-size:12.5px;line-height:1.5">
                     <?php foreach (array_slice($m['items'], 0, 3) as $label => $val): ?>
                       <li><b><?= esc($label) ?>:</b> <?= esc($val) ?></li>
                     <?php endforeach; ?>
@@ -74,8 +74,8 @@
               </td>
               <td><?= esc($m['recorded_by_name'] ?: 'Technical Surveyor') ?></td>
               <td class="muted small"><?= esc(!empty($m['revision_note']) ? $m['revision_note'] : 'Initial site survey measurements') ?></td>
-              <td><?= crm_date($m['created_at']) ?></td>
-              <td style="text-align:right">
+              <td style="white-space:nowrap"><?= crm_date($m['created_at']) ?></td>
+              <td style="text-align:right;white-space:nowrap">
                 <a href="<?= site_url("crm/visits/{$m['visit_id']}") ?>" class="btn btn-xs btn-secondary">Open Visit</a>
               </td>
             </tr>

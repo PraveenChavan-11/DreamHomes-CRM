@@ -21,7 +21,7 @@ class ServiceController extends CrmController
             'limit' => 20,
         ];
         $data = AfterSalesService::listTickets($params);
-        $customers = Crm::db()->table('crm_customers')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $customers = Crm::db()->table('crm_customers')->where('status', 'active')->orderBy('name')->get()->getResultArray();
         $orders = Crm::db()->table('crm_sales_orders o')
             ->select('o.id, o.order_no, c.name as customer_name')
             ->join('crm_customers c', 'c.id = o.customer_id', 'left')

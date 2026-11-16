@@ -56,7 +56,7 @@
   <!-- Kanban Board -->
   <div class="kanban-wrapper" style="display:flex;gap:16px;overflow-x:auto;padding-bottom:16px;margin-top:20px;min-height:560px">
     <?php foreach ($columns as $stageKey => $col): ?>
-      <div class="kanban-col" style="flex:0 0 300px;background:#F4F7F5;border-radius:var(--r);padding:12px;display:flex;flex-direction:column;border:1px solid #E1EBE4">
+      <div class="kanban-col" data-stage="<?= esc($stageKey) ?>" style="flex:0 0 300px;background:#F4F7F5;border-radius:var(--r);padding:12px;display:flex;flex-direction:column;border:1px solid #E1EBE4;transition:all 0.2s ease">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #D2E3D8">
           <div>
             <span style="font-weight:700;font-size:13px;color:var(--th-dark)"><?= esc($col['label']) ?></span>
@@ -67,14 +67,14 @@
           <?php endif; ?>
         </div>
 
-        <div class="kanban-cards" style="display:flex;flex-direction:column;gap:10px;flex:1;overflow-y:auto">
+        <div class="kanban-cards" data-stage="<?= esc($stageKey) ?>" style="display:flex;flex-direction:column;gap:10px;flex:1;overflow-y:auto;min-height:100px">
           <?php if (empty($col['leads'])): ?>
-            <div style="text-align:center;padding:24px 8px;border:1px dashed #D2E3D8;border-radius:var(--r-sm)" class="muted small">
+            <div class="empty-placeholder" style="text-align:center;padding:24px 8px;border:1px dashed #D2E3D8;border-radius:var(--r-sm)" class="muted small">
               No leads in this stage
             </div>
           <?php else: ?>
             <?php foreach ($col['leads'] as $l): ?>
-              <div class="card lead-card" style="padding:12px;background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow-sm);cursor:pointer" onclick="location.href='<?= site_url("crm/enquiries/{$l['id']}") ?>'">
+              <div class="card lead-card" draggable="true" data-id="<?= (int) $l['id'] ?>" data-stage="<?= esc($stageKey) ?>" style="padding:12px;background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow-sm);cursor:grab;user-select:none" onclick="if(!this.dataset.dragging){location.href='<?= site_url("crm/enquiries/{$l['id']}") ?>'}">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
                   <span style="font-weight:700;font-size:13px;color:var(--th-primary)"><?= esc($l['enquiry_no']) ?></span>
                   <?= crm_badge($l['priority']) ?>
@@ -239,9 +239,168 @@
 </div>
 
 <style>
+.lead-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
 .lead-card:hover {
   border-color: var(--th-primary) !important;
   transform: translateY(-2px);
   box-shadow: var(--shadow) !important;
 }
+.lead-card.is-dragging {
+  opacity: 0.45 !important;
+  transform: scale(0.97) !important;
+  border-color: var(--th-primary) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.kanban-col.drag-over {
+  background: #E8F4EC !important;
+  border-color: var(--th-primary) !important;
+  outline: 2px dashed var(--th-primary);
+  outline-offset: -2px;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var draggedCard = null;
+  var sourceCol = null;
+  var isDraggingFlag = false;
+
+  var cards = document.querySelectorAll('.lead-card[draggable="true"]');
+  var cols = document.querySelectorAll('.kanban-col');
+
+  cards.forEach(function (card) {
+    card.addEventListener('dragstart', function (e) {
+      isDraggingFlag = true;
+      card.dataset.dragging = '1';
+      draggedCard = card;
+      sourceCol = card.closest('.kanban-col');
+      card.classList.add('is-dragging');
+      e.dataTransfer.setData('text/plain', card.dataset.id || '');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    card.addEventListener('dragend', function () {
+      card.classList.remove('is-dragging');
+      setTimeout(function () {
+        delete card.dataset.dragging;
+        isDraggingFlag = false;
+      }, 100);
+      cols.forEach(function (c) { c.classList.remove('drag-over'); });
+    });
+  });
+
+  cols.forEach(function (col) {
+    col.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!col.classList.contains('drag-over')) {
+        col.classList.add('drag-over');
+      }
+    });
+
+    col.addEventListener('dragleave', function (e) {
+      if (!col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+      }
+    });
+
+    col.addEventListener('drop', function (e) {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+
+      if (!draggedCard || !sourceCol) return;
+
+      var targetStage = col.dataset.stage;
+      var currentStage = draggedCard.dataset.stage;
+      var leadId = draggedCard.dataset.id;
+
+      if (!targetStage || targetStage === currentStage) return;
+
+      var targetCardsContainer = col.querySelector('.kanban-cards');
+      var sourceCardsContainer = sourceCol.querySelector('.kanban-cards');
+      if (!targetCardsContainer || !sourceCardsContainer) return;
+
+      // Check target empty placeholder
+      var targetPlaceholder = targetCardsContainer.querySelector('.empty-placeholder');
+      if (targetPlaceholder) targetPlaceholder.style.display = 'none';
+
+      // Move card element optimistically
+      targetCardsContainer.appendChild(draggedCard);
+
+      // Update counters
+      var sourceBadge = sourceCol.querySelector('.badge');
+      var targetBadge = col.querySelector('.badge');
+      var sourceCount = Math.max(0, parseInt(sourceBadge ? sourceBadge.textContent : '0', 10) - 1);
+      var targetCount = parseInt(targetBadge ? targetBadge.textContent : '0', 10) + 1;
+      if (sourceBadge) sourceBadge.textContent = sourceCount;
+      if (targetBadge) targetBadge.textContent = targetCount;
+
+      // If source column is now empty, ensure empty placeholder is visible
+      var remainingCards = sourceCardsContainer.querySelectorAll('.lead-card');
+      if (remainingCards.length === 0) {
+        var sourcePlaceholder = sourceCardsContainer.querySelector('.empty-placeholder');
+        if (sourcePlaceholder) {
+          sourcePlaceholder.style.display = 'block';
+        } else {
+          var p = document.createElement('div');
+          p.className = 'empty-placeholder muted small';
+          p.style.cssText = 'text-align:center;padding:24px 8px;border:1px dashed #D2E3D8;border-radius:var(--r-sm)';
+          p.textContent = 'No leads in this stage';
+          sourceCardsContainer.appendChild(p);
+        }
+      }
+
+      // CSRF token retrieval
+      var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      var csrfNameMeta = document.querySelector('meta[name="csrf-name"]');
+      var csrfToken = csrfMeta ? csrfMeta.content : '';
+      var csrfName = csrfNameMeta ? csrfNameMeta.content : 'csrf_test_name';
+
+      var formData = new FormData();
+      formData.append('stage', targetStage);
+      formData.append('remarks', 'Stage updated via Leads Pipeline Board');
+      formData.append('ajax', '1');
+      formData.append(csrfName, csrfToken);
+
+      fetch('<?= site_url('crm/leads') ?>/' + encodeURIComponent(leadId) + '/stage', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, data: data };
+        });
+      })
+      .then(function (result) {
+        if (!result.ok) {
+          throw new Error(result.data && result.data.message ? result.data.message : 'Stage update failed');
+        }
+        draggedCard.dataset.stage = targetStage;
+        if (window.crmToast) {
+          window.crmToast(result.data.message || 'Lead moved to ' + targetStage);
+        }
+      })
+      .catch(function (err) {
+        // Rollback on server error
+        sourceCardsContainer.appendChild(draggedCard);
+        if (sourceBadge) sourceBadge.textContent = sourceCount + 1;
+        if (targetBadge) targetBadge.textContent = Math.max(0, targetCount - 1);
+        if (targetPlaceholder && targetCardsContainer.querySelectorAll('.lead-card').length === 0) {
+          targetPlaceholder.style.display = 'block';
+        }
+        var msg = err.message || 'Could not move lead stage.';
+        if (window.crmToast) {
+          window.crmToast(msg);
+        } else {
+          alert(msg);
+        }
+      });
+    });
+  });
+});
+</script>

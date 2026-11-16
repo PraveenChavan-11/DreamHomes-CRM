@@ -35,13 +35,18 @@ final class WorkflowService
             }
             $rule = $db->table('crm_status_transitions')->where(['entity' => 'enquiry', 'from_status' => $from, 'to_status' => $to, 'is_active' => 1])->get()->getRowArray();
             if (! $rule) {
-                throw new CrmException("Status change {$from} → {$to} is not allowed.");
-            }
-            if ($rule['required_permission'] && ! AccessScope::can($actor, $rule['required_permission'])) {
-                throw new CrmException('You do not have permission to make this status change.');
-            }
-            if ((int) $rule['requires_reason'] === 1 && trim((string) $reason) === '') {
-                throw new CrmException('A reason is required for this status change.');
+                if (AccessScope::isSuper($actor) && in_array($to, array_merge(self::ACTIVE, ['won', 'lost', 'on_hold']), true)) {
+                    // Super admin override
+                } else {
+                    throw new CrmException("Status change {$from} → {$to} is not allowed.");
+                }
+            } else {
+                if ($rule['required_permission'] && ! AccessScope::can($actor, $rule['required_permission'])) {
+                    throw new CrmException('You do not have permission to make this status change.');
+                }
+                if ((int) $rule['requires_reason'] === 1 && trim((string) $reason) === '') {
+                    throw new CrmException('A reason is required for this status change.');
+                }
             }
             $upd = $extra + ['status' => $to, 'previous_status' => $from];
             if ($from === 'on_hold' || $from === 'lost') {
