@@ -2,7 +2,12 @@
 /** @var list<array> $rows @var array $sum @var array $byStatus @var list<array> $owners @var array $g @var int $page @var int $per */
 $statuses = ['draft', 'sent', 'negotiation', 'revised', 'accepted', 'rejected', 'expired', 'cancelled'];
 ?>
-<div class="pagehead"><h1>Quotations</h1><?php if (crm_can('quotations.create')): ?><a class="btn teal" href="<?= site_url('crm/quotations/new') ?>">+ New quotation</a><?php endif; ?></div>
+<div class="pagehead">
+  <h1>Quotations</h1>
+  <div class="gap">
+    <?php if (crm_can('quotations.create')): ?><a class="btn teal" href="<?= site_url('crm/quotations/new') ?>">+ New quotation</a><?php endif; ?>
+  </div>
+</div>
 
 <div class="grid g4 mb">
   <div class="card kpi"><div class="l">Quotations (filtered)</div><div class="v"><?= number_format((int) $sum['n']) ?></div></div>

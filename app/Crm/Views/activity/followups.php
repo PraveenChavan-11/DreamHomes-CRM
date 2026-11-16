@@ -3,12 +3,15 @@
 $labels = ['today' => "Today", 'upcoming' => 'Upcoming', 'overdue' => 'Overdue', 'completed' => 'Completed'];
 $empty  = ['today' => 'Nothing due today.', 'upcoming' => 'No upcoming follow-ups scheduled.', 'overdue' => 'No overdue follow-ups — well done.', 'completed' => 'No completed follow-ups yet.'];
 ?>
-<div class="pagehead"><h1>Follow-ups</h1>
+<div class="pagehead">
+  <h1>Follow-ups</h1>
   <?php if ($showPicker): ?>
-  <form method="get" class="gap"><input type="hidden" name="tab" value="<?= esc($tab) ?>"><label class="small muted" for="uid">Assigned to</label>
-    <select id="uid" name="user_id" style="width:auto" onchange="this.form.submit()"><option value="">Everyone</option>
-      <?php foreach ($users as $u): ?><option value="<?= (int) $u['id'] ?>"<?= crm_sel($assignee, $u['id']) ?>><?= esc($u['name']) ?></option><?php endforeach; ?></select>
-    <noscript><button class="btn sm" type="submit">Apply</button></noscript></form>
+  <div class="gap">
+    <form method="get" class="gap"><input type="hidden" name="tab" value="<?= esc($tab) ?>"><label class="small muted" for="uid">Assigned to</label>
+      <select id="uid" name="user_id" style="width:auto" onchange="this.form.submit()"><option value="">Everyone</option>
+        <?php foreach ($users as $u): ?><option value="<?= (int) $u['id'] ?>"<?= crm_sel($assignee, $u['id']) ?>><?= esc($u['name']) ?></option><?php endforeach; ?></select>
+      <noscript><button class="btn sm" type="submit">Apply</button></noscript></form>
+  </div>
   <?php endif; ?>
 </div>
 

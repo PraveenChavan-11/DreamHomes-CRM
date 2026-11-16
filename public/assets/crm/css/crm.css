@@ -1,30 +1,30 @@
 /* ==========================================================================
-   TalentHub Design System Master Tokens & Theme
-   Color Palette: Deep Emerald #072412 | Brand Green #1D6A34 | Mint Accent #37CE97
-   Surface: #FFFFFF | Canvas: #FAF9F5 | Slate Borders: #E2E8F0
+   Dream Homes Interior Solutions (DHIS Group) CRM Master Tokens & Theme
+   Color Palette: Deep Obsidian #0D1B1D | Brand Teal #1E6872 | DHIS Cyan #53A1AC
+   Surface: #FFFFFF | Canvas: #F4F8F8 | Slate Borders: #E2E8F0
    Fonts: Inter & Plus Jakarta Sans
    ========================================================================== */
 
 :root {
-  /* TalentHub Brand Palette */
-  --th-dark: #072412;
-  --th-dark-alt: #0D4222;
-  --th-primary: #1D6A34;
-  --th-primary-hover: #155227;
-  --th-accent: #37CE97;
-  --th-accent-hover: #2EB986;
-  --th-light: #EAF5EF;
+  /* DHIS Dream Homes Brand Identity (Teal #53A1AC & Deep Obsidian Slate) */
+  --th-dark: #0D1B1D;
+  --th-dark-alt: #132528;
+  --th-primary: #1E6872;
+  --th-primary-hover: #16535B;
+  --th-accent: #53A1AC;
+  --th-accent-hover: #418A95;
+  --th-light: #EEF7F8;
 
   /* Surfaces & Canvas */
-  --bg: #FAF9F5;
+  --bg: #F4F8F8;
   --card: #FFFFFF;
   --card-elevated: #FFFFFF;
-  --side-bg: #072412;
-  --side-header-bg: rgba(0, 0, 0, 0.25);
-  --side-text: rgba(255, 255, 255, 0.85);
+  --side-bg: #0D1B1D;
+  --side-header-bg: rgba(0, 0, 0, 0.28);
+  --side-text: rgba(255, 255, 255, 0.88);
   --side-muted: rgba(255, 255, 255, 0.55);
   --side-active: #FFFFFF;
-  --side-active-bg: rgba(255, 255, 255, 0.12);
+  --side-active-bg: rgba(83, 161, 172, 0.18);
   --side-hover-bg: rgba(255, 255, 255, 0.08);
 
   /* Typography Colors */
@@ -55,8 +55,8 @@
   --r-lg: 16px;
   --r-xl: 24px;
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
-  --shadow: 0 4px 20px -2px rgba(29, 106, 52, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 20px 40px -4px rgba(7, 36, 18, 0.15), 0 8px 16px -2px rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 20px -2px rgba(30, 104, 114, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 20px 40px -4px rgba(13, 27, 29, 0.2), 0 8px 16px -2px rgba(0, 0, 0, 0.06);
 
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
@@ -109,8 +109,51 @@ h4 { font-size: 13px; font-weight: 600; }
 .nowrap { white-space: nowrap; }
 .mt { margin-top: 16px; }
 .mb { margin-bottom: 16px; }
-.gap { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.gap { display: flex !important; gap: 12px 14px !important; align-items: center !important; flex-wrap: wrap !important; }
 :focus-visible { outline: 2px solid var(--th-accent) !important; outline-offset: 2px !important; }
+
+/* ── Standard Page Headers & Action Bars ── */
+.pagehead,
+.header-action {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 16px 20px !important;
+  margin-bottom: 24px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid var(--line-2, #F1F5F9) !important;
+  position: relative;
+  z-index: 5;
+}
+.pagehead h1,
+.header-action h1,
+.header-action h2 {
+  margin: 0 !important;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.pagehead > div:first-child,
+.header-action > div:first-child {
+  flex: 1 1 auto;
+  min-width: 220px;
+}
+.pagehead .gap,
+.pagehead .actions,
+.pagehead-actions,
+.header-action .gap,
+.header-action > div:last-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px 14px !important;
+  flex-wrap: wrap !important;
+}
 
 /* ── TalentHub App Shell & Sidebar ── */
 .app {
@@ -121,7 +164,7 @@ h4 { font-size: 13px; font-weight: 600; }
 .side {
   width: 268px;
   background: var(--side-bg);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
   height: 100vh;
@@ -131,7 +174,24 @@ h4 { font-size: 13px; font-weight: 600; }
   display: flex;
   flex-direction: column;
   z-index: 40;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-gutter: stable;
+}
+.side::-webkit-scrollbar {
+  width: 4px;
+}
+.side::-webkit-scrollbar-track {
+  background: transparent;
+}
+.side::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+.side:hover::-webkit-scrollbar-thumb {
+  background: rgba(83, 161, 172, 0.45);
 }
 
 .brand {
@@ -495,79 +555,151 @@ h4 { font-size: 13px; font-weight: 600; }
 .kpi.good .v { color: var(--green); }
 .kpi.danger .v { color: var(--red); }
 .kpi.primary {
-  background: linear-gradient(145deg, #072412 0%, #1D6A34 100%);
+  background: linear-gradient(145deg, #0D1B1D 0%, #1E6872 100%);
   border-color: var(--th-dark);
   color: #FFFFFF;
-  box-shadow: 0 4px 16px rgba(7, 36, 18, 0.2);
+  box-shadow: 0 4px 16px rgba(13, 27, 29, 0.25);
 }
 .kpi.primary .l { color: var(--th-accent); }
 .kpi.primary .v { color: #FFFFFF; }
-.kpi.primary .s { color: rgba(255, 255, 255, 0.8); }
+.kpi.primary .s { color: rgba(255, 255, 255, 0.85); }
 
-/* Buttons */
+/* ── Universal Button System & Separation ── */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--th-primary);
-  background: var(--th-primary);
-  color: #FFFFFF;
-  font: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  line-height: 1.25;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(29, 106, 52, 0.2);
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 8px 18px !important;
+  margin: 3px 0 !important;
+  border-radius: var(--r-sm) !important;
+  border: 1px solid var(--th-primary) !important;
+  background: var(--th-primary) !important;
+  color: #FFFFFF !important;
+  font: inherit !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  line-height: 1.25 !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 3px rgba(30, 104, 114, 0.2) !important;
+  vertical-align: middle;
 }
 .btn:hover {
-  background: var(--th-primary-hover);
-  border-color: var(--th-primary-hover);
-  color: #FFFFFF;
-  text-decoration: none;
-  box-shadow: 0 4px 12px rgba(29, 106, 52, 0.25);
+  background: var(--th-primary-hover) !important;
+  border-color: var(--th-primary-hover) !important;
+  color: #FFFFFF !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(30, 104, 114, 0.25) !important;
 }
-.btn.alt {
-  background: #FFFFFF;
-  color: var(--text);
-  border-color: var(--line);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+/* Sibling button separation anywhere */
+.btn + .btn,
+.btn + a.btn,
+a.btn + .btn,
+a.btn + a.btn,
+button.btn + button.btn,
+button.btn + a.btn,
+a.btn + button.btn,
+.btn + form,
+form + .btn {
+  margin-left: 12px !important;
 }
-.btn.alt:hover {
-  background: var(--grey-l);
-  border-color: #CBD5E1;
-  color: var(--th-primary);
+
+/* Inside flex containers that already define gap, prevent double spacing */
+.gap > .btn + .btn,
+.gap > a.btn + a.btn,
+.gap > .btn + a.btn,
+.gap > a.btn + .btn,
+.pagehead > .btn + .btn,
+.pagehead > a.btn + a.btn,
+.header-action > .btn + .btn,
+.header-action > a.btn + a.btn,
+.filters > .btn + .btn,
+.filters > form + .btn,
+.actions > .btn + .btn,
+.modal-actions > .btn + .btn,
+.form-actions > .btn + .btn,
+.ft > .btn + .btn,
+.btn-group > .btn + .btn {
+  margin-left: 0 !important;
 }
-.btn.teal {
-  background: var(--th-primary);
-  border-color: var(--th-primary);
-  color: #FFFFFF;
+
+.btn.alt,
+.btn-secondary {
+  background: #FFFFFF !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }
-.btn.teal:hover {
-  background: var(--th-primary-hover);
-  border-color: var(--th-primary-hover);
+.btn.alt:hover,
+.btn-secondary:hover {
+  background: var(--th-light) !important;
+  border-color: var(--th-accent) !important;
+  color: var(--th-primary) !important;
 }
+
+.btn.teal,
+.btn-primary {
+  background: var(--th-primary) !important;
+  border-color: var(--th-primary) !important;
+  color: #FFFFFF !important;
+}
+.btn.teal:hover,
+.btn-primary:hover {
+  background: var(--th-primary-hover) !important;
+  border-color: var(--th-primary-hover) !important;
+}
+
+.btn.ghost,
+.btn-ghost {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.btn.ghost:hover,
+.btn-ghost:hover {
+  background: var(--th-light) !important;
+  color: var(--th-primary) !important;
+}
+
 .btn.danger {
-  background: #FFFFFF;
-  color: var(--red);
-  border-color: var(--red-border);
+  background: #FFFFFF !important;
+  color: var(--red) !important;
+  border-color: var(--red-border) !important;
 }
 .btn.danger:hover {
-  background: var(--red-bg);
-  border-color: var(--red);
+  background: var(--red-bg) !important;
+  border-color: var(--red) !important;
+  color: var(--red) !important;
 }
-.btn.sm {
-  padding: 5px 12px;
-  font-size: 12.5px;
-  border-radius: var(--r-sm);
+
+.btn.sm,
+.btn-sm {
+  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+}
+.btn.xs,
+.btn-xs {
+  padding: 4px 10px !important;
+  font-size: 11.5px !important;
+  border-radius: 6px !important;
 }
 .btn[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Table action buttons */
+.t td .btn,
+.t td a.btn {
+  margin: 2px 4px !important;
+}
+.t td .btn + .btn,
+.t td a.btn + a.btn {
+  margin-left: 8px !important;
 }
 
 /* Badges & Pills */
@@ -823,9 +955,9 @@ dl.kv dd {
   color: var(--green);
 }
 .journey-step.current {
-  background: linear-gradient(145deg, #072412 0%, #1D6A34 100%);
+  background: linear-gradient(145deg, #0D1B1D 0%, #1E6872 100%);
   border-color: var(--th-dark);
-  box-shadow: 0 2px 8px rgba(7, 36, 18, 0.25);
+  box-shadow: 0 2px 8px rgba(13, 27, 29, 0.25);
 }
 .journey-step.current .step-no {
   color: var(--th-accent);
@@ -1069,7 +1201,7 @@ dl.kv dd {
 
 /* ── LEFT: BRAND SHOWCASE PANEL ── */
 .authside {
-  background: linear-gradient(145deg, #072412 0%, #1D6A34 60%, #155227 100%) !important;
+  background: linear-gradient(145deg, #0D1B1D 0%, #1E6872 60%, #16535B 100%) !important;
   color: #FFFFFF;
   padding: 48px 56px;
   display: flex;
@@ -1086,7 +1218,7 @@ dl.kv dd {
   width: 384px;
   height: 384px;
   border-radius: 50%;
-  background: rgba(55, 206, 151, 0.15);
+  background: rgba(83, 161, 172, 0.18);
   filter: blur(64px);
   pointer-events: none;
 }
@@ -1098,7 +1230,7 @@ dl.kv dd {
   width: 384px;
   height: 384px;
   border-radius: 50%;
-  background: rgba(55, 206, 151, 0.20);
+  background: rgba(83, 161, 172, 0.22);
   filter: blur(64px);
   pointer-events: none;
 }
@@ -1380,7 +1512,7 @@ dl.kv dd {
 .auth-input:focus {
   outline: none;
   border-color: var(--th-primary);
-  box-shadow: 0 0 0 3px rgba(55, 206, 151, 0.25);
+  box-shadow: 0 0 0 3px rgba(83, 161, 172, 0.25);
 }
 
 .auth-eye-btn {

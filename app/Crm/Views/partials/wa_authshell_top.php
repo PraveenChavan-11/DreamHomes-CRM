@@ -7,7 +7,12 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title><?= esc($heading) ?> · DHIS Sales CRM · TalentHub</title>
+  <meta name="theme-color" content="#1E6872">
+  <title><?= esc($heading) ?> · DHIS Sales CRM · Dream Homes Interior Solutions</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('favicon-32x32.png') ?>">
+  <link rel="icon" type="image/png" sizes="192x192" href="<?= base_url('favicon-192x192.png') ?>">
+  <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('favicon-180x180.png') ?>">
+  <link rel="shortcut icon" href="<?= base_url('favicon.ico') ?>">
   <link rel="icon" href="<?= base_url('favicon.png') ?>">
 
   <!-- Google Fonts: Inter & Plus Jakarta Sans (TalentHub Typography System) -->

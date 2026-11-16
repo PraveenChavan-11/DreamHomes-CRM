@@ -10,11 +10,15 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#1D6A34">
+<meta name="theme-color" content="#1E6872">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="csrf-token" content="<?= csrf_hash() ?>"><meta name="csrf-name" content="<?= csrf_token() ?>">
-<title><?= esc($title ? $title . ' · ' : '') ?>DHIS Sales CRM · TalentHub</title>
+<title><?= esc($title ? $title . ' · ' : '') ?>DHIS Sales CRM · Dream Homes Interior Solutions</title>
+<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('favicon-32x32.png') ?>">
+<link rel="icon" type="image/png" sizes="192x192" href="<?= base_url('favicon-192x192.png') ?>">
+<link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('favicon-180x180.png') ?>">
+<link rel="shortcut icon" href="<?= base_url('favicon.ico') ?>">
 <link rel="icon" href="<?= base_url('favicon.png') ?>">
 <link rel="manifest" href="<?= base_url('manifest-crm.json') ?>">
 

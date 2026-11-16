@@ -1,6 +1,13 @@
 <?php /** @var array $rows $f $categories @var int $total $page $pages */ ?>
-<div class="pagehead"><h1>Products &amp; Pricing</h1>
-  <?php if (crm_can('products.manage')): ?><a class="btn teal" href="<?= site_url('crm/products/new') ?>">+ New product</a><?php endif; ?></div>
+<div class="pagehead">
+  <div>
+    <h1>Products &amp; Pricing</h1>
+    <p class="muted small">Architectural Catalogue, Brands &amp; Configurable Variants</p>
+  </div>
+  <div class="gap">
+    <?php if (crm_can('products.manage')): ?><a class="btn teal" href="<?= site_url('crm/products/new') ?>">+ New product</a><?php endif; ?>
+  </div>
+</div>
 <form class="filters" method="get" action="<?= site_url('crm/products') ?>">
   <div class="f"><label for="q">Search</label><input id="q" type="search" name="q" value="<?= esc($f['q']) ?>" placeholder="Name, SKU or brand"></div>
   <div class="f"><label for="cat">Category</label><select id="cat" name="category"><option value="">All</option>

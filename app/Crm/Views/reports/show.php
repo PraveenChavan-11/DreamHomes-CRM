@@ -6,12 +6,16 @@ $statuses = ['new', 'assigned', 'contacted', 'qualified', 'site_visit', 'quotati
 $isDate = static fn ($v) => is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}( \d{2}:\d{2}:\d{2})?$/', $v);
 $isMoney = static fn (string $col) => (bool) preg_match('/(total|value|price|budget|discount|subtotal|tax|advance)$/i', trim($col)) && stripos($col, '%') === false;
 ?>
-<div class="pagehead"><h1><?= esc($title) ?> <span class="muted small">(<?= number_format($total) ?> rows)</span></h1>
-  <a class="btn alt" href="<?= site_url('crm/reports') ?>">&larr; All reports</a>
-  <?php if (crm_can('reports.export')): ?>
-    <a class="btn alt" href="<?= site_url('crm/reports/' . $key . '/xlsx?' . $qs) ?>">Export Excel</a>
-    <a class="btn alt" href="<?= site_url('crm/reports/' . $key . '/pdf?' . $qs) ?>">Export PDF</a>
-  <?php endif; ?></div>
+<div class="pagehead">
+  <h1><?= esc($title) ?> <span class="muted small">(<?= number_format($total) ?> rows)</span></h1>
+  <div class="gap">
+    <a class="btn alt" href="<?= site_url('crm/reports') ?>">&larr; All reports</a>
+    <?php if (crm_can('reports.export')): ?>
+      <a class="btn alt" href="<?= site_url('crm/reports/' . $key . '/xlsx?' . $qs) ?>">Export Excel</a>
+      <a class="btn alt" href="<?= site_url('crm/reports/' . $key . '/pdf?' . $qs) ?>">Export PDF</a>
+    <?php endif; ?>
+  </div>
+</div>
 <form class="filters card" style="padding:14px" method="get" action="<?= site_url('crm/reports/' . $key) ?>">
   <div class="f"><label for="r_from">From</label><input id="r_from" type="date" name="from" value="<?= esc($f['from'] ?? '') ?>"></div>
   <div class="f"><label for="r_to">To</label><input id="r_to" type="date" name="to" value="<?= esc($f['to'] ?? '') ?>"></div>

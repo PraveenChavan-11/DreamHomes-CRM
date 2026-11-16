@@ -13,16 +13,18 @@ $canNeg = crm_can('negotiations.create') && $locked && in_array($q['status'], ['
 ?>
 <div class="pagehead">
   <h1><?= esc($q['quotation_no']) ?> <?= crm_badge($q['status']) ?> <span class="muted small">v<?= (int) $sel['version_no'] ?> of <?= count($versions) ?></span></h1>
-  <?php if (crm_can('quotations.create') && ! $closed): ?>
-    <?php if (! $locked): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/edit') ?>">Edit draft</a>
-    <?php else: ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/revise') ?>">Revise (new version)</a><?php endif; ?>
-  <?php endif; ?>
-  <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $sel['version_no']) ?>">PDF<?= $sel['pdf_path'] ? '' : ' (draft)' ?></a>
-  <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/preview/' . (int) $sel['version_no']) ?>">Preview</a>
-  <?php if (count($versions) > 1): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/compare') ?>">Compare versions</a><?php endif; ?>
-  <?php if (crm_can('quotations.send') && ! $closed): ?>
-    <?php if (! $locked): ?><button class="btn teal" type="button" data-modal="m-send">Send to customer</button><?php else: ?><button class="btn alt" type="button" data-modal="m-resend">Resend email</button><?php endif; ?>
-  <?php endif; ?>
+  <div class="gap">
+    <?php if (crm_can('quotations.create') && ! $closed): ?>
+      <?php if (! $locked): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/edit') ?>">Edit draft</a>
+      <?php else: ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/revise') ?>">Revise (new version)</a><?php endif; ?>
+    <?php endif; ?>
+    <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/pdf/' . (int) $sel['version_no']) ?>">PDF<?= $sel['pdf_path'] ? '' : ' (draft)' ?></a>
+    <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/preview/' . (int) $sel['version_no']) ?>">Preview</a>
+    <?php if (count($versions) > 1): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/compare') ?>">Compare versions</a><?php endif; ?>
+    <?php if (crm_can('quotations.send') && ! $closed): ?>
+      <?php if (! $locked): ?><button class="btn teal" type="button" data-modal="m-send">Send to customer</button><?php else: ?><button class="btn alt" type="button" data-modal="m-resend">Resend email</button><?php endif; ?>
+    <?php endif; ?>
+  </div>
 </div>
 
 <div class="grid g-side mb">

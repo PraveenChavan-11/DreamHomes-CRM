@@ -1,9 +1,13 @@
 <?php /** @var string $tab @var array $can $users $teams $assignable $roles $perms $grant $logins $assignableRoles @var int $uid */
 $tabs = ['users' => 'Users', 'teams' => 'Teams', 'roles' => 'Roles & permissions', 'logins' => 'Login history'];
 $me = crm_user()['id'] ?? 0; ?>
-<div class="pagehead"><h1>Users &amp; Teams</h1>
-  <?php if ($tab === 'users' && $can['users']): ?><button class="btn teal" type="button" data-modal="m-user">+ New user</button><?php endif; ?>
-  <?php if ($tab === 'teams' && $can['teams']): ?><button class="btn teal" type="button" data-modal="m-team">+ New team</button><?php endif; ?></div>
+<div class="pagehead">
+  <h1>Users &amp; Teams</h1>
+  <div class="gap">
+    <?php if ($tab === 'users' && $can['users']): ?><button class="btn teal" type="button" data-modal="m-user">+ New user</button><?php endif; ?>
+    <?php if ($tab === 'teams' && $can['teams']): ?><button class="btn teal" type="button" data-modal="m-team">+ New team</button><?php endif; ?>
+  </div>
+</div>
 <div class="tabs" role="tablist">
 <?php foreach ($tabs as $k => $l): if (in_array($k, ['users', 'logins'], true) && ! $can['users']) { continue; } ?>
   <a class="<?= $tab === $k ? 'on' : '' ?>" href="<?= site_url('crm/users?tab=' . $k) ?>"><?= esc($l) ?></a><?php endforeach; ?></div>

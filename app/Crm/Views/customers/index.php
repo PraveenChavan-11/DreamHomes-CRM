@@ -4,12 +4,14 @@ $types = ['individual', 'company', 'architect', 'builder', 'other'];
 $exportQs = http_build_query(array_filter($g, static fn ($v, $k) => $k !== 'page' && $v !== '', ARRAY_FILTER_USE_BOTH));
 ?>
 <div class="pagehead"><h1>Customers <span class="muted small">(<?= number_format($total) ?>)</span></h1>
-  <?php if (crm_can('customers.export')): ?>
-    <a class="btn alt" href="<?= site_url('crm/customers/export?' . $exportQs) ?>">Export Excel</a>
-    <a class="btn alt" href="<?= site_url('crm/customers/export?' . $exportQs . '&format=csv') ?>">Export CSV</a>
-  <?php endif; ?>
-  <?php if (crm_can('customers.import')): ?><a class="btn alt" href="<?= site_url('crm/imports') ?>">Import</a><?php endif; ?>
-  <?php if (crm_can('customers.create')): ?><a class="btn teal" href="<?= site_url('crm/customers/new') ?>">+ New customer</a><?php endif; ?>
+  <div class="gap">
+    <?php if (crm_can('customers.export')): ?>
+      <a class="btn alt" href="<?= site_url('crm/customers/export?' . $exportQs) ?>">Export Excel</a>
+      <a class="btn alt" href="<?= site_url('crm/customers/export?' . $exportQs . '&format=csv') ?>">Export CSV</a>
+    <?php endif; ?>
+    <?php if (crm_can('customers.import')): ?><a class="btn alt" href="<?= site_url('crm/imports') ?>">Import</a><?php endif; ?>
+    <?php if (crm_can('customers.create')): ?><a class="btn teal" href="<?= site_url('crm/customers/new') ?>">+ New customer</a><?php endif; ?>
+  </div>
 </div>
 <form class="filters card" style="padding:14px" method="get" action="<?= site_url('crm/customers') ?>">
   <div class="f"><label for="q">Search</label><input id="q" type="search" name="q" value="<?= esc($g['q'] ?? '') ?>" placeholder="Name, number, mobile, email"></div>

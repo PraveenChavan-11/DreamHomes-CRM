@@ -3,7 +3,12 @@
 $tabs = ['pending' => 'Pending my approval', 'mine' => 'My requests', 'all' => 'All'];
 $qs   = static fn (string $t) => '?' . http_build_query(['tab' => $t]);
 ?>
-<div class="pagehead"><h1>Negotiations &amp; discount approvals</h1><a class="btn alt" href="<?= site_url('crm/quotations') ?>">Open quotations</a></div>
+<div class="pagehead">
+  <h1>Negotiations &amp; discount approvals</h1>
+  <div class="gap">
+    <a class="btn alt" href="<?= site_url('crm/quotations') ?>">Open quotations</a>
+  </div>
+</div>
 <div class="tabs" role="tablist">
   <?php foreach ($tabs as $k => $lab): ?><a role="tab" class="<?= $tab === $k ? 'on' : '' ?>" href="<?= esc($qs($k), 'attr') ?>"><?= $lab ?> <span class="badge badge-grey"><?= (int) $counts[$k] ?></span></a><?php endforeach; ?>
 </div>

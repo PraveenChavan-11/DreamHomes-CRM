@@ -6,8 +6,8 @@
   "scope": "/crm",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#FAF9F5",
-  "theme_color": "#1D6A34",
+  "background_color": "#F4F8F8",
+  "theme_color": "#1E6872",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {

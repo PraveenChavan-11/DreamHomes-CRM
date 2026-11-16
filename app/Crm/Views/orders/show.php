@@ -6,15 +6,17 @@ $balance = \Crm\Services\Money::round(\Crm\Services\Money::sub($o['grand_total']
 ?>
 <div class="pagehead">
   <h1><?= esc($o['order_no']) ?> <?= crm_badge($o['status']) ?></h1>
-  <?php if (crm_can('enquiries.close') && $e['status'] !== 'won' && in_array($o['status'], ['confirmed', 'pending_confirmation'], true)): ?>
-    <form method="post" action="<?= site_url('crm/enquiries/' . (int) $e['id'] . '/won') ?>" data-confirm="Mark enquiry <?= esc($e['enquiry_no'], 'attr') ?> as WON using this order?"><?= csrf_field() ?><button class="btn teal" type="submit">Mark enquiry as won</button></form>
-  <?php endif; ?>
-  <?php if (crm_can('orders.manage') && $flow): ?>
-    <?php foreach ($flow as $to): ?>
-      <?php if (in_array($to, $needsReason, true)): ?><button class="btn <?= $to === 'cancelled' ? 'danger' : 'alt' ?>" type="button" data-modal="m-status" data-fill="to=<?= $to ?>"><?= $to === 'on_hold' ? 'Put on hold' : 'Cancel order' ?></button>
-      <?php else: ?><form method="post" action="<?= site_url('crm/orders/' . (int) $o['id'] . '/status') ?>"><?= csrf_field() ?><input type="hidden" name="to" value="<?= esc($to, 'attr') ?>"><button class="btn alt" type="submit"><?= $to === 'confirmed' ? 'Confirm order' : ($to === 'closed' ? 'Close order' : 'Move to ' . crm_label($to)) ?></button></form><?php endif; ?>
-    <?php endforeach; ?>
-  <?php endif; ?>
+  <div class="gap">
+    <?php if (crm_can('enquiries.close') && $e['status'] !== 'won' && in_array($o['status'], ['confirmed', 'pending_confirmation'], true)): ?>
+      <form method="post" action="<?= site_url('crm/enquiries/' . (int) $e['id'] . '/won') ?>" data-confirm="Mark enquiry <?= esc($e['enquiry_no'], 'attr') ?> as WON using this order?"><?= csrf_field() ?><button class="btn teal" type="submit">Mark enquiry as won</button></form>
+    <?php endif; ?>
+    <?php if (crm_can('orders.manage') && $flow): ?>
+      <?php foreach ($flow as $to): ?>
+        <?php if (in_array($to, $needsReason, true)): ?><button class="btn <?= $to === 'cancelled' ? 'danger' : 'alt' ?>" type="button" data-modal="m-status" data-fill="to=<?= $to ?>"><?= $to === 'on_hold' ? 'Put on hold' : 'Cancel order' ?></button>
+        <?php else: ?><form method="post" action="<?= site_url('crm/orders/' . (int) $o['id'] . '/status') ?>"><?= csrf_field() ?><input type="hidden" name="to" value="<?= esc($to, 'attr') ?>"><button class="btn alt" type="submit"><?= $to === 'confirmed' ? 'Confirm order' : ($to === 'closed' ? 'Close order' : 'Move to ' . crm_label($to)) ?></button></form><?php endif; ?>
+      <?php endforeach; ?>
+    <?php endif; ?>
+  </div>
 </div>
 
 <div class="grid g4 mb">

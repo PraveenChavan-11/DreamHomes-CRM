@@ -4,9 +4,11 @@ $qs = static fn (array $extra = []) => '?' . http_build_query(array_merge($f, $e
 ?>
 <div class="pagehead">
   <h1><?= $kanban ? 'Sales pipeline' : 'Enquiries' ?></h1>
-  <a class="btn alt" href="<?= site_url('crm/enquiries' . $qs($kanban ? [] : ['view' => 'kanban'])) ?>"><?= $kanban ? 'List view' : 'Pipeline board' ?></a>
-  <?php if (crm_can('customers.import')): ?><a class="btn alt" href="<?= site_url('crm/imports') ?>">Import from Excel</a><?php endif; ?>
-  <?php if (crm_can('enquiries.create')): ?><a class="btn teal" href="<?= site_url('crm/enquiries/new') ?>">+ New enquiry</a><?php endif; ?>
+  <div class="gap">
+    <a class="btn alt" href="<?= site_url('crm/enquiries' . $qs($kanban ? [] : ['view' => 'kanban'])) ?>"><?= $kanban ? 'List view' : 'Pipeline board' ?></a>
+    <?php if (crm_can('customers.import')): ?><a class="btn alt" href="<?= site_url('crm/imports') ?>">Import from Excel</a><?php endif; ?>
+    <?php if (crm_can('enquiries.create')): ?><a class="btn teal" href="<?= site_url('crm/enquiries/new') ?>">+ New enquiry</a><?php endif; ?>
+  </div>
 </div>
 
 <form class="filters card" method="get" action="<?= site_url('crm/enquiries') ?>" style="padding:14px 18px">
