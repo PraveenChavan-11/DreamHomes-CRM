@@ -59,12 +59,42 @@
   // modals
   document.addEventListener('click', function (e) {
     var o = e.target.closest('[data-modal]');
-    if (o) { e.preventDefault(); var m = document.getElementById(o.getAttribute('data-modal')); if (m) { m.classList.add('open'); var i = $('input:not([type=hidden]),select,textarea', m); if (i) i.focus();
-        (o.getAttribute('data-fill') || '').split(',').forEach(function (kv) { var p = kv.split('='); if (p[0]) { var t = $('[name="' + p[0] + '"]', m); if (t) t.value = decodeURIComponent(p[1] || ''); } });
-        var a = o.getAttribute('data-action'); if (a) { var fm = $('form', m); if (fm) fm.action = a; } } }
-    if (e.target.closest('[data-close]') || e.target.classList.contains('modal')) { var mm = e.target.closest('.modal'); if (mm) mm.classList.remove('open'); }
+    if (o) {
+      e.preventDefault();
+      var m = document.getElementById(o.getAttribute('data-modal'));
+      if (m) {
+        m.classList.add('open');
+        var i = $('input:not([type=hidden]),select,textarea', m);
+        if (i) i.focus();
+        (o.getAttribute('data-fill') || '').split(',').forEach(function (kv) {
+          var p = kv.split('=');
+          if (p[0]) {
+            var t = $('[name="' + p[0] + '"]', m);
+            if (t) t.value = decodeURIComponent(p[1] || '');
+          }
+        });
+        var a = o.getAttribute('data-action');
+        if (a) {
+          var fm = $('form', m);
+          if (fm) fm.action = a;
+        }
+      }
+      return;
+    }
+    var closeBtn = e.target.closest('[data-close], .modal-close, [data-modal-close], .btn-close, [data-dismiss="modal"]');
+    if (closeBtn) {
+      e.preventDefault();
+      var mm = closeBtn.closest('.modal');
+      if (mm) mm.classList.remove('open');
+      return;
+    }
+    if (e.target.classList.contains('modal')) {
+      e.target.classList.remove('open');
+    }
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') $$('.modal.open').forEach(function (m) { m.classList.remove('open'); }); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') $$('.modal.open').forEach(function (m) { m.classList.remove('open'); });
+  });
 
   // searchable select: <select data-search>
   $$('select[data-search]').forEach(function (s) {

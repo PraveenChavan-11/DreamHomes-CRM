@@ -37,8 +37,10 @@ class ProjectController extends CrmController
     public function show(int $id): string
     {
         $project = ProjectService::getProject($id);
+        $salesUsers = Crm::db()->table('admin_users')->where('is_active', 1)->orderBy('first_name')->get()->getResultArray();
         return $this->render('projects/show', [
             'project' => $project,
+            'salesUsers' => $salesUsers,
         ], $project['name'] . ' · Project Details', 'projects');
     }
 

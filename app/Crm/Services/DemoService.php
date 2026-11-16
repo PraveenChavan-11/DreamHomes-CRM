@@ -46,16 +46,27 @@ final class DemoService
     private static function scope(): array
     {
         $cust = self::ids("SELECT row_id id FROM crm_demo_registry WHERE table_name = 'crm_customers'");
+        $cust = array_values(array_unique(array_merge($cust, self::ids("SELECT id FROM crm_customers WHERE email LIKE '%@demo.invalid'"))));
+
         $enq  = self::ids("SELECT row_id id FROM crm_demo_registry WHERE table_name = 'crm_enquiries'");
         if ($cust) {
             $enq = array_values(array_unique(array_merge($enq, self::ids('SELECT id FROM crm_enquiries WHERE customer_id IN (' . self::in($cust) . ')'))));
         }
+        $enq = array_values(array_unique(array_merge($enq, self::ids("SELECT id FROM crm_enquiries WHERE is_demo = 1"))));
+
         $qt = $enq ? self::ids('SELECT id FROM crm_quotations WHERE enquiry_id IN (' . self::in($enq) . ')') : [];
+        $qt = array_values(array_unique(array_merge($qt, self::ids("SELECT id FROM crm_quotations WHERE is_demo = 1"))));
+
+        $prod = self::ids("SELECT row_id id FROM crm_demo_registry WHERE table_name = 'crm_products'");
+        $prod = array_values(array_unique(array_merge($prod, self::ids("SELECT id FROM crm_products WHERE sku LIKE 'DEMO-%' OR is_demo = 1"))));
+
+        $usr  = self::ids("SELECT row_id id FROM crm_demo_registry WHERE table_name = 'admin_users'");
+        $usr  = array_values(array_unique(array_merge($usr, self::ids("SELECT id FROM admin_users WHERE username LIKE 'demo.%' OR email LIKE '%@dhis-demo.invalid'"))));
 
         return [
             'cust' => $cust, 'enq' => $enq, 'qt' => $qt,
-            'prod' => self::ids("SELECT row_id id FROM crm_demo_registry WHERE table_name = 'crm_products'"),
-            'usr'  => self::ids("SELECT row_id id FROM crm_demo_registry WHERE table_name = 'admin_users'"),
+            'prod' => $prod,
+            'usr'  => $usr,
         ];
     }
 
@@ -98,7 +109,12 @@ final class DemoService
         $del('crm_customer_contacts', "customer_id IN ({$C})");
         $del('crm_customers', "id IN ({$C})");
         $del('crm_product_price_history', "product_id IN ({$P})");
+        $del('crm_product_variants', "sku LIKE 'DEMO-%' OR product_id IN ({$P})");
         $del('crm_products', "id IN ({$P})");
+        $del('crm_product_subcategories', "code LIKE 'SUBCAT-%'");
+        $del('crm_product_types', "code LIKE 'TYPE-%'");
+        $del('crm_tags', "slug IN ('hni-client','repeat-buyer','architect-referral','commercial-project','urgent-delivery','luxury-villa')");
+        $del('crm_territories', "name LIKE 'Pune%' OR name LIKE 'PCMC%'");
         $del('crm_team_members', "user_id IN ({$U})");
         $del('crm_teams', "name LIKE 'Demo Team%'");
         $del('crm_login_history', "user_id IN ({$U})");

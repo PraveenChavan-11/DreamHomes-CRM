@@ -24,7 +24,8 @@ final class DemoSeed extends BaseCommand
     public function run(array $params)
     {
         $t = microtime(true);
-        $summary = (new DemoSeeder())->run();
+        $skip = CLI::getOption('force') !== null;
+        $summary = (new DemoSeeder())->run($skip);
         foreach ($summary as $k => $v) {
             CLI::write(str_pad($k, 22) . $v);
         }

@@ -106,7 +106,7 @@
   <div class="modal-dialog">
     <div class="modal-header">
       <h3>Add New <?= esc(rtrim($meta['name'], 's')) ?></h3>
-      <button type="button" class="modal-close" aria-label="Close">&times;</button>
+      <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
     </div>
     <form method="post" action="<?= site_url("crm/masters/{$meta['type_key']}/save") ?>">
       <?= csrf_field() ?>
@@ -131,7 +131,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary modal-close">Cancel</button>
+        <button type="button" class="btn btn-secondary modal-close" data-close>Cancel</button>
         <button type="submit" class="btn btn-primary">Save Master Record</button>
       </div>
     </form>

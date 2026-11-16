@@ -107,11 +107,15 @@ final class DemoSeeder
     }
 
     /** @return array<string,int> summary counts */
-    public function run(bool $skipGuard = false): array
+    public function run(bool $skipGuard = false, bool $purgeFirst = true): array
     {
         if (! $skipGuard) {
             self::assertDemoEnvironment();
         }
+        if ($purgeFirst) {
+            DemoService::purgeDemoRows();
+        }
+        MasterService::seedDefaultMasters();
         mt_srand(20261113);
         Crm::setActor(null, 'seed');
         $db = Crm::db();
@@ -143,6 +147,7 @@ final class DemoSeeder
 
     private function people(): void
     {
+        $db = Crm::db();
         $rows = [
             ['demo.superadmin', 'Kiran', 'Rao', 'super_admin'], ['demo.admin1', 'Meera', 'Joshi', 'admin'], ['demo.admin2', 'Sandeep', 'Patil', 'admin'],
             ['demo.manager1', 'Rahul', 'Deshpande', 'sales_manager'], ['demo.manager2', 'Priya', 'Naik', 'sales_manager'],
@@ -153,22 +158,64 @@ final class DemoSeeder
         $ids = [];
         $this->clock(160, '09:00');
         foreach ($rows as $i => [$u, $f, $l, $role]) {
-            $id = UserService::create(['username' => $u, 'email' => "{$u}@dhis-demo.invalid", 'first_name' => $f, 'last_name' => $l, 'role' => $role, 'password' => self::PASSWORD,
-                'phone' => '+91 90000 1' . sprintf('%04d', 2100 + $i * 7), 'employee_code' => 'DEMO' . sprintf('%03d', $i + 1)]);
+            $existing = $db->table('admin_users')->where('username', $u)->get()->getRowArray();
+            if ($existing) {
+                $id = (int) $existing['id'];
+                $db->table('admin_users')->where('id', $id)->update([
+                    'password_hash' => password_hash(self::PASSWORD, PASSWORD_DEFAULT),
+                    'first_name' => $f,
+                    'last_name' => $l,
+                    'email' => "{$u}@dhis-demo.invalid",
+                    'role' => $role,
+                    'is_active' => 1,
+                    'updated_at' => Crm::now(),
+                ]);
+            } else {
+                $id = UserService::create(['username' => $u, 'email' => "{$u}@dhis-demo.invalid", 'first_name' => $f, 'last_name' => $l, 'role' => $role, 'password' => self::PASSWORD,
+                    'phone' => '+91 90000 1' . sprintf('%04d', 2100 + $i * 7), 'employee_code' => 'DEMO' . sprintf('%03d', $i + 1)]);
+            }
             $this->reg('admin_users', $id);
             $ids[$u] = $id;
         }
-        $t1 = UserService::createTeam('Demo Team - Windows', $ids['demo.manager1']);
-        $t2 = UserService::createTeam('Demo Team - Bathrooms & Kitchens', $ids['demo.manager2']);
+
+        $t1Row = $db->table('crm_teams')->where('name', 'Demo Team - Windows')->get()->getRowArray();
+        $t1 = $t1Row ? (int) $t1Row['id'] : UserService::createTeam('Demo Team - Windows', $ids['demo.manager1']);
+        $t2Row = $db->table('crm_teams')->where('name', 'Demo Team - Bathrooms & Kitchens')->get()->getRowArray();
+        $t2 = $t2Row ? (int) $t2Row['id'] : UserService::createTeam('Demo Team - Bathrooms & Kitchens', $ids['demo.manager2']);
+
+        $db->table('crm_team_members')->whereIn('team_id', [$t1, $t2])->delete();
         foreach (['demo.exec1', 'demo.exec2', 'demo.exec3'] as $u) { UserService::addToTeam($t1, $ids[$u]); $this->mgrOf[$ids[$u]] = $ids['demo.manager1']; }
         foreach (['demo.exec4', 'demo.exec5', 'demo.exec6'] as $u) { UserService::addToTeam($t2, $ids[$u]); $this->mgrOf[$ids[$u]] = $ids['demo.manager2']; }
         $this->execs = [$ids['demo.exec1'], $ids['demo.exec2'], $ids['demo.exec3'], $ids['demo.exec4'], $ids['demo.exec5'], $ids['demo.exec6']];
         $this->admin = $this->actor($ids['demo.admin1']);
         // demo teams must be the only assignment pool: restrict the default rule to round-robin across ALL active executives (deterministic by id)
-        $db = Crm::db();
         $db->table('crm_assignment_rules')->update(['is_active' => 0]);
         $db->table('crm_assignment_rules')->insert(['priority' => 1, 'mode' => 'round_robin']);
         $db->query('DELETE FROM crm_assignment_state');
+
+        // Tags
+        $tags = [
+            ['hni-client', 'HNI Client'],
+            ['repeat-buyer', 'Repeat Buyer'],
+            ['architect-referral', 'Architect Referral'],
+            ['commercial-project', 'Commercial High-Rise'],
+            ['urgent-delivery', 'Urgent Dispatch'],
+            ['luxury-villa', 'Luxury Villa Interior'],
+        ];
+        foreach ($tags as [$slug, $lbl]) {
+            $db->query('INSERT INTO crm_tags (slug, label, active) VALUES (?,?,1) ON DUPLICATE KEY UPDATE label=VALUES(label)', [$slug, $lbl]);
+        }
+
+        // Territories
+        $territories = [
+            ['Pune West (Baner, Wakad, Aundh)', 'Pune', '41104', $t1],
+            ['Pune East (Kharadi, Viman Nagar, Hadapsar)', 'Pune', '41101', $t1],
+            ['PCMC & Industrial (Pimpri, Chinchwad, Ravet)', 'Pune', '41101', $t2],
+            ['Pune South & Central (Kothrud, Undri, Deccan)', 'Pune', '41103', $t2],
+        ];
+        foreach ($territories as [$name, $city, $pin, $tId]) {
+            $db->query('INSERT INTO crm_territories (name, city, pin_prefix, team_id, is_active) VALUES (?,?,?,?,1) ON DUPLICATE KEY UPDATE city=VALUES(city)', [$name, $city, $pin, $tId]);
+        }
     }
 
     private function products(): void
@@ -193,50 +240,66 @@ final class DemoSeeder
             $brandIds[$b['name']] = (int) $db->table('crm_product_brands')->where('code', $b['code'])->get()->getRow()->id;
         }
 
+        // 1.1 Seed Product Subcategories & Types
+        $winCat = (int) ($db->table('crm_product_categories')->where('name', 'Windows')->get()->getRow()->id ?? 1);
+        $bthCat = (int) ($db->table('crm_product_categories')->where('name', 'Bathrooms')->get()->getRow()->id ?? 2);
+        $kitCat = (int) ($db->table('crm_product_categories')->where('name', 'Modular Kitchens')->get()->getRow()->id ?? 3);
+
+        $subcats = [
+            [$winCat, 'Aluminium Sliding Systems', 'SUBCAT-WIN-SLD', 'Heavy-gauge thermal and non-thermal aluminium sliding window profiles'],
+            [$winCat, 'Aluminium Casement Systems', 'SUBCAT-WIN-CSM', 'Architectural openable casement windows and tilt-turn systems'],
+            [$winCat, 'UPVC Engineered Profiles', 'SUBCAT-WIN-UPVC', 'Multi-chamber acoustic and weather-resistant UPVC windows'],
+            [$bthCat, 'Luxury Showers & Thermostats', 'SUBCAT-BTH-SHW', 'German concealed rain showers and temperature-regulated mixers'],
+            [$bthCat, 'Sanitaryware & Closets', 'SUBCAT-BTH-SAN', 'Rimless wall-hung water closets and vitreous china basins'],
+            [$kitCat, 'European Base Modules', 'SUBCAT-KIT-BAS', 'Ergonomic marine-ply base cabinets with soft-close mechanisms'],
+            [$kitCat, 'Hafele Built-in Appliances', 'SUBCAT-KIT-APP', 'German built-in hobs, ovens, chimneys, and dishwashers'],
+        ];
+        foreach ($subcats as [$cId, $name, $code, $desc]) {
+            $db->query('INSERT INTO crm_product_subcategories (category_id, name, code, description, is_active, created_at, updated_at) VALUES (?,?,?,?,1,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name)',
+                [$cId, $name, $code, $desc, Crm::now(), Crm::now()]);
+        }
+
+        $prodTypes = [
+            [$winCat, 'Heavy-duty 3-Track Sliding Systems', 'TYPE-WIN-3TRK', 'Multi-slide heavy architectural fenestration for panoramic views'],
+            [$winCat, 'Acoustic Soundproof DGU Windows', 'TYPE-WIN-DGU', 'Double-glazed hermetically sealed sound reduction windows'],
+            [$bthCat, 'Thermostatic Concealed Rain Showers', 'TYPE-BTH-THERM', 'Luxury German thermostatic multi-jet shower systems'],
+            [$bthCat, 'Rimless Intelligent Water Closets', 'TYPE-BTH-RIML', 'Water-saving rimless ceramic wall-hung closets'],
+            [$kitCat, 'Built-in Island Chimneys & Gas Hobs', 'TYPE-KIT-ISLND', 'High-suction baffle filter island chimneys and cast-iron hobs'],
+        ];
+        foreach ($prodTypes as [$cId, $name, $code, $desc]) {
+            $db->query('INSERT INTO crm_product_types (category_id, name, code, description, is_active, created_at, updated_at) VALUES (?,?,?,?,1,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name)',
+                [$cId, $name, $code, $desc, Crm::now(), Crm::now()]);
+        }
+
         // 2. Seed Master Products
         foreach (self::CATALOGUE as $cat => $items) {
             $cid = (int) $db->table('crm_product_categories')->where('name', $cat)->get()->getRow()->id;
             foreach ($items as [$sku, $name, $brand, $unit, $model, $std, $spec]) {
-                $pid = ProductService::save(null, [
-                    'sku' => 'DEMO-' . $sku, 'name' => $name, 'brand' => $brand, 'category_id' => $cid, 'unit' => $unit, 'pricing_model' => $model, 'tax_rate_id' => $tax,
+                $skuCode = 'DEMO-' . $sku;
+                $existing = $db->table('crm_products')->where('sku', $skuCode)->get()->getRowArray();
+                $prodData = [
+                    'sku' => $skuCode, 'name' => $name, 'brand' => $brand, 'category_id' => $cid, 'unit' => $unit, 'pricing_model' => $model, 'tax_rate_id' => $tax,
                     'standard_price' => $std, 'base_price' => (int) round($std * 0.68), 'min_price' => (int) round($std * 0.88), 'specifications' => $spec,
                     'image' => self::productImageFor($sku),
                     'description' => 'DEMONSTRATION ITEM - price and specification are illustrative, not a DHIS price list.',
-                ], $this->admin, 1);
+                ];
+                $pid = $existing
+                    ? ProductService::save((int) $existing['id'], $prodData, $this->admin, 1)
+                    : ProductService::save(null, $prodData, $this->admin, 1);
                 $this->prodByCat[$cat][] = $pid;
 
                 // 3. Seed 2 Variants per Product
                 $vBrandId = $brandIds[$brand] ?? null;
-                $db->table('crm_product_variants')->insert([
-                    'product_id' => $pid,
-                    'sku' => 'DEMO-' . $sku . '-V1',
-                    'variant_name' => $name . ' (Matte Black Finish)',
-                    'brand_id' => $vBrandId,
-                    'finish' => 'Anodized',
-                    'colour' => 'Matte Black',
-                    'glass_type' => 'Toughened Clear Glass',
-                    'cost_price' => round($std * 0.70),
-                    'selling_price' => $std,
-                    'tax_rate' => 18.00,
-                    'is_active' => 1,
-                    'created_at' => Crm::now(),
-                    'updated_at' => Crm::now(),
-                ]);
-                $db->table('crm_product_variants')->insert([
-                    'product_id' => $pid,
-                    'sku' => 'DEMO-' . $sku . '-V2',
-                    'variant_name' => $name . ' (Champagne Bronze Finish)',
-                    'brand_id' => $vBrandId,
-                    'finish' => 'Powder Coated',
-                    'colour' => 'Champagne Bronze',
-                    'glass_type' => 'Double Glazed DGU Glass',
-                    'cost_price' => round($std * 0.78),
-                    'selling_price' => round($std * 1.15),
-                    'tax_rate' => 18.00,
-                    'is_active' => 1,
-                    'created_at' => Crm::now(),
-                    'updated_at' => Crm::now(),
-                ]);
+                $db->query("INSERT INTO crm_product_variants (product_id, sku, variant_name, brand_id, finish, colour, glass_type, cost_price, selling_price, tax_rate, is_active, created_at, updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)
+                    ON DUPLICATE KEY UPDATE selling_price=VALUES(selling_price), updated_at=VALUES(updated_at)",
+                    [$pid, $skuCode . '-V1', $name . ' (Matte Black Finish)', $vBrandId, 'Anodized', 'Matte Black', 'Toughened Clear Glass', round($std * 0.70), $std, 18.00, Crm::now(), Crm::now()]
+                );
+                $db->query("INSERT INTO crm_product_variants (product_id, sku, variant_name, brand_id, finish, colour, glass_type, cost_price, selling_price, tax_rate, is_active, created_at, updated_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)
+                    ON DUPLICATE KEY UPDATE selling_price=VALUES(selling_price), updated_at=VALUES(updated_at)",
+                    [$pid, $skuCode . '-V2', $name . ' (Champagne Bronze Finish)', $vBrandId, 'Powder Coated', 'Champagne Bronze', 'Double Glazed DGU Glass', round($std * 0.78), round($std * 1.15), 18.00, Crm::now(), Crm::now()]
+                );
             }
         }
     }
@@ -288,19 +351,38 @@ final class DemoSeeder
     private function customers(): void
     {
         $this->clock(158, '10:00');
-        $src = array_column(Crm::db()->table('crm_lead_sources')->get()->getResultArray(), 'id');
+        $db = Crm::db();
+        $src = array_column($db->table('crm_lead_sources')->get()->getResultArray(), 'id');
         for ($i = 0; $i < 40; $i++) {
             $f = self::FIRST[$i % 20];
             $l = self::LAST[($i * 7) % 15];
             $a = self::AREAS[($i * 4) % 15];
             $type = $i % 13 === 0 ? 'architect' : ($i % 11 === 0 ? 'builder' : ($i % 9 === 0 ? 'company' : 'individual'));
-            $id = CustomerService::create([
-                'name' => "{$f} {$l}", 'customer_type' => $type, 'company_name' => $type === 'individual' ? null : "{$l} " . ['architect' => 'Design Studio', 'builder' => 'Developers', 'company' => 'Enterprises'][$type],
-                'mobile' => '90000' . sprintf('%05d', 11000 + $i * 37), 'email' => strtolower("{$f}.{$l}{$i}") . '@demo.invalid',
-                'site_address' => 'Flat ' . (101 + $i) . ", {$a}", 'billing_address' => 'Flat ' . (101 + $i) . ", {$a}", 'city' => 'Pune', 'state' => 'Maharashtra', 'pin_code' => self::PIN[$a],
-                'source_id' => $src[$i % count($src)], 'remarks' => 'Fictional demo customer',
-            ], $this->admin['id'], false, 1);
+            $email = strtolower("{$f}.{$l}{$i}") . '@demo.invalid';
+            $mobile = '90000' . sprintf('%05d', 11000 + $i * 37);
+
+            $custRow = $db->table('crm_customers')->where('email', $email)->orWhere('mobile', $mobile)->get()->getRowArray();
+            if ($custRow) {
+                $id = (int) $custRow['id'];
+            } else {
+                $id = CustomerService::create([
+                    'name' => "{$f} {$l}", 'customer_type' => $type, 'company_name' => $type === 'individual' ? null : "{$l} " . ['architect' => 'Design Studio', 'builder' => 'Developers', 'company' => 'Enterprises'][$type],
+                    'mobile' => $mobile, 'email' => $email,
+                    'site_address' => 'Flat ' . (101 + $i) . ", {$a}", 'billing_address' => 'Flat ' . (101 + $i) . ", {$a}", 'city' => 'Pune', 'state' => 'Maharashtra', 'pin_code' => self::PIN[$a],
+                    'source_id' => $src[$i % count($src)], 'remarks' => 'Fictional demo customer',
+                ], $this->admin['id'], true, 1);
+            }
             $this->cust[] = ['id' => $id, 'area' => $a, 'surname' => $l];
+
+            $db->query("INSERT INTO crm_customer_addresses (customer_id, address_type, title, address_line, city, state, pin_code, contact_person, contact_phone, is_default, is_active, created_at, updated_at)
+                VALUES (?, 'site', 'Primary Execution Site', ?, 'Pune', 'Maharashtra', ?, ?, ?, 1, 1, ?, ?)",
+                [$id, 'Plot ' . (101 + $i) . ", {$a}, Pune", self::PIN[$a], "{$f} {$l}", $mobile, Crm::now(), Crm::now()]);
+
+            if ($i % 2 === 0) {
+                $db->query("INSERT INTO crm_customer_contacts (customer_id, name, role_title, mobile, email, is_primary)
+                    VALUES (?, ?, ?, ?, ?, 0)",
+                    [$id, $l . ' Architectural Consultant', 'Site Architect / PM', '98220' . sprintf('%05d', 50000 + $i * 19), strtolower("architect.{$l}{$i}") . '@demo.invalid']);
+            }
         }
     }
 
@@ -342,23 +424,29 @@ final class DemoSeeder
         for ($p = 0; $p < 15; $p++) {
             $c = $this->cust[$p];
             $projTypes = ['Luxury Villa', 'Modern Apartment', 'Penthouse Duplex', 'Residential Bungalow', 'Commercial Studio'];
-            $db->table('crm_projects')->insert([
-                'project_no' => 'PRJ-' . sprintf('%04d', $p + 1),
-                'customer_id' => $c['id'],
-                'name' => "{$c['surname']} " . $projTypes[$p % 5] . " - {$c['area']}",
-                'site_location' => 'Plot ' . (10 + $p) . ', Road 4, ' . $c['area'],
-                'city' => 'Pune',
-                'state' => 'Maharashtra',
-                'pin_code' => self::PIN[$c['area']],
-                'status' => ['planning', 'in_progress', 'completed'][$p % 3],
-                'budget' => 500000 + ($p * 150000),
-                'assigned_to' => $this->execs[$p % 6],
-                'remarks' => 'Architectural execution project covering Vitrum windows, Grohe bathrooms, and Hafele modular kitchen.',
-                'is_demo' => 1,
-                'created_at' => Crm::now(),
-                'updated_at' => Crm::now(),
-            ]);
-            $projects[$p] = (int) $db->insertID();
+            $pNo = 'PRJ-' . sprintf('%04d', $p + 1);
+            $existPrj = $db->table('crm_projects')->where('project_no', $pNo)->get()->getRowArray();
+            if ($existPrj) {
+                $projects[$p] = (int) $existPrj['id'];
+            } else {
+                $db->table('crm_projects')->insert([
+                    'project_no' => $pNo,
+                    'customer_id' => $c['id'],
+                    'name' => "{$c['surname']} " . $projTypes[$p % 5] . " - {$c['area']}",
+                    'site_location' => 'Plot ' . (10 + $p) . ', Road 4, ' . $c['area'],
+                    'city' => 'Pune',
+                    'state' => 'Maharashtra',
+                    'pin_code' => self::PIN[$c['area']],
+                    'status' => ['planning', 'in_progress', 'completed'][$p % 3],
+                    'budget' => 500000 + ($p * 150000),
+                    'assigned_to' => $this->execs[$p % 6],
+                    'remarks' => 'Architectural execution project covering Vitrum windows, Grohe bathrooms, and Hafele modular kitchen.',
+                    'is_demo' => 1,
+                    'created_at' => Crm::now(),
+                    'updated_at' => Crm::now(),
+                ]);
+                $projects[$p] = (int) $db->insertID();
+            }
             $this->reg('crm_projects', $projects[$p]);
         }
 

@@ -347,10 +347,34 @@ final class MasterService
         return $csv;
     }
 
-    /** Idempotently seed default master records into crm_master_records */
+    /** Idempotently seed default master records into crm_master_records and master types */
     public static function seedDefaultMasters(): int
     {
         $db = Crm::db();
+
+        // 1. Seed Master Types
+        if ($db->tableExists('crm_master_types')) {
+            $order = 1;
+            foreach (self::MASTER_GROUPS as $groupKey => $group) {
+                foreach ($group['items'] as $itemCode => $item) {
+                    $exists = $db->table('crm_master_types')->where('code', $itemCode)->countAllResults();
+                    if (! $exists) {
+                        $db->table('crm_master_types')->insert([
+                            'group_name'  => $group['label'],
+                            'code'        => $itemCode,
+                            'name'        => $item['name'],
+                            'description' => $item['desc'] ?? null,
+                            'icon'        => $group['icon'] ?? null,
+                            'sort_order'  => $order++,
+                            'is_active'   => 1,
+                            'created_at'  => date('Y-m-d H:i:s'),
+                            'updated_at'  => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+                }
+            }
+        }
+
         $catalog = [
             'branches' => [
                 ['BR-PUN-01', 'Pune Main Experience Centre & Flagship', 'Kothrud, Pune - Luxury fenestration & sanitaryware gallery'],

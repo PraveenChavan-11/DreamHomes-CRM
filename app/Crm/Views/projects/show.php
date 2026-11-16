@@ -109,3 +109,67 @@
     </div>
   </div>
 </div>
+
+<!-- Modal: Edit Project -->
+<div class="modal" id="m-edit-project" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>Edit Customer Project</h3>
+      <button type="button" class="modal-close" data-close aria-label="Close">&times;</button>
+    </div>
+    <form method="post" action="<?= site_url('crm/projects/save/' . (int) $project['id']) ?>">
+      <?= csrf_field() ?>
+      <div class="modal-body">
+        <div class="field">
+          <label>Project Name <span style="color:var(--red)">*</span></label>
+          <input type="text" name="name" required value="<?= esc($project['name']) ?>">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field">
+            <label>Project Status</label>
+            <select name="status">
+              <?php foreach (['planned', 'in_progress', 'on_hold', 'completed', 'cancelled'] as $st): ?>
+                <option value="<?= $st ?>" <?= $project['status'] === $st ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $st)) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <div class="field">
+            <label>City</label>
+            <input type="text" name="city" value="<?= esc($project['city'] ?? 'Pune') ?>">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Site Location / Landmark</label>
+          <input type="text" name="site_location" value="<?= esc($project['site_location'] ?? '') ?>">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field">
+            <label>Estimated Project Budget (₹)</label>
+            <input type="number" name="budget" step="1000" value="<?= (float) ($project['budget'] ?? 0) ?>">
+          </div>
+          <div class="field">
+            <label>Assigned Project Lead</label>
+            <select name="assigned_to">
+              <option value="">Select Employee...</option>
+              <?php foreach ($salesUsers ?? [] as $u): ?>
+                <option value="<?= (int) $u['id'] ?>" <?= ((int) ($project['assigned_to'] ?? 0) === (int) $u['id']) ? 'selected' : '' ?>><?= esc($u['first_name'] . ' ' . $u['last_name']) ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Project Scope &amp; Specifications</label>
+          <textarea name="remarks" rows="3"><?= esc($project['remarks'] ?? '') ?></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-close" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Project</button>
+      </div>
+    </form>
+  </div>
+</div>
