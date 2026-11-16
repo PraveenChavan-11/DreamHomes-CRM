@@ -43,7 +43,17 @@ $balance = \Crm\Services\Money::round(\Crm\Services\Money::sub($o['grand_total']
 <div class="card mb"><div class="hd"><h2>Items (snapshot of the accepted quotation)</h2></div><div class="bd flush tablewrap"><table class="t">
   <thead><tr><th>#</th><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Discount</th><th class="num">GST</th><th class="num">Line total</th></tr></thead><tbody>
   <?php foreach ($items as $n => $i): ?><tr><td><?= $n + 1 ?></td><td><?= esc($i['description']) ?><?= $i['sku'] ? ' <span class="muted small">(' . esc($i['sku']) . ')</span>' : '' ?></td><td class="num"><?= $qty($i['quantity']) ?> <?= esc($i['unit']) ?></td><td class="num"><?= crm_money($i['unit_price']) ?></td><td class="num"><?= crm_money($i['discount_amount']) ?></td><td class="num"><?= crm_money($i['tax_amount']) ?></td><td class="num"><strong><?= crm_money($i['line_total']) ?></strong></td></tr><?php endforeach; ?></tbody></table></div>
-  <div class="bd"><div class="totals"><div><span>Subtotal</span><span><?= crm_money($o['subtotal']) ?></span></div><div><span>Discount</span><span>− <?= crm_money($o['discount_total']) ?></span></div><div><span>Additional charges</span><span><?= crm_money($o['charges_total']) ?></span></div><div><span>GST</span><span><?= crm_money($o['tax_total']) ?></span></div><div class="gt"><span>Order total</span><span><?= crm_money($o['grand_total']) ?></span></div></div></div></div>
+  <div class="bd" style="padding-top:16px;padding-bottom:20px;background:#FAFCFB;border-top:1px solid var(--line-2)">
+    <div class="totals">
+      <div class="row-subtotal"><span>Subtotal</span><span><?= crm_money($o['subtotal']) ?></span></div>
+      <?php if ((float) $o['discount_total'] > 0): ?>
+        <div class="row-discount"><span>Discount Applied</span><span>− <?= crm_money($o['discount_total']) ?></span></div>
+      <?php endif; ?>
+      <div class="row-charge"><span>Additional Charges</span><span><?= crm_money($o['charges_total']) ?></span></div>
+      <div class="row-tax"><span>GST (Taxes)</span><span><?= crm_money($o['tax_total']) ?></span></div>
+      <div class="gt row-grand-total"><span>Order Total (INR)</span><span><?= crm_money($o['grand_total']) ?></span></div>
+    </div>
+  </div></div>
 
 <div class="card"><div class="hd"><h2>Order history</h2></div><div class="bd">
   <?php if (! $events): ?><div class="muted">No events recorded.</div><?php endif; ?>

@@ -124,8 +124,12 @@ $chargeList[] = ['name' => '', 'amount' => ''];
 
     <div class="card"><div class="hd"><h2>Totals</h2></div><div class="bd">
       <div class="totals" style="margin:0;max-width:none">
-        <div><span>Subtotal</span><span id="t-sub">—</span></div><div><span>Discount</span><span id="t-disc">—</span></div><div><span>Taxable value</span><span id="t-taxable">—</span></div>
-        <div><span>Additional charges</span><span id="t-chg">—</span></div><div><span>GST</span><span id="t-tax">—</span></div><div class="gt"><span>Grand total</span><span id="t-grand">—</span></div>
+        <div class="row-subtotal"><span>Subtotal</span><span id="t-sub">—</span></div>
+        <div class="row-discount"><span>Discount Applied</span><span id="t-disc">—</span></div>
+        <div class="row-taxable"><span>Net Taxable Value</span><span id="t-taxable">—</span></div>
+        <div class="row-charge"><span>Additional Charges</span><span id="t-chg">—</span></div>
+        <div class="row-tax"><span>GST (Taxes)</span><span id="t-tax">—</span></div>
+        <div class="gt row-grand-total"><span>Grand Total (INR)</span><span id="t-grand">—</span></div>
       </div>
       <div class="mt"><label for="target_total" style="font-weight:600;font-size:13px">Negotiated final price (optional)</label>
         <input type="number" step="0.01" min="0" id="target_total" name="target_total" value="<?= $e(crm_old('target_total', $meta['target_total'] ?? '')) ?>" placeholder="Agreed grand total ₹">

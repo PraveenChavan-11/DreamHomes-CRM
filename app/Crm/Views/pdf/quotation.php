@@ -172,27 +172,38 @@ $website = \Crm\Services\Settings::get('company.website', 'https://dhisgroup.in'
     vertical-align: top;
   }
   .tot-box {
-    border: 1pt solid #DCE5E0;
+    border: 1pt solid #CBD5E1;
     border-radius: 4px;
     background: #FFFFFF;
+    overflow: hidden;
+  }
+  .tot-table {
+    width: 100%;
+    border-collapse: collapse;
   }
   .tot-table td {
-    padding: 3.5px 6px;
+    padding: 4pt 8pt;
     font-size: 8pt;
+    color: #334155;
+    border-bottom: 0.5pt solid #F1F5F9;
   }
   .tot-table .grand-row td {
-    background: #1D6A34;
+    background: #1E6872;
     color: #FFFFFF;
     font-weight: bold;
     font-size: 9.5pt;
-    padding: 6px 8px;
+    padding: 7pt 8pt;
+    border-bottom: none;
   }
 
   .words-box {
-    background: #F7FAF8;
-    border: 1pt solid #D8E6DE;
-    border-left: 3pt solid #1D6A34;
-    padding: 5px 8px;
+    background: #F8FAFC;
+    border: 1pt solid #E2E8F0;
+    border-left: 3pt solid #1E6872;
+    padding: 6pt 8pt;
+    margin: 6px 0;
+    font-size: 8pt;
+  }
     margin: 6px 0;
     font-size: 8pt;
   }

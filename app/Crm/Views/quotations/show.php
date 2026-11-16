@@ -87,16 +87,37 @@ $canNeg = crm_can('negotiations.create') && $locked && in_array($q['status'], ['
       </tr>
     <?php endforeach; ?>
     </tbody></table></div>
-  <div class="bd"><div class="totals">
-    <div><span>Subtotal</span><span><?= crm_money($sel['subtotal']) ?></span></div>
-    <div><span>Discount</span><span>− <?= crm_money($sel['discount_total']) ?></span></div>
-    <?php if ($sel['target_total'] !== null): ?><div class="small muted"><span>↳ incl. negotiated adjustment (agreed final price <?= crm_money($sel['target_total']) ?>)</span><span><?= crm_money($sel['adjustment_amount']) ?></span></div><?php endif; ?>
-    <div><span>Taxable value</span><span><?= crm_money($sel['taxable_total']) ?></span></div>
-    <?php foreach ($sel['charges'] as $ch): ?><div><span><?= esc($ch['name']) ?></span><span><?= crm_money($ch['amount']) ?></span></div><?php endforeach; ?>
-    <?php if ($intra): ?><div><span>CGST</span><span><?= crm_money($cgst) ?></span></div><div><span>SGST</span><span><?= crm_money($cgst) ?></span></div><?php else: ?><div><span>IGST</span><span><?= crm_money($igst) ?></span></div><?php endif; ?>
-    <?php if ((float) $sel['round_off'] != 0.0): ?><div><span>Round off</span><span><?= crm_money($sel['round_off']) ?></span></div><?php endif; ?>
-    <div class="gt"><span>Grand total</span><span><?= crm_money($sel['grand_total']) ?></span></div>
-  </div></div>
+  <div class="bd" style="padding-top:16px;padding-bottom:20px;background:#FAFCFB;border-top:1px solid var(--line-2)">
+    <div class="totals">
+      <div class="row-subtotal"><span>Subtotal</span><span><?= crm_money($sel['subtotal']) ?></span></div>
+      <?php if ((float) $sel['discount_total'] > 0): ?>
+        <div class="row-discount"><span>Discount Applied</span><span>− <?= crm_money($sel['discount_total']) ?></span></div>
+      <?php endif; ?>
+      <?php if ($sel['target_total'] !== null): ?>
+        <div class="small muted" style="padding:4px 0 6px;border-bottom:1px dashed rgba(0,0,0,0.06);display:flex;justify-content:space-between">
+          <span>↳ Agreed Final Price Adjustment (Target <?= crm_money($sel['target_total']) ?>)</span>
+          <span><?= crm_money($sel['adjustment_amount']) ?></span>
+        </div>
+      <?php endif; ?>
+      <div class="row-taxable"><span>Net Taxable Value</span><span><?= crm_money($sel['taxable_total']) ?></span></div>
+      <?php foreach ($sel['charges'] as $ch): ?>
+        <div class="row-charge"><span><?= esc($ch['name']) ?></span><span><?= crm_money($ch['amount']) ?></span></div>
+      <?php endforeach; ?>
+      <?php if ($intra): ?>
+        <div class="row-tax"><span>Central GST (CGST @ 9%)</span><span><?= crm_money($cgst) ?></span></div>
+        <div class="row-tax"><span>State GST (SGST @ 9%)</span><span><?= crm_money($cgst) ?></span></div>
+      <?php else: ?>
+        <div class="row-tax"><span>Integrated GST (IGST @ 18%)</span><span><?= crm_money($igst) ?></span></div>
+      <?php endif; ?>
+      <?php if ((float) $sel['round_off'] != 0.0): ?>
+        <div class="row-roundoff"><span class="muted small">Round Off</span><span><?= ((float) $sel['round_off'] > 0 ? '+ ' : '') . crm_money($sel['round_off']) ?></span></div>
+      <?php endif; ?>
+      <div class="gt row-grand-total">
+        <span>Grand Total (INR)</span>
+        <span><?= crm_money($sel['grand_total']) ?></span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="card mb">
