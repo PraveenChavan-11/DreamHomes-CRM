@@ -23,25 +23,25 @@
 </div>
 
 <!-- Table Card -->
-<div class="card" style="margin-top:16px;overflow:hidden">
-  <div style="overflow-x:auto">
-    <table class="table t">
+<div class="card" style="margin-top:20px;overflow:hidden">
+  <div class="tablewrap">
+    <table class="table t" style="min-width:1150px">
       <thead>
         <tr>
-          <th style="min-width:110px">Visit #</th>
-          <th style="min-width:110px">Version</th>
-          <th style="min-width:180px">Client &amp; Project</th>
-          <th style="min-width:240px">Recorded Measurements (Width &times; Height)</th>
-          <th style="min-width:140px">Recorded By</th>
-          <th style="min-width:200px">Revision Reason</th>
-          <th style="min-width:110px">Date</th>
-          <th style="min-width:100px;text-align:right">Action</th>
+          <th style="width:10%;min-width:110px">Visit #</th>
+          <th style="width:11%;min-width:120px">Version</th>
+          <th style="width:18%;min-width:190px">Client &amp; Project</th>
+          <th style="width:25%;min-width:250px">Recorded Measurements (Width &times; Height)</th>
+          <th style="width:14%;min-width:140px">Recorded By</th>
+          <th style="width:18%;min-width:200px">Revision Reason</th>
+          <th style="width:12%;min-width:120px">Date</th>
+          <th style="width:8%;min-width:100px;text-align:right">Action</th>
         </tr>
       </thead>
       <tbody>
         <?php if (empty($rows)): ?>
           <tr>
-            <td colspan="8" style="text-align:center;padding:32px" class="muted">No site measurement records found.</td>
+            <td colspan="8" style="text-align:center;padding:36px" class="muted">No site measurement records found.</td>
           </tr>
         <?php else: ?>
           <?php foreach ($rows as $m): ?>
@@ -55,14 +55,14 @@
                 </span>
               </td>
               <td>
-                <b><?= esc($m['customer_name']) ?></b><br>
-                <span class="muted small"><?= esc($m['project_name'] ?: 'Site Opening') ?></span>
+                <div style="font-weight:700;color:var(--text);margin-bottom:2px"><?= esc($m['customer_name']) ?></div>
+                <div class="muted small"><?= esc($m['project_name'] ?: 'Site Opening') ?></div>
               </td>
-              <td style="min-width:240px;max-width:340px">
+              <td>
                 <?php if (! empty($m['items'])): ?>
-                  <ul style="margin:0;padding-left:16px;font-size:12.5px;line-height:1.5">
+                  <ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.6">
                     <?php foreach (array_slice($m['items'], 0, 3) as $label => $val): ?>
-                      <li><b><?= esc($label) ?>:</b> <?= esc($val) ?></li>
+                      <li><b style="color:var(--text)"><?= esc($label) ?>:</b> <span style="font-variant-numeric:tabular-nums"><?= esc($val) ?></span></li>
                     <?php endforeach; ?>
                     <?php if (count($m['items']) > 3): ?>
                       <li class="muted"><em>+ <?= count($m['items']) - 3 ?> more openings...</em></li>
@@ -72,11 +72,19 @@
                   <span class="muted small">Standard dimensions</span>
                 <?php endif; ?>
               </td>
-              <td><?= esc($m['recorded_by_name'] ?: 'Technical Surveyor') ?></td>
-              <td class="muted small"><?= esc(!empty($m['revision_note']) ? $m['revision_note'] : 'Initial site survey measurements') ?></td>
-              <td style="white-space:nowrap"><?= crm_date($m['created_at']) ?></td>
+              <td>
+                <div style="font-weight:500;color:var(--text)"><?= esc($m['recorded_by_name'] ?: 'Technical Surveyor') ?></div>
+              </td>
+              <td>
+                <div class="muted small" style="max-width:260px;line-height:1.45;word-break:break-word">
+                  <?= esc(!empty($m['revision_note']) ? $m['revision_note'] : 'Initial site survey measurements') ?>
+                </div>
+              </td>
+              <td>
+                <div style="white-space:nowrap;font-size:13px;font-variant-numeric:tabular-nums;color:var(--text)"><?= crm_date($m['created_at']) ?></div>
+              </td>
               <td style="text-align:right;white-space:nowrap">
-                <a href="<?= site_url("crm/visits/{$m['visit_id']}") ?>" class="btn btn-xs btn-secondary">Open Visit</a>
+                <a href="<?= site_url("crm/visits/{$m['visit_id']}") ?>" class="btn btn-xs btn-secondary" style="margin:0">Open Visit</a>
               </td>
             </tr>
           <?php endforeach; ?>

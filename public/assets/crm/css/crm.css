@@ -561,7 +561,7 @@ h4 { font-size: 13px; font-weight: 600; }
   justify-content: center !important;
   gap: 8px !important;
   padding: 8px 18px !important;
-  margin: 3px 0 !important;
+  margin: 4px 0 !important;
   border-radius: var(--r-sm) !important;
   border: 1px solid var(--th-primary) !important;
   background: var(--th-primary) !important;
@@ -594,7 +594,7 @@ button.btn + a.btn,
 a.btn + button.btn,
 .btn + form,
 form + .btn {
-  margin-left: 10px !important;
+  margin-left: 12px !important;
 }
 
 .gap,
@@ -606,7 +606,7 @@ form + .btn {
 .form-actions {
   display: flex !important;
   align-items: center !important;
-  gap: 10px 14px !important;
+  gap: 12px 16px !important;
   flex-wrap: wrap !important;
 }
 
@@ -734,14 +734,15 @@ table.table,
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  padding: 12px 16px !important;
+  padding: 13px 18px !important;
   border-bottom: 1px solid var(--line);
   font-weight: 700;
   font-family: var(--font-display);
+  white-space: nowrap;
 }
 .t td,
 .table td {
-  padding: 13px 16px !important;
+  padding: 14px 18px !important;
   border-bottom: 1px solid var(--line-2);
   vertical-align: middle;
   font-size: 13.5px;
@@ -760,7 +761,10 @@ table.table,
   font-variant-numeric: tabular-nums;
 }
 .tablewrap {
+  width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 0;
 }
 .empty {
   padding: 42px 20px;

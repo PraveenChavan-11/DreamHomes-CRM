@@ -204,9 +204,6 @@ $website = \Crm\Services\Settings::get('company.website', 'https://dhisgroup.in'
     margin: 6px 0;
     font-size: 8pt;
   }
-    margin: 6px 0;
-    font-size: 8pt;
-  }
 
   /* Terms and specifications */
   .terms-box {
