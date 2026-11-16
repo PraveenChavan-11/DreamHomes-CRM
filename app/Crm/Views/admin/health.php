@@ -20,3 +20,7 @@
 <?php if (! $jobs): ?><div class="empty"><strong>No job runs recorded yet</strong>The reminder job has not been executed by cron.</div><?php else: ?>
 <table class="t"><thead><tr><th>Job</th><th>Status</th><th>Started</th><th class="num">Items</th><th class="num">Duration</th><th>Error</th></tr></thead><tbody>
 <?php foreach ($jobs as $j): ?><tr><td><?= esc($j['job_name']) ?></td><td><?= crm_badge($j['status'] === 'SUCCESS' ? 'completed' : ($j['status'] === 'FAILED' ? 'failed' : 'pending')) ?> <span class="small"><?= esc(crm_label(strtolower($j['status']))) ?></span></td><td class="nowrap"><?= crm_dt($j['started_at']) ?></td><td class="num"><?= (int) $j['items_processed'] ?></td><td class="num"><?= (int) $j['duration_ms'] ?> ms</td><td class="small"><?= esc(mb_strimwidth((string) $j['error_details'], 0, 120, '…')) ?></td></tr><?php endforeach; ?></tbody></table><?php endif; ?></div></div>
+
+<?php if (! empty($latestLog)): ?>
+<div class="card mb"><div class="hd"><h2>Recent System Log</h2></div><div class="bd"><pre style="background:#1e293b;color:#f8fafc;padding:12px;border-radius:8px;overflow:auto;font-size:12px;line-height:1.5;max-height:400px"><?= esc($latestLog) ?></pre></div></div>
+<?php endif; ?>

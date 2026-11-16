@@ -137,6 +137,9 @@ final class DemoService
     /** @return array{snapshot:string,removed:int,created:array<string,int>,integrity:list<string>} */
     public static function reset(array $actor, string $confirm): array
     {
+        @set_time_limit(300);
+        @ini_set('max_execution_time', '300');
+        @ini_set('memory_limit', '512M');
         DemoSeeder::assertDemoEnvironment();
         if (! AccessScope::can($actor, 'demo.reset')) {
             throw new CrmException('You are not authorised to reset demo data.');

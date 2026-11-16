@@ -242,6 +242,14 @@ class AdminController extends CrmController
             $ext[$x] = extension_loaded($x);
         }
 
+        $latestLog = '';
+        $logFiles = glob(WRITEPATH . 'logs/log-*.log');
+        if ($logFiles) {
+            rsort($logFiles);
+            $content = (string) @file_get_contents($logFiles[0]);
+            $latestLog = substr($content, -4000);
+        }
+
         return $this->render('admin/health', [
             'problems' => IntegrityChecker::run(),
             'jobs' => $db->query('SELECT * FROM scheduled_job_runs ORDER BY id DESC LIMIT 15')->getResultArray(),
@@ -253,6 +261,7 @@ class AdminController extends CrmController
             ],
             'lastReminder' => $db->query("SELECT * FROM scheduled_job_runs WHERE job_name LIKE '%reminder%' ORDER BY id DESC LIMIT 1")->getRowArray(),
             'roles' => count(ReferenceData::ROLES),
+            'latestLog' => $latestLog,
         ], 'System Health', 'settings');
     }
 }
