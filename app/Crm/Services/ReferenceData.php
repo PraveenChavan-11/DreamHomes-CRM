@@ -182,6 +182,14 @@ final class ReferenceData
         foreach (self::ENQUIRY_TRANSITIONS as [$f, $t, $p, $r]) {
             $db->query('INSERT IGNORE INTO crm_status_transitions (entity, from_status, to_status, required_permission, requires_reason) VALUES (?,?,?,?,?)', ['enquiry', $f, $t, $p, $r]);
         }
+        $active = ['new', 'assigned', 'contacted', 'qualified', 'site_visit', 'quotation_preparation', 'quotation_sent', 'negotiation'];
+        foreach ($active as $f) {
+            foreach ($active as $t) {
+                if ($f !== $t) {
+                    $db->query('INSERT IGNORE INTO crm_status_transitions (entity, from_status, to_status, required_permission, requires_reason) VALUES (?,?,?,?,?)', ['enquiry', $f, $t, 'enquiries.edit', 0]);
+                }
+            }
+        }
     }
 
     private static function seedEmailTemplates($db): void

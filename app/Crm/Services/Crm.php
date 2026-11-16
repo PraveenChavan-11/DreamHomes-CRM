@@ -133,6 +133,16 @@ final class Crm
                 }
                 ReferenceData::seedAll();
             }
+            if ($db->tableExists('crm_status_transitions')) {
+                $active = ['new', 'assigned', 'contacted', 'qualified', 'site_visit', 'quotation_preparation', 'quotation_sent', 'negotiation'];
+                foreach ($active as $f) {
+                    foreach ($active as $t) {
+                        if ($f !== $t) {
+                            $db->query("INSERT IGNORE INTO crm_status_transitions (entity, from_status, to_status, required_permission, requires_reason) VALUES ('enquiry', ?, ?, 'enquiries.edit', 0)", [$f, $t]);
+                        }
+                    }
+                }
+            }
         } catch (\Throwable $e) {
             log_message('error', 'Crm::ensureSchema failed: ' . $e->getMessage());
         }

@@ -15,7 +15,17 @@ final class WorkflowService
     /** @return list<string> */
     public static function allowedNext(string $from): array
     {
-        return array_column(Crm::db()->table('crm_status_transitions')->select('to_status')->where(['entity' => 'enquiry', 'from_status' => $from, 'is_active' => 1])->get()->getResultArray(), 'to_status');
+        $dbTransitions = array_column(Crm::db()->table('crm_status_transitions')->select('to_status')->where(['entity' => 'enquiry', 'from_status' => $from, 'is_active' => 1])->get()->getResultArray(), 'to_status');
+        if (in_array($from, self::ACTIVE, true)) {
+            $extra = array_diff(self::ACTIVE, [$from]);
+            $extra[] = 'lost';
+            $extra[] = 'on_hold';
+            if (in_array($from, ['quotation_preparation', 'quotation_sent', 'negotiation'], true)) {
+                $extra[] = 'won';
+            }
+            return array_values(array_unique(array_merge($dbTransitions, $extra)));
+        }
+        return $dbTransitions;
     }
 
     /**
@@ -35,8 +45,22 @@ final class WorkflowService
             }
             $rule = $db->table('crm_status_transitions')->where(['entity' => 'enquiry', 'from_status' => $from, 'to_status' => $to, 'is_active' => 1])->get()->getRowArray();
             if (! $rule) {
-                if (AccessScope::isSuper($actor) && in_array($to, array_merge(self::ACTIVE, ['won', 'lost', 'on_hold']), true)) {
+                // Moving between any active stages is allowed for anyone with enquiries.edit
+                if (in_array($from, self::ACTIVE, true) && in_array($to, self::ACTIVE, true) && AccessScope::can($actor, 'enquiries.edit')) {
+                    // Valid pipeline progression
+                } elseif (AccessScope::isSuper($actor) && in_array($to, array_merge(self::ACTIVE, ['won', 'lost', 'on_hold']), true)) {
                     // Super admin override
+                } elseif (AccessScope::can($actor, 'enquiries.close') && in_array($to, ['lost', 'on_hold'], true)) {
+                    // Direct close allowed with enquiries.close
+                    if (trim((string) $reason) === '') {
+                        throw new CrmException('A reason is required for this status change.');
+                    }
+                } elseif (AccessScope::can($actor, 'enquiries.close') && $to === 'won' && in_array($from, ['quotation_preparation', 'quotation_sent', 'negotiation'], true)) {
+                    // Deal won from quotation or negotiation stage
+                } elseif (AccessScope::can($actor, 'enquiries.reopen') && in_array($from, ['lost', 'won'], true) && in_array($to, self::ACTIVE, true)) {
+                    // Reopening
+                } elseif (AccessScope::can($actor, 'enquiries.edit') && $from === 'on_hold' && in_array($to, self::ACTIVE, true)) {
+                    // Resuming from on-hold
                 } else {
                     throw new CrmException("Status change {$from} → {$to} is not allowed.");
                 }

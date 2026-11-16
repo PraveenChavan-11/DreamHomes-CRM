@@ -74,7 +74,7 @@
             </div>
           <?php else: ?>
             <?php foreach ($col['leads'] as $l): ?>
-              <div class="card lead-card" draggable="true" data-id="<?= (int) $l['id'] ?>" data-stage="<?= esc($stageKey) ?>" style="padding:12px;background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow-sm);cursor:grab;user-select:none" onclick="if(!this.dataset.dragging){location.href='<?= site_url("crm/enquiries/{$l['id']}") ?>'}">
+              <div class="card lead-card" draggable="true" data-id="<?= (int) $l['id'] ?>" data-stage="<?= esc($stageKey) ?>" data-href="<?= site_url("crm/enquiries/{$l['id']}") ?>" style="padding:12px;background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--shadow-sm);cursor:grab;user-select:none">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
                   <span style="font-weight:700;font-size:13px;color:var(--th-primary)"><?= esc($l['enquiry_no']) ?></span>
                   <?= crm_badge($l['priority']) ?>
@@ -271,6 +271,17 @@ document.addEventListener('DOMContentLoaded', function () {
   var cols = document.querySelectorAll('.kanban-col');
 
   cards.forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      if (card.dataset.justDragged || isDraggingFlag) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+      if (card.dataset.href) {
+        window.location.href = card.dataset.href;
+      }
+    });
+
     card.addEventListener('dragstart', function (e) {
       isDraggingFlag = true;
       card.dataset.dragging = '1';
@@ -283,10 +294,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     card.addEventListener('dragend', function () {
       card.classList.remove('is-dragging');
+      card.dataset.justDragged = '1';
       setTimeout(function () {
         delete card.dataset.dragging;
+        delete card.dataset.justDragged;
         isDraggingFlag = false;
-      }, 100);
+      }, 350);
       cols.forEach(function (c) { c.classList.remove('drag-over'); });
     });
   });
@@ -321,6 +334,15 @@ document.addEventListener('DOMContentLoaded', function () {
       var targetCardsContainer = col.querySelector('.kanban-cards');
       var sourceCardsContainer = sourceCol.querySelector('.kanban-cards');
       if (!targetCardsContainer || !sourceCardsContainer) return;
+
+      var remarks = 'Stage updated via Leads Pipeline Board';
+      if (targetStage === 'lost' || targetStage === 'on_hold') {
+        var reasonPrompt = window.prompt('Please enter a reason for marking this lead as ' + (targetStage === 'lost' ? 'Lost' : 'On Hold') + ' (required):');
+        if (!reasonPrompt || !reasonPrompt.trim()) {
+          return;
+        }
+        remarks = reasonPrompt.trim();
+      }
 
       // Check target empty placeholder
       var targetPlaceholder = targetCardsContainer.querySelector('.empty-placeholder');
@@ -360,15 +382,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var formData = new FormData();
       formData.append('stage', targetStage);
-      formData.append('remarks', 'Stage updated via Leads Pipeline Board');
+      formData.append('remarks', remarks);
       formData.append('ajax', '1');
-      formData.append(csrfName, csrfToken);
+      if (csrfToken) {
+        formData.append(csrfName, csrfToken);
+      }
+
+      var headers = {
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken;
+      }
 
       fetch('<?= site_url('crm/leads') ?>/' + encodeURIComponent(leadId) + '/stage', {
         method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        },
+        headers: headers,
         body: formData
       })
       .then(function (res) {
