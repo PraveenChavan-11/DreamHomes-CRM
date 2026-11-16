@@ -51,7 +51,7 @@ final class FulfilmentService
     {
         $db = Crm::db();
         return (array) $db->table('crm_deliveries d')
-            ->select('d.*, o.order_no, o.grand_total as order_total, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, c.billing_address, CONCAT(u.first_name, " ", u.last_name) as recorded_by_name')
+            ->select("d.*, o.order_no, o.grand_total as order_total, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, c.billing_address, CONCAT(u.first_name, ' ', u.last_name) as recorded_by_name")
             ->join('crm_sales_orders o', 'o.id = d.order_id', 'left')
             ->join('crm_customers c', 'c.id = d.customer_id', 'left')
             ->join('admin_users u', 'u.id = d.recorded_by', 'left')
@@ -147,7 +147,7 @@ final class FulfilmentService
     {
         $db = Crm::db();
         return (array) $db->table('crm_installations i')
-            ->select('i.*, o.order_no, o.grand_total as order_total, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, CONCAT(u.first_name, " ", u.last_name) as recorded_by_name')
+            ->select("i.*, o.order_no, o.grand_total as order_total, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, CONCAT(u.first_name, ' ', u.last_name) as recorded_by_name")
             ->join('crm_sales_orders o', 'o.id = i.order_id', 'left')
             ->join('crm_customers c', 'c.id = i.customer_id', 'left')
             ->join('admin_users u', 'u.id = i.recorded_by', 'left')

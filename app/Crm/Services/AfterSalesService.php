@@ -12,7 +12,7 @@ final class AfterSalesService
     {
         $db = Crm::db();
         $builder = $db->table('crm_service_requests s')
-            ->select('s.*, c.name as customer_name, c.mobile as customer_mobile, o.order_no, CONCAT(u.first_name, " ", u.last_name) as assigned_name')
+            ->select("s.*, c.name as customer_name, c.mobile as customer_mobile, o.order_no, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
             ->join('crm_customers c', 'c.id = s.customer_id', 'left')
             ->join('crm_sales_orders o', 'o.id = s.order_id', 'left')
             ->join('admin_users u', 'u.id = s.assigned_to', 'left');
@@ -52,7 +52,7 @@ final class AfterSalesService
     {
         $db = Crm::db();
         return (array) $db->table('crm_service_requests s')
-            ->select('s.*, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, o.order_no, CONCAT(u.first_name, " ", u.last_name) as assigned_name, CONCAT(cby.first_name, " ", cby.last_name) as created_by_name')
+            ->select("s.*, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, o.order_no, CONCAT(u.first_name, ' ', u.last_name) as assigned_name, CONCAT(cby.first_name, ' ', cby.last_name) as created_by_name")
             ->join('crm_customers c', 'c.id = s.customer_id', 'left')
             ->join('crm_sales_orders o', 'o.id = s.order_id', 'left')
             ->join('admin_users u', 'u.id = s.assigned_to', 'left')

@@ -12,7 +12,7 @@ final class ProjectService
     {
         $db = Crm::db();
         $builder = $db->table('crm_projects p')
-            ->select('p.*, c.name as customer_name, c.mobile as customer_mobile, CONCAT(u.first_name, " ", u.last_name) as assigned_name')
+            ->select("p.*, c.name as customer_name, c.mobile as customer_mobile, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
             ->join('crm_customers c', 'c.id = p.customer_id', 'left')
             ->join('admin_users u', 'u.id = p.assigned_to', 'left');
 
@@ -48,7 +48,7 @@ final class ProjectService
     {
         $db = Crm::db();
         $row = $db->table('crm_projects p')
-            ->select('p.*, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, CONCAT(u.first_name, " ", u.last_name) as assigned_name')
+            ->select("p.*, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
             ->join('crm_customers c', 'c.id = p.customer_id', 'left')
             ->join('admin_users u', 'u.id = p.assigned_to', 'left')
             ->where('p.id', $id)

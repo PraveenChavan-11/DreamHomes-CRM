@@ -65,7 +65,7 @@ final class PaymentService
     {
         $db = Crm::db();
         $row = $db->table('crm_payments p')
-            ->select('p.*, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, c.billing_address, c.city as customer_city, c.state as customer_state, c.gstin as customer_gstin, o.order_no, o.grand_total as order_total, CONCAT(u.first_name, " ", u.last_name) as recorded_by_name')
+            ->select("p.*, c.name as customer_name, c.company_name, c.mobile as customer_mobile, c.email as customer_email, c.billing_address, c.city as customer_city, c.state as customer_state, c.gstin as customer_gstin, o.order_no, o.grand_total as order_total, CONCAT(u.first_name, ' ', u.last_name) as recorded_by_name")
             ->join('crm_customers c', 'c.id = p.customer_id', 'left')
             ->join('crm_sales_orders o', 'o.id = p.order_id', 'left')
             ->join('admin_users u', 'u.id = p.recorded_by', 'left')
