@@ -133,14 +133,20 @@ $v = static fn (string $f) => '?v=' . (is_file(FCPATH . $f) ? filemtime(FCPATH .
   <div class="tour-spotlight" id="tour-spotlight"></div>
   <div class="tour-popover" id="tour-popover">
     <div class="tour-hd">
-      <span class="tour-step-badge" id="tour-step-indicator">Step 1 of 5</span>
-      <button type="button" class="tour-close-btn" id="tour-skip-btn" aria-label="Skip Tour">&times;</button>
+      <span class="tour-step-badge" id="tour-step-indicator">Step 1 of 20</span>
+      <button type="button" class="tour-close-btn" id="tour-skip-btn" title="Exit Tour (Esc)" aria-label="Exit Tour">&times;</button>
     </div>
     <h3 class="tour-title" id="tour-title">Welcome</h3>
     <p class="tour-content" id="tour-content">Tour description</p>
+    <div class="tour-action-row" id="tour-action-row" style="margin-bottom:14px;display:none">
+      <a href="#" class="btn btn-sm btn-ghost" id="tour-module-link" style="font-size:12px;padding:4px 10px;text-decoration:none">Open Module &rarr;</a>
+    </div>
     <div class="tour-ft">
       <button type="button" class="btn alt sm" id="tour-prev-btn">Back</button>
-      <button type="button" class="btn teal sm" id="tour-next-btn">Next &rarr;</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button type="button" class="btn alt sm" id="tour-exit-btn">Exit Tour</button>
+        <button type="button" class="btn teal sm" id="tour-next-btn">Next &rarr;</button>
+      </div>
     </div>
   </div>
 </div>

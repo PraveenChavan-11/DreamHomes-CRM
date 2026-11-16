@@ -278,6 +278,9 @@
   var tourPrev = $('#tour-prev-btn');
   var tourNext = $('#tour-next-btn');
   var tourSkip = $('#tour-skip-btn');
+  var tourExit = $('#tour-exit-btn');
+  var tourModuleRow = $('#tour-action-row');
+  var tourModuleLink = $('#tour-module-link');
   var tourStartBtn = $('#btn-start-tour');
   var modalRestartBtn = $('#modal-restart-tour');
 
@@ -288,39 +291,104 @@
     }
     currentStepIdx = idx;
     var step = activeTour.steps[idx];
-    var targetEl = $(step.target);
+
+    // Find target element with fallback selectors
+    var targetEl = null;
+    var selectors = (step.target || '').split(',').map(function (s) { return s.trim(); });
+    for (var i = 0; i < selectors.length; i++) {
+      if (selectors[i]) {
+        targetEl = $(selectors[i]);
+        if (targetEl) break;
+      }
+    }
 
     tourStepInd.textContent = 'Step ' + (idx + 1) + ' of ' + activeTour.steps.length;
     tourTitle.textContent = step.title;
     tourContent.textContent = step.content;
     tourPrev.style.display = idx > 0 ? '' : 'none';
-    tourNext.textContent = (idx === activeTour.steps.length - 1) ? 'Finish Tour' : 'Next →';
+    tourNext.textContent = (idx === activeTour.steps.length - 1) ? 'Finish Tour ✓' : 'Next →';
+
+    // Module direct link action
+    if (tourModuleRow && tourModuleLink) {
+      if (step.url) {
+        tourModuleLink.href = window.CRM_BASE + step.url.replace(/^\/+/, '');
+        var cleanTitle = step.title.replace(/^\d+\.\s*/, '');
+        tourModuleLink.textContent = 'Open ' + cleanTitle + ' →';
+        tourModuleRow.style.display = 'block';
+      } else {
+        tourModuleRow.style.display = 'none';
+      }
+    }
 
     tourBackdrop.style.display = 'block';
 
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var popWidth = Math.min(360, window.innerWidth - 32);
+    var popHeight = 250;
+
+    // Check if target element exists and is rendered
+    if (targetEl && targetEl.getBoundingClientRect) {
+      // If element is inside the sidebar, scroll the sidebar to reveal it
+      var side = targetEl.closest('.side');
+      if (side) {
+        if (window.innerWidth <= 860 && !side.classList.contains('open')) {
+          side.classList.add('open');
+        }
+        var targetOffset = targetEl.offsetTop;
+        if (targetOffset < side.scrollTop || targetOffset > side.scrollTop + side.clientHeight - 80) {
+          side.scrollTop = Math.max(0, targetOffset - 80);
+        }
+      }
+
       var rect = targetEl.getBoundingClientRect();
       var pad = 6;
-      tourSpotlight.style.display = 'block';
-      tourSpotlight.style.top = (rect.top + window.scrollY - pad) + 'px';
-      tourSpotlight.style.left = (rect.left + window.scrollX - pad) + 'px';
-      tourSpotlight.style.width = (rect.width + pad * 2) + 'px';
-      tourSpotlight.style.height = (rect.height + pad * 2) + 'px';
+      var spotTop = Math.max(0, rect.top - pad);
+      var spotLeft = Math.max(0, rect.left - pad);
+      var spotWidth = Math.min(window.innerWidth - spotLeft, rect.width + pad * 2);
+      var spotHeight = Math.min(window.innerHeight - spotTop, rect.height + pad * 2);
 
-      // Position popover relative to spotlight
-      var popTop = rect.bottom + window.scrollY + 12;
-      var popLeft = Math.max(16, rect.left + window.scrollX);
-      if (popTop + 200 > document.body.scrollHeight) {
-        popTop = Math.max(16, rect.top + window.scrollY - 180);
+      tourSpotlight.style.display = 'block';
+      tourSpotlight.style.top = spotTop + 'px';
+      tourSpotlight.style.left = spotLeft + 'px';
+      tourSpotlight.style.width = spotWidth + 'px';
+      tourSpotlight.style.height = spotHeight + 'px';
+
+      // Smart viewport-relative positioning
+      var popTop = 0;
+      var popLeft = 0;
+
+      if (rect.right < 380 && window.innerWidth >= 768) {
+        // Sidebar item: place to the right of the spotlight
+        popLeft = rect.right + 20;
+        popTop = rect.top - 8;
+      } else if (rect.bottom + popHeight + 20 <= window.innerHeight) {
+        // Ample room below target
+        popTop = rect.bottom + 14;
+        popLeft = rect.left;
+      } else if (rect.top - popHeight - 20 >= 0) {
+        // Ample room above target
+        popTop = rect.top - popHeight - 14;
+        popLeft = rect.left;
+      } else {
+        // Fallback: place in safe right area or center
+        popTop = (window.innerHeight - popHeight) / 2;
+        popLeft = rect.right + 20 <= window.innerWidth - popWidth ? rect.right + 20 : (window.innerWidth - popWidth) / 2;
       }
+
+      // STRICT CLAMP to guarantee 100% viewport visibility on all screens
+      popTop = Math.max(16, Math.min(window.innerHeight - popHeight - 16, popTop));
+      popLeft = Math.max(16, Math.min(window.innerWidth - popWidth - 16, popLeft));
+
       tourPopover.style.top = popTop + 'px';
-      tourPopover.style.left = Math.min(window.innerWidth - 360, popLeft) + 'px';
+      tourPopover.style.left = popLeft + 'px';
+      tourPopover.style.width = popWidth + 'px';
     } else {
       // Centered fallback if element not on page
       tourSpotlight.style.display = 'none';
-      tourPopover.style.top = '30%';
-      tourPopover.style.left = 'calc(50% - 170px)';
+      var popTop = Math.max(16, (window.innerHeight - popHeight) / 2);
+      var popLeft = Math.max(16, (window.innerWidth - popWidth) / 2);
+      tourPopover.style.top = popTop + 'px';
+      tourPopover.style.left = popLeft + 'px';
+      tourPopover.style.width = popWidth + 'px';
     }
 
     // Persist step
@@ -364,6 +432,28 @@
       endTour(false, true);
     });
   }
+
+  if (tourExit) {
+    tourExit.addEventListener('click', function () {
+      endTour(false, true);
+    });
+  }
+
+  // Clicking backdrop outside popover dismisses tour safely (never traps user)
+  if (tourBackdrop) {
+    tourBackdrop.addEventListener('click', function (e) {
+      if (e.target === tourBackdrop) {
+        endTour(false, true);
+      }
+    });
+  }
+
+  // Escape key always dismisses active tour
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && tourBackdrop && tourBackdrop.style.display !== 'none') {
+      endTour(false, true);
+    }
+  });
 
   function startUserTour(force) {
     fetch(window.CRM_BASE + 'crm/tour/get', { credentials: 'same-origin' })
