@@ -77,6 +77,9 @@ final class DemoService
         $s  = self::scope();
         $n  = 0;
         $del = static function (string $table, string $where) use ($db, &$n) {
+            if (! $db->tableExists($table)) {
+                return;
+            }
             $db->query("DELETE FROM {$table} WHERE {$where}");
             $n += $db->affectedRows();
         };

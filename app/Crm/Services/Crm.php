@@ -75,6 +75,50 @@ final class Crm
         $checked = true;
         try {
             $db = self::db();
+            if (! $db->tableExists('crm_tags')) {
+                $db->query("CREATE TABLE IF NOT EXISTS `crm_tags` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `slug` VARCHAR(40) NOT NULL UNIQUE,
+                    `label` VARCHAR(60) NOT NULL,
+                    `active` TINYINT(1) NOT NULL DEFAULT 1
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+            if (! $db->tableExists('crm_territories')) {
+                $db->query("CREATE TABLE IF NOT EXISTS `crm_territories` (
+                    `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `name` VARCHAR(100) NOT NULL UNIQUE,
+                    `city` VARCHAR(100) NULL,
+                    `pin_prefix` VARCHAR(6) NULL,
+                    `team_id` INT NULL,
+                    `is_active` TINYINT(1) NOT NULL DEFAULT 1
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+            if (! $db->tableExists('crm_product_subcategories')) {
+                $db->query("CREATE TABLE IF NOT EXISTS `crm_product_subcategories` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `category_id` INT UNSIGNED NOT NULL,
+                    `name` VARCHAR(120) NOT NULL,
+                    `code` VARCHAR(50) NOT NULL UNIQUE,
+                    `description` TEXT NULL,
+                    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+                    `created_at` DATETIME NULL,
+                    `updated_at` DATETIME NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
+            if (! $db->tableExists('crm_product_types')) {
+                $db->query("CREATE TABLE IF NOT EXISTS `crm_product_types` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `category_id` INT UNSIGNED NOT NULL,
+                    `subcategory_id` INT UNSIGNED NULL,
+                    `brand_id` INT UNSIGNED NULL,
+                    `name` VARCHAR(150) NOT NULL,
+                    `code` VARCHAR(60) NOT NULL UNIQUE,
+                    `description` TEXT NULL,
+                    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+                    `created_at` DATETIME NULL,
+                    `updated_at` DATETIME NULL
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            }
             if (! $db->tableExists('crm_projects') || ! $db->tableExists('crm_master_records')) {
                 $files = glob(APPPATH . 'Crm/Database/Migrations/*.php');
                 if ($files) {
