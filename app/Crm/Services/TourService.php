@@ -40,6 +40,7 @@ class TourService
                 ['target' => '.nav a[href*="crm/settings"]', 'title' => '20. User Settings & Permissions', 'content' => 'Configure multi-tier RBAC, audit logs, background scheduler jobs, and system health checks.', 'position' => 'right'],
             ],
         ],
+        'executive_onboarding' => [
             'role' => 'sales_executive',
             'title' => 'Sales Executive Quickstart',
             'description' => 'Master your daily sales workflow: Leads, Customer Contact, Follow-ups, and Quotations.',

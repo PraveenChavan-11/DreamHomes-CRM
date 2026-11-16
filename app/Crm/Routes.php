@@ -2,6 +2,8 @@
 
 /** @var \CodeIgniter\Router\RouteCollection $routes — DHIS Sales CRM routes. Every route below `crmauth` is session-guarded; `crmperm:` adds a server-side permission gate. */
 
+\Crm\Services\Crm::ensureSchema();
+
 $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($routes) {
     // ── public (no session) ──
     $routes->match(['get', 'post'], 'login', 'AuthController::login', ['filter' => 'ratelimit:20,60']);

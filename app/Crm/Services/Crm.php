@@ -66,6 +66,34 @@ final class Crm
         return self::$clock ?? date('Y-m-d H:i:s');
     }
 
+    public static function ensureSchema(): void
+    {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+        try {
+            $db = self::db();
+            if (! $db->tableExists('crm_projects') || ! $db->tableExists('crm_master_records')) {
+                $files = glob(APPPATH . 'Crm/Database/Migrations/*.php');
+                if ($files) {
+                    sort($files);
+                    foreach ($files as $file) {
+                        require_once $file;
+                        $class = 'Crm\\Database\\Migrations\\' . preg_replace('/^\d+_/', '', basename($file, '.php'));
+                        if (class_exists($class)) {
+                            (new $class())->up();
+                        }
+                    }
+                }
+                ReferenceData::seedAll();
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Crm::ensureSchema failed: ' . $e->getMessage());
+        }
+    }
+
     /** Run $fn in a DB transaction; rethrow after rollback. Nested calls join the outer transaction. */
     public static function tx(callable $fn): mixed
     {

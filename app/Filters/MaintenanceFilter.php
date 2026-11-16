@@ -12,17 +12,23 @@ class MaintenanceFilter implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         $uri = $request->getUri()->getPath();
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
 
-        // Admin & Admin API are always accessible to staff
-        if (str_starts_with($uri, 'admin') || str_starts_with($uri, '/admin') ||
+        // DHIS CRM subdomain or CRM routes have their own session guard and isolated database
+        if (str_contains($host, 'dhiscrm') ||
+            str_starts_with($uri, 'admin') || str_starts_with($uri, '/admin') ||
             str_starts_with($uri, 'api/v1/admin') || str_starts_with($uri, '/api/v1/admin') ||
             str_starts_with($uri, 'assets') || str_starts_with($uri, '/assets') ||
-            str_starts_with($uri, 'crm') || str_starts_with($uri, '/crm')) { // DHIS CRM has its own session guard; TalentHub's website_settings table may not exist
+            str_starts_with($uri, 'crm') || str_starts_with($uri, '/crm')) {
             return $request;
         }
 
-        $settingModel = new WebsiteSettingModel();
-        $isMaintenance = (int) ($settingModel->getSetting('maintenance_mode', '0'));
+        try {
+            $settingModel = new WebsiteSettingModel();
+            $isMaintenance = (int) ($settingModel->getSetting('maintenance_mode', '0'));
+        } catch (\Throwable $e) {
+            return $request;
+        }
 
         if ($isMaintenance === 1) {
             $headline = $settingModel->getSetting('maintenance_headline', 'System Maintenance Underway');

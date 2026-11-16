@@ -14,6 +14,12 @@ abstract class CrmController extends Controller
 {
     protected $helpers = ['url', 'form', 'text', 'crm'];
 
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+        \Crm\Services\Crm::ensureSchema();
+    }
+
     protected function user(): array
     {
         return session()->get('crm_user') ?? [];

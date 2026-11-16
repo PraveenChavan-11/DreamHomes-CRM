@@ -7,7 +7,14 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // ─── 1. PUBLIC SERVER-RENDERED WEB ROUTES ─────────────────────────────────────
-$routes->get('/', 'Web\HomeController::index');
+$routes->get('/', static function () {
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    if (str_contains($host, 'dhiscrm')) {
+        return redirect()->to('crm');
+    }
+
+    return (new \App\Controllers\Web\HomeController())->index();
+});
 
 // Jobs & Vacancies
 $routes->get('jobs', 'Web\JobsController::index');

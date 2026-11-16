@@ -35,7 +35,11 @@ class WebsiteSettingModel extends Model
             return self::$cache['all'];
         }
 
-        $records = $this->findAll();
+        try {
+            $records = $this->findAll();
+        } catch (\Throwable $e) {
+            return [];
+        }
         $settings = [];
         foreach ($records as $row) {
             $settings[$row['setting_key']] = $row['setting_value'];
@@ -54,7 +58,11 @@ class WebsiteSettingModel extends Model
             return self::$cache['public'];
         }
 
-        $records = $this->where('is_public', 1)->findAll();
+        try {
+            $records = $this->where('is_public', 1)->findAll();
+        } catch (\Throwable $e) {
+            return [];
+        }
         $settings = [];
         foreach ($records as $row) {
             $settings[$row['setting_key']] = $row['setting_value'];

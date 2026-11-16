@@ -73,7 +73,7 @@
                 <?php endif; ?>
               </td>
               <td><?= esc($m['recorded_by_name'] ?: 'Technical Surveyor') ?></td>
-              <td class="muted small"><?= esc($m['revision_note'] ?: 'Initial site survey measurements') ?></td>
+              <td class="muted small"><?= esc(!empty($m['revision_note']) ? $m['revision_note'] : 'Initial site survey measurements') ?></td>
               <td><?= crm_date($m['created_at']) ?></td>
               <td style="text-align:right">
                 <a href="<?= site_url("crm/visits/{$m['visit_id']}") ?>" class="btn btn-xs btn-secondary">Open Visit</a>
