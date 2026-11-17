@@ -61,7 +61,7 @@ class CommunicationController extends CrmController
         $db = Crm::db();
 
         $b = $db->table('crm_email_log el')
-            ->select('el.*, c.name AS customer_name, o.name AS organisation_name, u.name AS triggered_by_name')
+            ->select("el.*, c.name AS customer_name, o.name AS organisation_name, CONCAT(u.first_name, ' ', u.last_name) AS triggered_by_name")
             ->join('crm_customers c', 'c.id = el.customer_id', 'left')
             ->join('crm_organisations o', 'o.id = el.organisation_id', 'left')
             ->join('admin_users u', 'u.id = el.triggered_by_user', 'left');

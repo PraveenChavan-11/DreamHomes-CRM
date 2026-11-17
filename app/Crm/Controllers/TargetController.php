@@ -18,7 +18,7 @@ class TargetController extends CrmController
         $res = TargetService::list($g, $this->user(), $page, 20);
 
         $db = Crm::db();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $teams = $db->table('crm_teams')->select('id, name')->orderBy('name')->get()->getResultArray();
 
         return $this->render('targets/index', [
@@ -37,7 +37,7 @@ class TargetController extends CrmController
     {
         $this->authorize('settings.manage', 'users.manage');
         $db = Crm::db();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $teams = $db->table('crm_teams')->select('id, name')->orderBy('name')->get()->getResultArray();
 
         return $this->render('targets/form', [
@@ -82,7 +82,7 @@ class TargetController extends CrmController
         $this->authorize('settings.manage', 'users.manage');
         $target = TargetService::get($id) ?? throw new PageNotFoundException('Target not found.');
         $db = Crm::db();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $teams = $db->table('crm_teams')->select('id, name')->orderBy('name')->get()->getResultArray();
 
         return $this->render('targets/form', [

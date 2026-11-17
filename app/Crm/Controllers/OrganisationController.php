@@ -19,7 +19,7 @@ class OrganisationController extends CrmController
         $res = OrganisationService::list($g, $page, 20);
 
         $db = Crm::db();
-        $owners = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $owners = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $territories = $db->table('crm_territories')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
 
         return $this->render('organisations/index', [
@@ -38,7 +38,7 @@ class OrganisationController extends CrmController
     {
         $this->authorize('customers.create');
         $db = Crm::db();
-        $owners = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $owners = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $territories = $db->table('crm_territories')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
         $sources = $db->table('crm_lead_sources')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
 
@@ -83,7 +83,7 @@ class OrganisationController extends CrmController
         $this->authorize('customers.edit');
         $org = OrganisationService::get($id) ?? throw new PageNotFoundException('Organisation not found.');
         $db = Crm::db();
-        $owners = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $owners = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $territories = $db->table('crm_territories')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
         $sources = $db->table('crm_lead_sources')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
 

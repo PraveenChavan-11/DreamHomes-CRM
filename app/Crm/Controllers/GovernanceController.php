@@ -19,7 +19,7 @@ class GovernanceController extends CrmController
         $rules = $db->table('crm_approval_rules')->orderBy('priority', 'ASC')->get()->getResultArray();
         $categories = $db->table('crm_product_categories')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
         $brands = $db->table('crm_product_brands')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
 
         return $this->render('settings/governance', [
             'rules' => $rules,

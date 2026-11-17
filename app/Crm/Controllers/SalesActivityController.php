@@ -21,7 +21,7 @@ class SalesActivityController extends CrmController
         $metrics = SalesActivityService::getDashboardMetrics($this->user());
 
         $db = Crm::db();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $orgs = $db->table('crm_organisations')->select('id, name')->where('account_status', 'active')->orderBy('name')->get()->getResultArray();
 
         $viewMode = $g['view'] ?? 'list'; // list, calendar, timeline
@@ -47,7 +47,7 @@ class SalesActivityController extends CrmController
         $db = Crm::db();
 
         $orgs = $db->table('crm_organisations')->select('id, name')->where('account_status', 'active')->orderBy('name')->get()->getResultArray();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $projects = $db->table('crm_projects')->select('id, name')->orderBy('name')->get()->getResultArray();
 
         $contacts = [];
@@ -105,7 +105,7 @@ class SalesActivityController extends CrmController
         $db = Crm::db();
 
         $orgs = $db->table('crm_organisations')->select('id, name')->where('account_status', 'active')->orderBy('name')->get()->getResultArray();
-        $users = $db->table('admin_users')->select('id, name')->where('is_active', 1)->orderBy('name')->get()->getResultArray();
+        $users = $db->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM admin_users WHERE is_active = 1 ORDER BY first_name")->getResultArray();
         $projects = $db->table('crm_projects')->select('id, name')->orderBy('name')->get()->getResultArray();
         $contacts = $act['organisation_id'] ? ContactService::forOrganisation((int) $act['organisation_id']) : [];
 
