@@ -21,14 +21,14 @@ $tabs = [
   <div>
     <h1>
       <?= esc($org['name']) ?>
-      <?= crm_badge($org['status']) ?>
+      <?= crm_badge($org['account_status'] ?? ($org['status'] ?? 'active')) ?>
       <?php if (! empty($org['account_rating'])): ?>
         <span class="badge badge-<?= match($org['account_rating']) { 'Hot' => 'red', 'Warm' => 'amber', default => 'blue' } ?>"><?= esc($org['account_rating']) ?> Rating</span>
       <?php endif; ?>
     </h1>
     <div class="muted small" style="font-weight:400">
-      <?= esc($org['org_no']) ?> · <?= esc($org['type']) ?><?= $org['industry'] ? ' · ' . esc($org['industry']) : '' ?><?= $org['city'] ? ' · ' . esc($org['city']) : '' ?>
-      <?php if ($org['owner_name']): ?> · Owner: <strong><?= esc($org['owner_name']) ?></strong><?php endif; ?>
+      <?= esc($org['org_no']) ?> · <?= esc($org['org_type'] ?? ($org['type'] ?? 'Corporate')) ?><?= !empty($org['industry']) ? ' · ' . esc($org['industry']) : '' ?><?= !empty($org['city']) ? ' · ' . esc($org['city']) : '' ?>
+      <?php if (!empty($org['account_owner_name'] ?? ($org['owner_name'] ?? null))): ?> · Owner: <strong><?= esc($org['account_owner_name'] ?? $org['owner_name']) ?></strong><?php endif; ?>
     </div>
   </div>
   <div class="gap">
@@ -60,19 +60,19 @@ $tabs = [
       <div class="bd">
         <dl class="kv">
           <dt>Organisation Number</dt><dd><strong><?= esc($org['org_no']) ?></strong></dd>
-          <dt>Organisation Type</dt><dd><?= esc($org['type'] ?? '—') ?></dd>
+          <dt>Organisation Type</dt><dd><?= esc($org['org_type'] ?? ($org['type'] ?? '—')) ?></dd>
           <dt>Industry / Category</dt><dd><?= esc($org['industry'] ?? '—') ?> (<?= esc($org['business_category'] ?? 'General') ?>)</dd>
-          <dt>Website</dt><dd><?= $org['website'] ? '<a href="' . esc($org['website']) . '" target="_blank" rel="noopener">' . esc($org['website']) . '</a>' : '—' ?></dd>
+          <dt>Website</dt><dd><?= !empty($org['website']) ? '<a href="' . esc($org['website']) . '" target="_blank" rel="noopener">' . esc($org['website']) . '</a>' : '—' ?></dd>
           <dt>GSTIN</dt><dd><?= esc($org['gstin'] ?: '—') ?></dd>
           <dt>PAN Number</dt><dd><?= esc($org['pan'] ?: '—') ?></dd>
-          <dt>Primary Coordinates</dt><dd><?= esc($org['primary_phone'] ?? '—') ?><?= $org['primary_email'] ? ' · <a href="mailto:' . esc($org['primary_email']) . '">' . esc($org['primary_email']) . '</a>' : '' ?></dd>
+          <dt>Primary Coordinates</dt><dd><?= esc($org['primary_phone'] ?? '—') ?><?= !empty($org['primary_email']) ? ' · <a href="mailto:' . esc($org['primary_email']) . '">' . esc($org['primary_email']) . '</a>' : '' ?></dd>
           <dt>Registered Address</dt><dd><?= nl2br(esc($org['registered_address'] ?: '—')) ?></dd>
           <dt>Billing Address</dt><dd><?= nl2br(esc($org['billing_address'] ?: '—')) ?></dd>
           <dt>Default Site Address</dt><dd><?= nl2br(esc($org['default_site_address'] ?: '—')) ?></dd>
-          <dt>City / State / PIN</dt><dd><?= esc(trim(($org['city'] ?? '') . ', ' . ($org['state'] ?? '') . ' ' . ($org['pin_code'] ?? '')) ?: '—') ?></dd>
-          <dt>Account Owner</dt><dd><strong><?= esc($org['owner_name'] ?? '—') ?></strong></dd>
+          <dt>City / State / PIN</dt><dd><?= esc(trim(($org['city'] ?? '') . ', ' . ($org['state'] ?? '') . ' ' . ($org['pincode'] ?? ($org['pin_code'] ?? ''))) ?: '—') ?></dd>
+          <dt>Account Owner</dt><dd><strong><?= esc($org['account_owner_name'] ?? ($org['owner_name'] ?? '—')) ?></strong></dd>
           <dt>Sales Territory</dt><dd><?= esc($org['territory_name'] ?? '—') ?></dd>
-          <dt>Lead Source</dt><dd><?= esc($org['source_name'] ?? '—') ?></dd>
+          <dt>Lead Source</dt><dd><?= esc($org['lead_source_name'] ?? ($org['source_name'] ?? '—')) ?></dd>
           <dt>Strategic Notes</dt><dd><?= nl2br(esc($org['notes'] ?: '—')) ?></dd>
         </dl>
       </div>
@@ -82,14 +82,14 @@ $tabs = [
     <div class="card">
       <div class="hd" style="display:flex;justify-content:space-between;align-items:center">
         <h2>Primary Decision Maker / Point of Contact</h2>
-        <?php if ($primary_contact): ?>
+        <?php if (! empty($primary_contact)): ?>
           <a class="btn sm alt" href="<?= site_url('crm/contacts/' . $primary_contact['id'] . '/edit') ?>">Edit Contact</a>
         <?php else: ?>
           <a class="btn sm teal" href="<?= site_url('crm/contacts/new?organisation_id=' . $org['id']) ?>">+ Add Primary Contact</a>
         <?php endif; ?>
       </div>
       <div class="bd">
-        <?php if ($primary_contact): ?>
+        <?php if (! empty($primary_contact)): ?>
           <div style="display:flex;gap:16px;align-items:flex-start">
             <div style="width:48px;height:48px;border-radius:50%;background:var(--th-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px">
               <?= strtoupper(substr($primary_contact['first_name'], 0, 1) . substr($primary_contact['last_name'], 0, 1)) ?>
@@ -104,7 +104,7 @@ $tabs = [
               <div style="margin-top:8px;display:flex;gap:18px;font-size:13px">
                 <div>📞 <strong><?= esc($primary_contact['mobile']) ?></strong></div>
                 <?php if ($primary_contact['email']): ?><div>✉️ <a href="mailto:<?= esc($primary_contact['email']) ?>"><?= esc($primary_contact['email']) ?></a></div><?php endif; ?>
-                <?php if ($primary_contact['whatsapp_no']): ?><div>💬 WhatsApp: <?= esc($primary_contact['whatsapp_no']) ?></div><?php endif; ?>
+                <?php if (!empty($primary_contact['whatsapp'] ?? ($primary_contact['whatsapp_no'] ?? null))): ?><div>💬 WhatsApp: <?= esc($primary_contact['whatsapp'] ?? $primary_contact['whatsapp_no']) ?></div><?php endif; ?>
               </div>
             </div>
           </div>
@@ -438,13 +438,14 @@ $tabs = [
 <div class="card">
   <div class="hd"><h2>Account Audit Trail &amp; Governance Log</h2></div>
   <div class="bd flush">
-    <?php if (! $audit_logs): ?>
+    <?php $logsToRender = $audit_logs ?? ($audits ?? []); ?>
+    <?php if (! $logsToRender): ?>
       <div class="empty">No audit events recorded for this organisation.</div>
     <?php else: ?>
       <div class="tablewrap"><table class="t">
         <thead><tr><th>Action</th><th>Performed By</th><th>Details / Changes</th><th>IP Address</th><th>Timestamp</th></tr></thead>
         <tbody>
-        <?php foreach ($audit_logs as $log): ?>
+        <?php foreach ($logsToRender as $log): ?>
           <tr>
             <td><strong><?= esc(crm_label($log['action'])) ?></strong></td>
             <td><?= esc($log['user_name'] ?? 'System') ?></td>

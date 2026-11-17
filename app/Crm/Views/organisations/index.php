@@ -59,12 +59,12 @@ $ratings = ['Hot', 'Warm', 'Cold'];
             <div class="muted small"><?= esc($r['org_no']) ?><?= ! empty($r['website']) ? ' · <a href="' . esc($r['website']) . '" target="_blank" rel="noopener">' . esc($r['website']) . '</a>' : '' ?></div>
           </td>
           <td>
-            <div><?= esc($r['type'] ?? 'Corporate') ?></div>
+            <div><?= esc($r['org_type'] ?? ($r['type'] ?? 'Corporate')) ?></div>
             <div class="muted small"><?= esc($r['industry'] ?? 'Real Estate / Interior') ?></div>
           </td>
           <td>
             <div><strong><?= esc($r['primary_contact_name'] ?? '—') ?></strong></div>
-            <div class="muted small"><?= esc($r['primary_phone'] ?? '') ?><?= $r['primary_email'] ? ' · ' . esc($r['primary_email']) : '' ?></div>
+            <div class="muted small"><?= esc($r['primary_phone'] ?? '') ?><?= !empty($r['primary_email']) ? ' · ' . esc($r['primary_email']) : '' ?></div>
           </td>
           <td>
             <div><?= esc($r['city'] ?? '—') ?></div>
@@ -75,15 +75,15 @@ $ratings = ['Hot', 'Warm', 'Cold'];
             <div class="muted small"><?= esc($r['pan'] ?: '') ?></div>
           </td>
           <td>
-            <div><?= esc($r['owner_name'] ?? '—') ?></div>
+            <div><?= esc($r['account_owner_name'] ?? ($r['owner_name'] ?? '—')) ?></div>
             <?php if (! empty($r['account_rating'])): ?>
               <span class="badge badge-<?= match($r['account_rating']) { 'Hot' => 'red', 'Warm' => 'amber', default => 'blue' } ?>"><?= esc($r['account_rating']) ?></span>
             <?php endif; ?>
           </td>
-          <td class="num"><a href="<?= site_url('crm/organisations/' . $r['id'] . '?tab=contacts') ?>"><?= (int) ($r['contact_count'] ?? 0) ?></a></td>
+          <td class="num"><a href="<?= site_url('crm/organisations/' . $r['id'] . '?tab=contacts') ?>"><?= (int) ($r['contacts_count'] ?? ($r['contact_count'] ?? 0)) ?></a></td>
           <td class="num"><a href="<?= site_url('crm/organisations/' . $r['id'] . '?tab=projects') ?>"><?= (int) ($r['project_count'] ?? 0) ?></a></td>
-          <td class="num"><a href="<?= site_url('crm/organisations/' . $r['id'] . '?tab=orders') ?>"><strong><?= (int) ($r['order_count'] ?? 0) ?></strong></a></td>
-          <td><?= crm_badge($r['status'] ?? 'active') ?></td>
+          <td class="num"><a href="<?= site_url('crm/organisations/' . $r['id'] . '?tab=orders') ?>"><strong><?= (int) ($r['orders_count'] ?? ($r['order_count'] ?? 0)) ?></strong></a></td>
+          <td><?= crm_badge($r['account_status'] ?? ($r['status'] ?? 'active')) ?></td>
           <td class="nowrap">
             <a class="btn sm alt" href="<?= site_url('crm/organisations/' . $r['id']) ?>">View 360°</a>
             <?php if (crm_can('customers.edit')): ?>

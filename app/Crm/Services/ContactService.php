@@ -15,7 +15,7 @@ final class ContactService
     {
         $db = self::db();
         $b = $db->table('crm_contacts c')
-            ->select('c.*, o.name AS organisation_name, o.org_no, o.city AS org_city')
+            ->select('c.*, c.whatsapp AS whatsapp_no, o.name AS organisation_name, o.name AS org_name, o.org_no, o.org_type, o.city AS org_city')
             ->join('crm_organisations o', 'o.id = c.organisation_id');
 
         if (! empty($filters['q'])) {
@@ -75,7 +75,7 @@ final class ContactService
     {
         $db = self::db();
         $row = $db->table('crm_contacts c')
-            ->select('c.*, o.name AS organisation_name, o.org_no, o.city AS org_city')
+            ->select('c.*, c.whatsapp AS whatsapp_no, o.name AS organisation_name, o.name AS org_name, o.org_no, o.org_type, o.city AS org_city')
             ->join('crm_organisations o', 'o.id = c.organisation_id')
             ->where('c.id', $id)
             ->get()->getRowArray();

@@ -15,10 +15,17 @@ final class OrganisationService
     {
         $db = self::db();
         $b = $db->table('crm_organisations o')
-            ->select("o.*, CONCAT(u.first_name, ' ', u.last_name) AS account_owner_name, t.name AS territory_name, s.name AS lead_source_name,
+            ->select("o.*, o.org_type AS type, o.account_status AS status, o.pincode AS pin_code,
+                CONCAT(u.first_name, ' ', u.last_name) AS account_owner_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS owner_name,
+                t.name AS territory_name, s.name AS lead_source_name, s.name AS source_name,
                 (SELECT COUNT(*) FROM crm_contacts c WHERE c.organisation_id = o.id) AS contacts_count,
+                (SELECT COUNT(*) FROM crm_contacts c WHERE c.organisation_id = o.id) AS contact_count,
                 (SELECT COUNT(*) FROM crm_enquiries e WHERE e.organisation_id = o.id) AS enquiries_count,
-                (SELECT COUNT(*) FROM crm_sales_orders so WHERE so.organisation_id = o.id) AS orders_count")
+                (SELECT COUNT(*) FROM crm_projects p WHERE p.organisation_id = o.id) AS project_count,
+                (SELECT COUNT(*) FROM crm_sales_orders so WHERE so.organisation_id = o.id) AS orders_count,
+                (SELECT COUNT(*) FROM crm_sales_orders so WHERE so.organisation_id = o.id) AS order_count,
+                (SELECT CONCAT(c.first_name, ' ', c.last_name) FROM crm_contacts c WHERE c.organisation_id = o.id AND c.is_primary = 1 LIMIT 1) AS primary_contact_name")
             ->join('admin_users u', 'u.id = o.account_owner_id', 'left')
             ->join('crm_territories t', 't.id = o.sales_territory_id', 'left')
             ->join('crm_lead_sources s', 's.id = o.lead_source_id', 'left');
@@ -36,15 +43,26 @@ final class OrganisationService
         }
         if (! empty($filters['org_type'])) {
             $b->where('o.org_type', $filters['org_type']);
+        } elseif (! empty($filters['type'])) {
+            $b->where('o.org_type', $filters['type']);
         }
         if (! empty($filters['account_status'])) {
             $b->where('o.account_status', $filters['account_status']);
+        } elseif (! empty($filters['status'])) {
+            $b->where('o.account_status', $filters['status']);
+        }
+        if (! empty($filters['account_rating'])) {
+            $b->where('o.account_rating', $filters['account_rating']);
+        } elseif (! empty($filters['rating'])) {
+            $b->where('o.account_rating', $filters['rating']);
         }
         if (! empty($filters['city'])) {
             $b->where('o.city', $filters['city']);
         }
         if (! empty($filters['account_owner_id'])) {
             $b->where('o.account_owner_id', (int) $filters['account_owner_id']);
+        } elseif (! empty($filters['owner_user_id'])) {
+            $b->where('o.account_owner_id', (int) $filters['owner_user_id']);
         }
 
         $total = $b->countAllResults(false);
@@ -64,7 +82,12 @@ final class OrganisationService
     {
         $db = self::db();
         $org = $db->table('crm_organisations o')
-            ->select("o.*, CONCAT(u.first_name, ' ', u.last_name) AS account_owner_name, t.name AS territory_name, s.name AS lead_source_name")
+            ->select("o.*, o.org_type AS type, o.account_status AS status, o.pincode AS pin_code,
+                      CONCAT(u.first_name, ' ', u.last_name) AS account_owner_name,
+                      CONCAT(u.first_name, ' ', u.last_name) AS owner_name,
+                      t.name AS territory_name,
+                      s.name AS lead_source_name,
+                      s.name AS source_name")
             ->join('admin_users u', 'u.id = o.account_owner_id', 'left')
             ->join('crm_territories t', 't.id = o.sales_territory_id', 'left')
             ->join('crm_lead_sources s', 's.id = o.lead_source_id', 'left')
@@ -351,9 +374,86 @@ final class OrganisationService
             ->limit(30)
             ->get()->getResultArray();
 
+        // Primary contact
+        $primaryContact = $db->table('crm_contacts')
+            ->where('organisation_id', $id)
+            ->where('is_primary', 1)
+            ->get()->getRowArray();
+        if (! $primaryContact && $contacts) {
+            $primaryContact = $contacts[0];
+        }
+
+        // Stats calculation
+        $totalRev = (float) $db->table('crm_sales_orders')
+            ->selectSum('grand_total')
+            ->where('organisation_id', $id)
+            ->get()->getRow()->grand_total;
+
+        $totalColl = (float) $db->table('crm_payments p')
+            ->selectSum('p.amount')
+            ->join('crm_sales_orders so', 'so.id = p.order_id', 'left')
+            ->where('so.organisation_id', $id)
+            ->get()->getRow()->amount;
+
+        $stats = [
+            'total_revenue' => $totalRev,
+            'orders_count' => count($orders),
+            'total_collected' => $totalColl,
+            'enquiries_count' => count($enquiries),
+            'quotations_count' => count($quotations),
+            'activities_count' => count($activities),
+        ];
+
+        // Format activities with aliases if needed
+        foreach ($activities as &$act) {
+            $act['subject'] = $act['discussion_summary'] ?? ($act['subject'] ?? 'Sales Activity');
+            $act['scheduled_at'] = ! empty($act['scheduled_at']) ? $act['scheduled_at'] : ($act['activity_date'] . ' ' . ($act['start_time'] ?? '10:00:00'));
+            $act['description'] = $act['discussion_summary'] ?? ($act['description'] ?? '');
+            $act['contact_name'] = trim(($act['first_name'] ?? '') . ' ' . ($act['last_name'] ?? '')) ?: '—';
+        }
+        unset($act);
+
+        // Format quotations with aliases
+        foreach ($quotations as &$q) {
+            $q['current_version_no'] = $q['version_no'] ?? 1;
+            $q['contact_name'] = $q['contact_name'] ?? ($primaryContact ? ($primaryContact['first_name'] . ' ' . $primaryContact['last_name']) : '—');
+        }
+        unset($q);
+
+        // Format approvals with aliases
+        foreach ($approvals as &$apr) {
+            $apr['original_amount'] = $apr['standard_selling_price'] ?? 0;
+            $apr['requested_amount'] = $apr['proposed_selling_price'] ?? 0;
+            $apr['discount_pct'] = $apr['requested_discount_pct'] ?? 0;
+            $apr['decision_at'] = $apr['action_at'] ?? $apr['created_at'];
+            $apr['requester_name'] = $apr['salesperson_name'] ?? 'Sales Rep';
+            $apr['version_no'] = $apr['quotation_version_id'] ?? 1;
+        }
+        unset($apr);
+
+        // Format communications with aliases
+        foreach ($communications as &$com) {
+            $com['channel'] = $com['communication_type'] ?? 'email';
+            $com['body'] = $com['message_body'] ?? '';
+            $com['recipient_address'] = $com['contact_name'] ?? ($com['contact_id'] ?? 'Client');
+            $com['delivery_status'] = $com['outcome'] ?? 'sent';
+            $com['sender_name'] = $com['logged_by_name'] ?? 'System';
+        }
+        unset($com);
+
+        // Format audits with aliases
+        foreach ($audits as &$aud) {
+            $aud['action'] = $aud['event_type'] ?? 'update';
+            $aud['user_name'] = $aud['user_id'] ? 'User #' . $aud['user_id'] : 'System';
+            $aud['details'] = $aud['metadata'] ?? ($aud['summary'] ?? '—');
+            $aud['ip_address'] = $aud['ip_address'] ?? '127.0.0.1';
+        }
+        unset($aud);
+
         return [
             'organisation' => $org,
             'org' => $org,
+            'primary_contact' => $primaryContact,
             'contacts' => $contacts,
             'projects' => $projects,
             'enquiries' => $enquiries,
@@ -368,6 +468,8 @@ final class OrganisationService
             'services' => $services,
             'communications' => $communications,
             'audits' => $audits,
+            'audit_logs' => $audits,
+            'stats' => $stats,
         ];
     }
 

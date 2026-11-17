@@ -66,8 +66,8 @@ $routes->get('thank-you', 'Web\SubmissionStatusController::thankYou');
 $routes->get('submission-failed', 'Web\SubmissionStatusController::failed');
 
 // Candidate Self-Service Application Tracker & DPDP Right to Erasure (GAP-06 & GAP-07)
-$routes->match(['get', 'post'], 'application/tracker', 'Web\CandidateComplianceController::trackApplication', ['filter' => 'ratelimit:20,60']);
-$routes->match(['get', 'post'], 'privacy/request-cv-deletion', 'Web\CandidateComplianceController::requestCvDeletion', ['filter' => 'ratelimit:10,60']);
+$routes->match(['GET', 'POST'], 'application/tracker', 'Web\CandidateComplianceController::trackApplication', ['filter' => 'ratelimit:20,60']);
+$routes->match(['GET', 'POST'], 'privacy/request-cv-deletion', 'Web\CandidateComplianceController::requestCvDeletion', ['filter' => 'ratelimit:10,60']);
 $routes->get('privacy/confirm-cv-deletion', 'Web\CandidateComplianceController::confirmCvDeletion');
 
 // Legal & FAQ
@@ -93,11 +93,11 @@ $routes->get('sitemap-insights.xml', 'Web\SitemapController::insights');
 $routes->get('sitemap-news.xml', 'Web\SitemapController::news');
 
 // ─── 2. ADMIN AUTHENTICATION & PORTAL ROUTES ──────────────────────────────────
-$routes->match(['get', 'post'], 'admin/login', 'Admin\AuthController::login', ['filter' => 'ratelimit:20,60']);
-$routes->match(['get', 'post'], 'admin/logout', 'Admin\AuthController::logout');
-$routes->match(['get', 'post'], 'admin/forgot-password', 'Admin\AuthController::forgotPassword', ['filter' => 'ratelimit:10,60']);
-$routes->match(['get', 'post'], 'admin/reset-password', 'Admin\AuthController::resetPassword', ['filter' => 'ratelimit:10,60']);
-$routes->match(['get', 'post'], 'admin/verify-otp', 'Admin\AuthController::verifyOtp', ['filter' => 'ratelimit:20,60']);
+$routes->match(['GET', 'POST'], 'admin/login', 'Admin\AuthController::login', ['filter' => 'ratelimit:20,60']);
+$routes->match(['GET', 'POST'], 'admin/logout', 'Admin\AuthController::logout');
+$routes->match(['GET', 'POST'], 'admin/forgot-password', 'Admin\AuthController::forgotPassword', ['filter' => 'ratelimit:10,60']);
+$routes->match(['GET', 'POST'], 'admin/reset-password', 'Admin\AuthController::resetPassword', ['filter' => 'ratelimit:10,60']);
+$routes->match(['GET', 'POST'], 'admin/verify-otp', 'Admin\AuthController::verifyOtp', ['filter' => 'ratelimit:20,60']);
 $routes->post('admin/resend-otp', 'Admin\AuthController::resendOtp', ['filter' => 'ratelimit:5,60']);
 $routes->get('admin/cancel-otp', 'Admin\AuthController::cancelOtp');
 

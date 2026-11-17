@@ -51,7 +51,7 @@ $roles = ['Owner', 'Director', 'Purchase Manager', 'Project Manager', 'Architect
             <div class="muted small"><?= esc($r['contact_no']) ?></div>
           </td>
           <td>
-            <a href="<?= site_url('crm/organisations/' . $r['organisation_id']) ?>"><strong><?= esc($r['org_name'] ?? '—') ?></strong></a>
+            <a href="<?= site_url('crm/organisations/' . $r['organisation_id']) ?>"><strong><?= esc($r['org_name'] ?? ($r['organisation_name'] ?? '—')) ?></strong></a>
             <div class="muted small"><?= esc($r['org_type'] ?? '') ?></div>
           </td>
           <td>
@@ -63,7 +63,7 @@ $roles = ['Owner', 'Director', 'Purchase Manager', 'Project Manager', 'Architect
           </td>
           <td>
             <div><?= esc($r['mobile']) ?></div>
-            <?php if (! empty($r['whatsapp_no'])): ?><div class="muted small">WA: <?= esc($r['whatsapp_no']) ?></div><?php endif; ?>
+            <?php if (! empty($r['whatsapp'] ?? ($r['whatsapp_no'] ?? null))): ?><div class="muted small">WA: <?= esc($r['whatsapp'] ?? $r['whatsapp_no']) ?></div><?php endif; ?>
           </td>
           <td>
             <?= $r['email'] ? '<a href="mailto:' . esc($r['email']) . '">' . esc($r['email']) . '</a>' : '—' ?>

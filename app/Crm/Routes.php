@@ -6,9 +6,9 @@
 
 $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($routes) {
     // ── public (no session) ──
-    $routes->match(['get', 'post'], 'login', 'AuthController::login', ['filter' => 'ratelimit:20,60']);
-    $routes->match(['get', 'post'], 'forgot-password', 'AuthController::forgot', ['filter' => 'ratelimit:10,60']);
-    $routes->match(['get', 'post'], 'reset-password', 'AuthController::reset', ['filter' => 'ratelimit:10,60']);
+    $routes->match(['GET', 'POST'], 'login', 'AuthController::login', ['filter' => 'ratelimit:20,60']);
+    $routes->match(['GET', 'POST'], 'forgot-password', 'AuthController::forgot', ['filter' => 'ratelimit:10,60']);
+    $routes->match(['GET', 'POST'], 'reset-password', 'AuthController::reset', ['filter' => 'ratelimit:10,60']);
 
     // ── authenticated ──
     $routes->group('', ['filter' => 'crmauth'], static function ($routes) {
@@ -29,7 +29,7 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
             $routes->get('', 'OrganisationController::index');
             $routes->get('new', 'OrganisationController::new', ['filter' => 'crmperm:customers.create']);
             $routes->post('create', 'OrganisationController::create', ['filter' => 'crmperm:customers.create']);
-            $routes->match(['get', 'post'], 'sync', 'OrganisationController::sync', ['filter' => 'crmperm:customers.create']);
+            $routes->match(['GET', 'POST'], 'sync', 'OrganisationController::sync', ['filter' => 'crmperm:customers.create']);
             $routes->get('(:num)', 'OrganisationController::show/$1');
             $routes->get('(:num)/edit', 'OrganisationController::edit/$1', ['filter' => 'crmperm:customers.edit']);
             $routes->post('(:num)/update', 'OrganisationController::update/$1', ['filter' => 'crmperm:customers.edit']);

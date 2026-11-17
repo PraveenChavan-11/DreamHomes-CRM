@@ -163,7 +163,6 @@ final class A4QuotationPdfTest extends CrmTestCase
             'tax_total' => 18000.00,
             'charges_total' => 0.00,
             'grand_total' => 118000.00,
-            'is_accepted' => 1,
             'created_at' => Crm::now(),
         ]);
         $versionId = (int) $db->insertID();

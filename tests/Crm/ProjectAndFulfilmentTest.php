@@ -73,7 +73,6 @@ final class ProjectAndFulfilmentTest extends CrmTestCase
             'tax_total' => round($amount - ($amount / 1.18), 2),
             'charges_total' => 0.00,
             'grand_total' => $amount,
-            'is_accepted' => 1,
             'created_at' => Crm::now(),
         ]);
         $versionId = (int) $db->insertID();
