@@ -4,7 +4,7 @@
 <div class="pagehead">
   <div>
     <h1>Edit Email Template · <?= esc($tpl['name']) ?></h1>
-    <div class="muted small">Template Code: <code><?= esc($tpl['template_code']) ?></code></div>
+    <div class="muted small">Template Code: <code><?= esc($tpl['code'] ?? ($tpl['template_code'] ?? '')) ?></code></div>
   </div>
   <div class="gap">
     <a class="btn alt" href="<?= site_url('crm/communication/templates') ?>">Cancel</a>
@@ -23,7 +23,7 @@
     </div>
     <div>
       <label for="template_code">System Trigger Code</label>
-      <input type="text" id="template_code" value="<?= esc($tpl['template_code']) ?>" readonly style="background:#F1F5F9;cursor:not-allowed">
+      <input type="text" id="template_code" value="<?= esc($tpl['code'] ?? ($tpl['template_code'] ?? '')) ?>" readonly style="background:#F1F5F9;cursor:not-allowed">
     </div>
     <div style="grid-column:1/-1">
       <label for="subject">Email Subject Line <span class="req">*</span></label>

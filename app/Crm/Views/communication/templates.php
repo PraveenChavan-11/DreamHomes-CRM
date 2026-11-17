@@ -27,7 +27,7 @@
       <tbody>
       <?php foreach ($templates as $t): ?>
         <tr>
-          <td><code><?= esc($t['template_code']) ?></code></td>
+          <td><code><?= esc($t['code'] ?? ($t['template_code'] ?? '')) ?></code></td>
           <td><strong><?= esc($t['name']) ?></strong></td>
           <td><?= esc($t['subject']) ?></td>
           <td style="max-width:320px;font-size:12px;color:var(--text-muted)">
