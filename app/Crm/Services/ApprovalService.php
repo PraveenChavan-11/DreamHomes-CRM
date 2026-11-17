@@ -299,10 +299,12 @@ final class ApprovalService
     {
         $db = self::db();
         $b = $db->table('crm_quotation_approvals qa')
-            ->select("qa.*, q.quotation_no, q.status AS quotation_status,
-                CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name, o.name AS organisation_name,
-                c.first_name, c.last_name, CONCAT(app.first_name, ' ', app.last_name) AS approver_name")
+            ->select("qa.*, q.quotation_no, q.status AS quotation_status, qv.version_no,
+                CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name, o.name AS organisation_name, o.name AS org_name,
+                c.first_name, c.last_name, CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, '')) AS contact_name,
+                CONCAT(app.first_name, ' ', app.last_name) AS approver_name")
             ->join('crm_quotations q', 'q.id = qa.quotation_id')
+            ->join('crm_quotation_versions qv', 'qv.id = qa.quotation_version_id', 'left')
             ->join('admin_users u', 'u.id = qa.salesperson_id')
             ->join('crm_organisations o', 'o.id = qa.organisation_id', 'left')
             ->join('crm_contacts c', 'c.id = qa.contact_id', 'left')
@@ -355,7 +357,9 @@ final class ApprovalService
         $row = $db->table('crm_quotation_approvals qa')
             ->select("qa.*, q.quotation_no, q.status AS quotation_status, q.enquiry_id,
                 qv.version_no, qv.is_locked, CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name, u.email AS salesperson_email,
-                o.name AS organisation_name, o.org_no, c.first_name, c.last_name, c.mobile AS contact_mobile,
+                o.name AS organisation_name, o.name AS org_name, o.org_no, c.first_name, c.last_name,
+                CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, '')) AS contact_name,
+                c.mobile AS contact_mobile,
                 CONCAT(app.first_name, ' ', app.last_name) AS approver_name")
             ->join('crm_quotations q', 'q.id = qa.quotation_id')
             ->join('crm_quotation_versions qv', 'qv.id = qa.quotation_version_id')

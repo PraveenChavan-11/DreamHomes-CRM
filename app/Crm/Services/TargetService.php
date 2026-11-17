@@ -40,15 +40,25 @@ final class TargetService
         // Attach live performance calculations to each target
         foreach ($rows as &$r) {
             $perf = self::computeActuals($r);
+            $r['actual_revenue'] = $perf['revenue'];
             $r['achieved_revenue'] = $perf['revenue'];
-            $r['revenue_pct'] = (float) $r['revenue_target'] > 0 ? round(($perf['revenue'] / (float) $r['revenue_target']) * 100, 1) : 0;
+            $revPct = (float) $r['revenue_target'] > 0 ? round(($perf['revenue'] / (float) $r['revenue_target']) * 100, 1) : 0;
+            $r['revenue_pct'] = $revPct;
+            $r['revenue_progress_pct'] = $revPct;
             $r['remaining_revenue'] = max(0, (float) $r['revenue_target'] - $perf['revenue']);
+            $r['actual_orders'] = $perf['orders'];
             $r['achieved_orders'] = $perf['orders'];
+            $r['orders_target'] = (int) ($r['confirmed_orders_target'] ?? 0);
             $r['orders_pct'] = (int) $r['confirmed_orders_target'] > 0 ? round(($perf['orders'] / (int) $r['confirmed_orders_target']) * 100, 1) : 0;
+            $r['actual_collections'] = $perf['collections'];
             $r['achieved_collections'] = $perf['collections'];
             $r['collections_pct'] = (float) $r['collections_target'] > 0 ? round(($perf['collections'] / (float) $r['collections_target']) * 100, 1) : 0;
+            $r['actual_activities'] = $perf['activities'];
             $r['achieved_activities'] = $perf['activities'];
+            $r['activities_target'] = (int) ($r['calls_target'] ?? 0) + (int) ($r['meetings_target'] ?? 0) + (int) ($r['site_visits_target'] ?? 0) + (int) ($r['followups_target'] ?? 0);
+            $r['actual_quotations'] = $perf['quotations'];
             $r['achieved_quotations'] = $perf['quotations'];
+            $r['quotations_target'] = (int) ($r['quotations_target'] ?? 0);
             $r['pipeline_value'] = $perf['pipeline'];
         }
         unset($r);
@@ -79,8 +89,24 @@ final class TargetService
 
         $perf = self::computeActuals($row);
         $row['actuals'] = $perf;
-        $row['revenue_pct'] = (float) $row['revenue_target'] > 0 ? round(($perf['revenue'] / (float) $row['revenue_target']) * 100, 1) : 0;
+        $row['actual_revenue'] = $perf['revenue'];
+        $row['achieved_revenue'] = $perf['revenue'];
+        $revPct = (float) $row['revenue_target'] > 0 ? round(($perf['revenue'] / (float) $row['revenue_target']) * 100, 1) : 0;
+        $row['revenue_pct'] = $revPct;
+        $row['revenue_progress_pct'] = $revPct;
         $row['remaining_revenue'] = max(0, (float) $row['revenue_target'] - $perf['revenue']);
+        $row['actual_orders'] = $perf['orders'];
+        $row['achieved_orders'] = $perf['orders'];
+        $row['orders_target'] = (int) ($row['confirmed_orders_target'] ?? 0);
+        $row['actual_collections'] = $perf['collections'];
+        $row['achieved_collections'] = $perf['collections'];
+        $row['actual_activities'] = $perf['activities'];
+        $row['achieved_activities'] = $perf['activities'];
+        $row['activities_target'] = (int) ($row['calls_target'] ?? 0) + (int) ($row['meetings_target'] ?? 0) + (int) ($row['site_visits_target'] ?? 0) + (int) ($row['followups_target'] ?? 0);
+        $row['actual_quotations'] = $perf['quotations'];
+        $row['achieved_quotations'] = $perf['quotations'];
+        $row['quotations_target'] = (int) ($row['quotations_target'] ?? 0);
+        $row['pipeline_value'] = $perf['pipeline'];
 
         return $row;
     }
@@ -120,7 +146,7 @@ final class TargetService
             'period_end' => $data['period_end'] ?? date('Y-m-t'),
             'period_label' => $data['period_label'] ?? date('F Y'),
             'revenue_target' => ! empty($data['revenue_target']) ? (float) $data['revenue_target'] : 0,
-            'confirmed_orders_target' => ! empty($data['confirmed_orders_target']) ? (int) $data['confirmed_orders_target'] : 0,
+            'confirmed_orders_target' => ! empty($data['confirmed_orders_target']) ? (int) $data['confirmed_orders_target'] : (! empty($data['orders_target']) ? (int) $data['orders_target'] : 0),
             'organisations_target' => ! empty($data['organisations_target']) ? (int) $data['organisations_target'] : 0,
             'contacts_target' => ! empty($data['contacts_target']) ? (int) $data['contacts_target'] : 0,
             'leads_target' => ! empty($data['leads_target']) ? (int) $data['leads_target'] : 0,
@@ -170,7 +196,7 @@ final class TargetService
 
         $fields = [
             'revenue_target' => isset($data['revenue_target']) ? (float) $data['revenue_target'] : $target['revenue_target'],
-            'confirmed_orders_target' => isset($data['confirmed_orders_target']) ? (int) $data['confirmed_orders_target'] : $target['confirmed_orders_target'],
+            'confirmed_orders_target' => isset($data['confirmed_orders_target']) ? (int) $data['confirmed_orders_target'] : (isset($data['orders_target']) ? (int) $data['orders_target'] : $target['confirmed_orders_target']),
             'organisations_target' => isset($data['organisations_target']) ? (int) $data['organisations_target'] : $target['organisations_target'],
             'contacts_target' => isset($data['contacts_target']) ? (int) $data['contacts_target'] : $target['contacts_target'],
             'leads_target' => isset($data['leads_target']) ? (int) $data['leads_target'] : $target['leads_target'],

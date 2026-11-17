@@ -183,4 +183,30 @@ final class EnterpriseOperationsTest extends CrmTestCase
         $this->assertNotNull($notif);
         $this->assertStringContainsString('Approved', $notif['title']);
     }
+
+    public function testEnterpriseViewsAndListingsRenderCleanly(): void
+    {
+        $adminId = $this->user('admin');
+        $sessionUser = $this->sessionUser($adminId);
+        Crm::setActor($adminId);
+
+        $activities = SalesActivityService::list([], 1, 10);
+        $this->assertIsArray($activities);
+        $this->assertArrayHasKey('rows', $activities);
+        if (! empty($activities['rows'])) {
+            $this->assertArrayHasKey('subject', $activities['rows'][0]);
+        }
+
+        $approvals = ApprovalService::list([], $sessionUser, 1, 10);
+        $this->assertIsArray($approvals);
+        $this->assertArrayHasKey('rows', $approvals);
+
+        $targets = TargetService::list([], $sessionUser, 1, 10);
+        $this->assertIsArray($targets);
+        $this->assertArrayHasKey('rows', $targets);
+        if (! empty($targets['rows'])) {
+            $this->assertArrayHasKey('actual_revenue', $targets['rows'][0]);
+            $this->assertArrayHasKey('revenue_progress_pct', $targets['rows'][0]);
+        }
+    }
 }

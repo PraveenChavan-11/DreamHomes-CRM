@@ -5,9 +5,9 @@ $act = $activity;
 <div class="pagehead">
   <div>
     <h1>
-      <?= esc($act['subject']) ?>
-      <?= crm_badge($act['status']) ?>
-      <span class="badge badge-blue"><?= esc(crm_label($act['activity_type'])) ?></span>
+      <?= esc($act['subject'] ?? ($act['discussion_summary'] ?: ($act['product_interest'] ?: 'Activity #' . ($act['activity_no'] ?? '')))) ?>
+      <?= crm_badge($act['status'] ?? 'scheduled') ?>
+      <span class="badge badge-blue"><?= esc(crm_label($act['activity_type'] ?? 'customer_visit')) ?></span>
     </h1>
     <div class="muted small" style="font-weight:400">
       Activity #<?= esc($act['activity_no']) ?> · Date: <?= esc(crm_date($act['activity_date'])) ?>
@@ -49,7 +49,7 @@ $act = $activity;
         <dl class="kv">
           <dt>Activity Number</dt><dd><strong><?= esc($act['activity_no']) ?></strong></dd>
           <dt>Activity Type</dt><dd><?= esc(crm_label($act['activity_type'])) ?></dd>
-          <dt>Scheduled Date &amp; Time</dt><dd><?= esc(crm_dt($act['scheduled_at'] ?: $act['activity_date'])) ?></dd>
+          <dt>Scheduled Date &amp; Time</dt><dd><?= esc(crm_dt($act['scheduled_at'] ?? ($act['activity_date'] ?? null))) ?></dd>
           <dt>Organisation / Account</dt>
           <dd>
             <?php if (! empty($act['organisation_id'])): ?>
@@ -76,8 +76,8 @@ $act = $activity;
           </dd>
           <dt>Location / Venue</dt><dd><?= esc($act['location'] ?: '—') ?></dd>
           <dt>Assigned Rep</dt><dd><strong><?= esc($act['assigned_user_name'] ?? '—') ?></strong></dd>
-          <dt>Status</dt><dd><?= crm_badge($act['status']) ?></dd>
-          <dt>Agenda &amp; Brief</dt><dd><?= nl2br(esc($act['description'] ?: '—')) ?></dd>
+          <dt>Status</dt><dd><?= crm_badge($act['status'] ?? 'scheduled') ?></dd>
+          <dt>Agenda &amp; Brief</dt><dd><?= nl2br(esc(($act['description'] ?? ($act['discussion_summary'] ?? '')) ?: '—')) ?></dd>
         </dl>
       </div>
     </div>
@@ -86,11 +86,11 @@ $act = $activity;
     <div class="card" id="complete">
       <div class="hd"><h2>Execution Outcome &amp; Minutes of Meeting</h2></div>
       <div class="bd">
-        <?php if ($act['status'] === 'completed'): ?>
+        <?php if (($act['status'] ?? '') === 'completed'): ?>
           <dl class="kv">
-            <dt>Completion Status</dt><dd><span class="badge badge-green">Completed</span> on <?= esc(crm_dt($act['completed_at'])) ?></dd>
-            <dt>Recorded Outcome</dt><dd><strong><?= esc(crm_label($act['outcome'])) ?></strong></dd>
-            <dt>Minutes / Next Steps</dt><dd><?= nl2br(esc($act['outcome_notes'] ?: 'No additional notes recorded.')) ?></dd>
+            <dt>Completion Status</dt><dd><span class="badge badge-green">Completed</span> on <?= esc(crm_dt($act['completed_at'] ?? ($act['updated_at'] ?? null))) ?></dd>
+            <dt>Recorded Outcome</dt><dd><strong><?= esc(crm_label($act['outcome'] ?? 'completed')) ?></strong></dd>
+            <dt>Minutes / Next Steps</dt><dd><?= nl2br(esc(($act['outcome_notes'] ?? ($act['discussion_summary'] ?? '')) ?: 'No additional notes recorded.')) ?></dd>
           </dl>
         <?php else: ?>
           <p class="muted">This activity is currently scheduled. Once you finish the interaction, click Complete to log outcomes, customer feedback, and next steps.</p>

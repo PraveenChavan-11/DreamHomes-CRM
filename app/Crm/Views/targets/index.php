@@ -58,11 +58,11 @@ $frequencies = ['daily' => 'Daily', 'weekly' => 'Weekly', 'monthly' => 'Monthly'
           </td>
           <td><span class="badge badge-grey"><?= esc(crm_label($r['frequency'])) ?></span></td>
           <td class="num"><strong><?= crm_money($r['revenue_target']) ?></strong></td>
-          <td class="num"><strong style="color:var(--th-primary)"><?= crm_money($r['actual_revenue']) ?></strong></td>
+          <td class="num"><strong style="color:var(--th-primary)"><?= crm_money($r['actual_revenue'] ?? ($r['achieved_revenue'] ?? 0)) ?></strong></td>
           <td style="min-width:140px">
             <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:3px">
               <span><?= number_format($revPct, 1) ?>%</span>
-              <span class="muted small"><?= crm_money0($r['actual_revenue']) ?> / <?= crm_money0($r['revenue_target']) ?></span>
+              <span class="muted small"><?= crm_money0($r['actual_revenue'] ?? ($r['achieved_revenue'] ?? 0)) ?> / <?= crm_money0($r['revenue_target']) ?></span>
             </div>
             <div style="height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden">
               <div style="height:100%;width:<?= min(100, $revPct) ?>%;background:<?= $barColor ?>"></div>

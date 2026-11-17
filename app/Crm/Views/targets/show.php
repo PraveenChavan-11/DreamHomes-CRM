@@ -36,11 +36,11 @@ $collPct = ! empty($t['collections_target']) ? round(((float) ($t['actual_collec
     <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
       <div>
         <div class="muted small" style="text-transform:uppercase;font-weight:600">Net Won Order Value</div>
-        <div style="font-size:28px;font-weight:800;color:var(--th-primary)"><?= crm_money($t['actual_revenue']) ?></div>
+        <div style="font-size:28px;font-weight:800;color:var(--th-primary)"><?= crm_money($t['actual_revenue'] ?? ($t['achieved_revenue'] ?? 0)) ?></div>
       </div>
       <div style="text-align:right">
         <div class="muted small" style="text-transform:uppercase;font-weight:600">Period Target</div>
-        <div style="font-size:20px;font-weight:700"><?= crm_money($t['revenue_target']) ?></div>
+        <div style="font-size:20px;font-weight:700"><?= crm_money($t['revenue_target'] ?? 0) ?></div>
       </div>
     </div>
 
@@ -49,7 +49,7 @@ $collPct = ! empty($t['collections_target']) ? round(((float) ($t['actual_collec
     </div>
     <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600">
       <span><?= number_format($revPct, 1) ?>% Achieved</span>
-      <span class="muted"><?= $revPct >= 100 ? '🎉 Target exceeded!' : crm_money($t['revenue_target'] - $t['actual_revenue']) . ' remaining to goal' ?></span>
+      <span class="muted"><?= $revPct >= 100 ? '🎉 Target exceeded!' : crm_money(($t['revenue_target'] ?? 0) - ($t['actual_revenue'] ?? ($t['achieved_revenue'] ?? 0))) . ' remaining to goal' ?></span>
     </div>
   </div>
 </div>

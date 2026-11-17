@@ -26,12 +26,25 @@ final class SalesActivityService
     {
         $db = self::db();
         $b = $db->table('crm_sales_activities sa')
-            ->select("sa.*, o.name AS organisation_name, o.org_no, o.city AS org_city,
-                c.first_name, c.last_name, c.mobile AS contact_mobile, c.designation AS contact_designation,
-                CONCAT(u.first_name, ' ', u.last_name) AS assigned_user_name, e.enquiry_no, e.project_name AS enquiry_project_name,
-                conv.enquiry_no AS converted_lead_no")
+            ->select("sa.*,
+                COALESCE(sa.discussion_summary, sa.product_interest, sa.activity_no) AS subject,
+                sa.discussion_summary AS description,
+                sa.discussion_summary AS outcome_notes,
+                sa.activity_date AS scheduled_at,
+                sa.updated_at AS completed_at,
+                o.name AS organisation_name, o.org_no, o.city AS org_city,
+                c.first_name, c.last_name,
+                CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, '')) AS contact_name,
+                c.mobile AS contact_phone, c.mobile AS contact_mobile, c.designation AS contact_designation,
+                p.name AS project_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS assigned_user_name,
+                e.enquiry_no, e.project_name AS enquiry_project_name,
+                sa.converted_to_lead_id AS converted_to_enquiry_id,
+                conv.enquiry_no AS converted_lead_no,
+                conv.enquiry_no AS converted_enquiry_no")
             ->join('crm_organisations o', 'o.id = sa.organisation_id', 'left')
             ->join('crm_contacts c', 'c.id = sa.contact_id', 'left')
+            ->join('crm_projects p', 'p.id = sa.project_id', 'left')
             ->join('admin_users u', 'u.id = sa.assigned_user_id', 'left')
             ->join('crm_enquiries e', 'e.id = sa.lead_id', 'left')
             ->join('crm_enquiries conv', 'conv.id = sa.converted_to_lead_id', 'left');
@@ -100,11 +113,26 @@ final class SalesActivityService
     {
         $db = self::db();
         $row = $db->table('crm_sales_activities sa')
-            ->select("sa.*, o.name AS organisation_name, o.org_no, o.city AS org_city, o.primary_phone AS org_phone,
-                c.first_name, c.last_name, c.mobile AS contact_mobile, c.email AS contact_email, c.designation AS contact_designation,
-                CONCAT(u.first_name, ' ', u.last_name) AS assigned_user_name, CONCAT(creator.first_name, ' ', creator.last_name) AS creator_name, e.enquiry_no, conv.enquiry_no AS converted_lead_no")
+            ->select("sa.*,
+                COALESCE(sa.discussion_summary, sa.product_interest, sa.activity_no) AS subject,
+                sa.discussion_summary AS description,
+                sa.discussion_summary AS outcome_notes,
+                sa.activity_date AS scheduled_at,
+                sa.updated_at AS completed_at,
+                o.name AS organisation_name, o.org_no, o.city AS org_city, o.primary_phone AS org_phone,
+                c.first_name, c.last_name,
+                CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, '')) AS contact_name,
+                c.mobile AS contact_phone, c.mobile AS contact_mobile, c.email AS contact_email, c.designation AS contact_designation,
+                p.name AS project_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS assigned_user_name,
+                CONCAT(creator.first_name, ' ', creator.last_name) AS creator_name,
+                e.enquiry_no,
+                sa.converted_to_lead_id AS converted_to_enquiry_id,
+                conv.enquiry_no AS converted_lead_no,
+                conv.enquiry_no AS converted_enquiry_no")
             ->join('crm_organisations o', 'o.id = sa.organisation_id', 'left')
             ->join('crm_contacts c', 'c.id = sa.contact_id', 'left')
+            ->join('crm_projects p', 'p.id = sa.project_id', 'left')
             ->join('admin_users u', 'u.id = sa.assigned_user_id', 'left')
             ->join('admin_users creator', 'creator.id = sa.created_by', 'left')
             ->join('crm_enquiries e', 'e.id = sa.lead_id', 'left')

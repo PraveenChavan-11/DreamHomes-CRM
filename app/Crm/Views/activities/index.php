@@ -80,7 +80,7 @@ $statuses = ['scheduled', 'completed', 'cancelled', 'rescheduled', 'missed'];
             </span>
           </td>
           <td>
-            <strong><?= esc($r['subject']) ?></strong>
+            <strong><?= esc($r['subject'] ?? ($r['discussion_summary'] ?: ($r['product_interest'] ?: 'Activity #' . $r['activity_no']))) ?></strong>
             <?php if (! empty($r['location'])): ?><div class="muted small">📍 <?= esc($r['location']) ?></div><?php endif; ?>
           </td>
           <td>
@@ -91,14 +91,19 @@ $statuses = ['scheduled', 'completed', 'cancelled', 'rescheduled', 'missed'];
           </td>
           <td class="nowrap">
             <div><?= esc(crm_date($r['activity_date'])) ?></div>
-            <div class="muted small"><?= esc(crm_dt($r['scheduled_at'])) ?></div>
+            <?php if (! empty($r['scheduled_at'])): ?>
+              <div class="muted small"><?= esc(crm_dt($r['scheduled_at'])) ?></div>
+            <?php elseif (! empty($r['start_time'])): ?>
+              <div class="muted small"><?= esc(date('h:i A', strtotime($r['start_time']))) ?></div>
+            <?php endif; ?>
           </td>
           <td><?= esc($r['assigned_user_name'] ?? '—') ?></td>
           <td><?= crm_badge($r['status']) ?></td>
           <td>
-            <?php if (! empty($r['converted_to_enquiry_id'])): ?>
-              <a href="<?= site_url('crm/enquiries/' . $r['converted_to_enquiry_id']) ?>" class="badge badge-green" title="View Opportunity">
-                ✓ Converted (<?= esc($r['converted_enquiry_no'] ?? '#' . $r['converted_to_enquiry_id']) ?>)
+            <?php $convId = $r['converted_to_enquiry_id'] ?? ($r['converted_to_lead_id'] ?? null); ?>
+            <?php if (! empty($convId)): ?>
+              <a href="<?= site_url('crm/enquiries/' . $convId) ?>" class="badge badge-green" title="View Opportunity">
+                ✓ Converted (<?= esc($r['converted_enquiry_no'] ?? ($r['converted_lead_no'] ?? '#' . $convId)) ?>)
               </a>
             <?php elseif (! empty($r['outcome'])): ?>
               <span class="muted small">Outcome: <strong><?= esc(crm_label($r['outcome'])) ?></strong></span>

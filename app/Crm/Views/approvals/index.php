@@ -57,11 +57,12 @@ $base = site_url('crm/approvals');
           </td>
           <td>
             <a href="<?= site_url('crm/quotations/' . $r['quotation_id']) ?>"><?= esc($r['quotation_no']) ?></a>
-            <div class="muted small">v<?= (int) $r['version_no'] ?></div>
+            <div class="muted small">v<?= (int) ($r['version_no'] ?? 1) ?></div>
           </td>
           <td>
-            <?php if (! empty($r['org_name'])): ?>
-              <a href="<?= site_url('crm/organisations/' . $r['organisation_id']) ?>"><strong><?= esc($r['org_name']) ?></strong></a>
+            <?php $orgDisplay = $r['org_name'] ?? ($r['organisation_name'] ?? ''); ?>
+            <?php if (! empty($orgDisplay)): ?>
+              <a href="<?= site_url('crm/organisations/' . $r['organisation_id']) ?>"><strong><?= esc($orgDisplay) ?></strong></a>
             <?php endif; ?>
             <div class="muted small"><?= esc($r['contact_name'] ?? '—') ?></div>
           </td>
