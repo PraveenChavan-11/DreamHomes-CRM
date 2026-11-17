@@ -67,11 +67,11 @@ class OrganisationController extends CrmController
     public function show(int $id): string
     {
         $this->authorize('customers.view');
-        $data = OrganisationService::get360($id);
-        if (! $data || empty($data['organisation'])) {
-            throw new PageNotFoundException('Organisation not found.');
+        $org = OrganisationService::get($id);
+        if (! $org) {
+            throw new PageNotFoundException("Organisation #{$id} not found.");
         }
-
+        $data = OrganisationService::get360($id);
         $activeTab = $this->request->getGet('tab') ?: 'overview';
         $data['activeTab'] = $activeTab;
 

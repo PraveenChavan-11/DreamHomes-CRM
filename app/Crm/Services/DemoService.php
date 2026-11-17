@@ -91,8 +91,8 @@ final class DemoService
         $del('crm_payments', "order_id IN (SELECT id FROM crm_sales_orders WHERE enquiry_id IN ({$E}))");
         $del('crm_projects', "customer_id IN ({$C})");
         $del('crm_customer_addresses', "customer_id IN ({$C})");
-        $del('crm_email_log', "customer_id IN ({$C}) OR enquiry_id IN ({$E})");
-        $del('crm_notifications', "user_id IN ({$U})");
+        $del('crm_email_log', "customer_id IN ({$C}) OR enquiry_id IN ({$E}) OR is_demo = 1");
+        $del('crm_notifications', "user_id IN ({$U}) OR is_demo = 1");
         $del('crm_workflow_events', "customer_id IN ({$C}) OR enquiry_id IN ({$E})");
         $del('crm_site_measurements', "visit_id IN (SELECT id FROM crm_site_visits WHERE enquiry_id IN ({$E}))");
         $del('crm_site_visits', "enquiry_id IN ({$E})");
@@ -100,6 +100,8 @@ final class DemoService
         $del('crm_followups', "enquiry_id IN ({$E}) OR customer_id IN ({$C})");
         $del('crm_sales_order_items', "order_id IN (SELECT id FROM crm_sales_orders WHERE enquiry_id IN ({$E}))");
         $del('crm_sales_orders', "enquiry_id IN ({$E})");
+        $del('crm_approval_clarifications', "1=1");
+        $del('crm_quotation_approvals', "1=1");
         $del('crm_discount_approvals', "negotiation_id IN (SELECT id FROM crm_negotiations WHERE quotation_id IN ({$Q}))");
         $del('crm_negotiations', "quotation_id IN ({$Q})");
         $del('crm_quotation_items', "version_id IN (SELECT id FROM crm_quotation_versions WHERE quotation_id IN ({$Q}))");
@@ -109,8 +111,13 @@ final class DemoService
         $del('crm_enquiry_assignments', "enquiry_id IN ({$E})");
         $del('crm_enquiry_status_history', "enquiry_id IN ({$E})");
         $del('crm_enquiries', "id IN ({$E})");
+        $del('crm_sales_activities', "1=1");
+        $del('crm_sales_targets', "1=1");
+        $del('crm_communication_logs', "1=1");
         $del('crm_customer_contacts', "customer_id IN ({$C})");
+        $del('crm_contacts', "1=1");
         $del('crm_customers', "id IN ({$C})");
+        $del('crm_organisations', "1=1");
         $del('crm_product_price_history', "product_id IN ({$P})");
         $del('crm_product_variants', "sku LIKE 'DEMO-%' OR product_id IN ({$P})");
         $del('crm_products', "id IN ({$P})");
@@ -127,7 +134,7 @@ final class DemoService
         $db->query('DELETE FROM crm_assignment_state');
         $db->query('DELETE FROM crm_demo_registry');
         // Re-start numbering only when no real (non-demo) records remain, so demo numbers are repeatable.
-        foreach (['customer' => 'crm_customers', 'enquiry' => 'crm_enquiries', 'quotation' => 'crm_quotations', 'order' => 'crm_sales_orders', 'negotiation' => 'crm_negotiations', 'visit' => 'crm_site_visits'] as $key => $table) {
+        foreach (['customer' => 'crm_customers', 'enquiry' => 'crm_enquiries', 'quotation' => 'crm_quotations', 'order' => 'crm_sales_orders', 'negotiation' => 'crm_negotiations', 'visit' => 'crm_site_visits', 'organisation' => 'crm_organisations', 'contact' => 'crm_contacts', 'activity' => 'crm_sales_activities', 'approval' => 'crm_quotation_approvals', 'target' => 'crm_sales_targets'] as $key => $table) {
             if ((int) $db->table($table)->countAllResults() === 0) {
                 $db->query('UPDATE crm_number_sequences SET next_value = 1 WHERE seq_key = ?', [$key]);
             }
