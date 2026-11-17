@@ -28,11 +28,20 @@ class EnquiryController extends CrmController
     private function enquiry(int $id): array
     {
         $row = Crm::db()->table('crm_enquiries e')
-            ->select("e.*, c.name AS customer_name, c.customer_no, c.mobile AS customer_mobile, c.email AS customer_email, c.city AS customer_city, CONCAT(o.first_name,' ',o.last_name) AS owner_name,
+            ->select("e.*, COALESCE(org.name, c.company_name, c.name) AS organisation_name, org.org_no,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) AS contact_person_name,
+                      ct.designation AS contact_person_designation, ct.mobile_number AS contact_person_mobile, ct.email AS contact_person_email,
+                      c.name AS customer_name, c.customer_no, c.mobile AS customer_mobile, c.email AS customer_email, c.city AS customer_city, CONCAT(o.first_name,' ',o.last_name) AS owner_name,
                       t.name AS team_name, pc.name AS category_name, ls.name AS source_name, lr.name AS lost_reason, CONCAT(cb.first_name,' ',cb.last_name) AS closed_by_name")
-            ->join('crm_customers c', 'c.id = e.customer_id')->join('admin_users o', 'o.id = e.current_owner_id', 'left')->join('crm_teams t', 't.id = e.team_id', 'left')
-            ->join('crm_product_categories pc', 'pc.id = e.product_category_id', 'left')->join('crm_lead_sources ls', 'ls.id = e.source_id', 'left')
-            ->join('crm_lost_reasons lr', 'lr.id = e.lost_reason_id', 'left')->join('admin_users cb', 'cb.id = e.closed_by', 'left')
+            ->join('crm_customers c', 'c.id = e.customer_id', 'left')
+            ->join('crm_organisations org', 'org.id = e.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = e.contact_id', 'left')
+            ->join('admin_users o', 'o.id = e.current_owner_id', 'left')
+            ->join('crm_teams t', 't.id = e.team_id', 'left')
+            ->join('crm_product_categories pc', 'pc.id = e.product_category_id', 'left')
+            ->join('crm_lead_sources ls', 'ls.id = e.source_id', 'left')
+            ->join('crm_lost_reasons lr', 'lr.id = e.lost_reason_id', 'left')
+            ->join('admin_users cb', 'cb.id = e.closed_by', 'left')
             ->where('e.id', $id)->get()->getRowArray();
         if (! $row || ! AccessScope::canSeeEnquiry($this->user(), $id)) {
             throw new PageNotFoundException('Enquiry not found');
@@ -65,14 +74,28 @@ class EnquiryController extends CrmController
     private function listQuery(array $f)
     {
         $b = Crm::db()->table('crm_enquiries e')
-            ->select("e.id, e.enquiry_no, e.project_name, e.status, e.priority, e.lead_score, e.est_budget, e.created_at, e.outcome, e.customer_id, e.current_owner_id, e.final_value,
+            ->select("e.id, e.enquiry_no, e.project_name, e.status, e.priority, e.lead_score, e.est_budget, e.created_at, e.outcome, e.customer_id, e.organisation_id, e.contact_id, e.current_owner_id, e.final_value,
+                      COALESCE(org.name, c.company_name, c.name) AS organisation_name, org.org_no,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) AS contact_name, ct.designation AS contact_designation,
                       c.name AS customer_name, c.customer_no, CONCAT(o.first_name,' ',o.last_name) AS owner_name, t.name AS team_name, pc.name AS category_name")
-            ->join('crm_customers c', 'c.id = e.customer_id')->join('admin_users o', 'o.id = e.current_owner_id', 'left')->join('crm_teams t', 't.id = e.team_id', 'left')
+            ->join('crm_customers c', 'c.id = e.customer_id', 'left')
+            ->join('crm_organisations org', 'org.id = e.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = e.contact_id', 'left')
+            ->join('admin_users o', 'o.id = e.current_owner_id', 'left')
+            ->join('crm_teams t', 't.id = e.team_id', 'left')
             ->join('crm_product_categories pc', 'pc.id = e.product_category_id', 'left');
         AccessScope::scopeEnquiries($b, $this->user());
         if (($f['q'] ?? '') !== '') {
             $like = $f['q'];
-            $b->groupStart()->like('e.enquiry_no', $like)->orLike('e.project_name', $like)->orLike('c.name', $like)->orLike('c.mobile', $like)->groupEnd();
+            $b->groupStart()
+                ->like('e.enquiry_no', $like)
+                ->orLike('e.project_name', $like)
+                ->orLike('org.name', $like)
+                ->orLike('ct.first_name', $like)
+                ->orLike('ct.last_name', $like)
+                ->orLike('c.name', $like)
+                ->orLike('c.mobile', $like)
+                ->groupEnd();
         }
         if (in_array($f['status'] ?? '', self::STATUSES, true)) {
             $b->where('e.status', $f['status']);
@@ -146,16 +169,46 @@ class EnquiryController extends CrmController
 
     public function new(): string
     {
+        $db = Crm::db();
+        $orgId = (int) $this->request->getGet('organisation_id');
         $cid = (int) $this->request->getGet('customer_id');
         $sel = null;
-        if ($cid && AccessScope::canSeeCustomer($this->user(), $cid)) {
-            $sel = Crm::db()->table('crm_customers')->select('id, customer_no, name, mobile, city')->where('id', $cid)->get()->getRowArray();
+        if ($orgId) {
+            $selOrg = $db->table('crm_organisations')->where('id', $orgId)->get()->getRowArray();
+            if ($selOrg) {
+                $sel = ['id' => $selOrg['id'], 'org_no' => $selOrg['org_no'], 'name' => $selOrg['name'], 'city' => $selOrg['city'], 'mobile' => $selOrg['primary_phone']];
+            }
+        } elseif ($cid && AccessScope::canSeeCustomer($this->user(), $cid)) {
+            $sel = $db->table('crm_customers')->select('id, customer_no, name, mobile, city, organisation_id')->where('id', $cid)->get()->getRowArray();
+            if ($sel && ! empty($sel['organisation_id'])) {
+                $orgId = (int) $sel['organisation_id'];
+            }
         }
-        $builder = Crm::db()->table('crm_customers c')->select('c.id, c.customer_no, c.name, c.mobile, c.city')->where('c.status', 'active');
+
+        $organisations = $db->table('crm_organisations')
+            ->select('id, org_no, name, type, city, primary_phone')
+            ->where('account_status', 'active')
+            ->orderBy('name')
+            ->limit(500)
+            ->get()->getResultArray();
+
+        $contacts = $db->table('crm_contacts')
+            ->select('id, organisation_id, first_name, last_name, designation, mobile_number, email')
+            ->where('status', 'active')
+            ->orderBy('first_name')
+            ->get()->getResultArray();
+
+        $builder = $db->table('crm_customers c')->select('c.id, c.customer_no, c.name, c.mobile, c.city, c.organisation_id')->where('c.status', 'active');
         AccessScope::scopeCustomers($builder, $this->user());
 
-        return $this->render('enquiries/form', ['selected' => $sel, 'customers' => $builder->orderBy('c.name')->limit(500)->get()->getResultArray(), 'duplicates' => session()->getFlashdata('duplicates') ?? []]
-            + $this->lookups(), 'New enquiry', 'enquiries');
+        return $this->render('enquiries/form', [
+            'selected' => $sel,
+            'selected_org_id' => $orgId,
+            'organisations' => $organisations,
+            'contacts' => $contacts,
+            'customers' => $builder->orderBy('c.name')->limit(500)->get()->getResultArray(),
+            'duplicates' => session()->getFlashdata('duplicates') ?? [],
+        ] + $this->lookups(), 'New enquiry', 'enquiries');
     }
 
     public function create()
@@ -180,19 +233,89 @@ class EnquiryController extends CrmController
         $msg = null;
         $res = $this->act(function () use ($p, $d, $user, $allow, &$msg) {
             return Crm::tx(function () use ($p, $d, $user, $allow, &$msg) {
+                $db = Crm::db();
+                $orgId = (int) ($p['organisation_id'] ?? 0);
+                $contactId = (int) ($p['contact_id'] ?? 0);
                 $cid = (int) ($p['customer_id'] ?? 0);
-                if ($cid) {
+
+                if (! empty($p['org_mode']) && $p['org_mode'] === 'new') {
+                    // Create New Organisation & Contact
+                    $orgName = trim((string) ($p['org_name'] ?? ''));
+                    if ($orgName === '') {
+                        throw new CrmException('Organisation name is required.');
+                    }
+                    $orgNo = \Crm\Services\NumberSequenceService::next('organisation');
+                    $db->table('crm_organisations')->insert([
+                        'org_no' => $orgNo,
+                        'name' => $orgName,
+                        'type' => $p['org_type'] ?? 'Corporate',
+                        'city' => $p['org_city'] ?? 'Pune',
+                        'primary_phone' => $p['contact_mobile'] ?? $p['org_phone'] ?? null,
+                        'primary_email' => $p['contact_email'] ?? $p['org_email'] ?? null,
+                        'account_status' => 'active',
+                        'created_by' => $user['id'],
+                        'created_at' => Crm::now(),
+                        'updated_at' => Crm::now(),
+                    ]);
+                    $orgId = (int) $db->insertID();
+
+                    $contactName = trim((string) ($p['contact_name'] ?? $orgName));
+                    $parts = explode(' ', $contactName, 2);
+                    $contactNo = \Crm\Services\NumberSequenceService::next('contact');
+                    $db->table('crm_contacts')->insert([
+                        'contact_no' => $contactNo,
+                        'organisation_id' => $orgId,
+                        'first_name' => $parts[0],
+                        'last_name' => $parts[1] ?? '',
+                        'designation' => $p['contact_designation'] ?? 'Primary Contact',
+                        'mobile_number' => $p['contact_mobile'] ?? '9000000000',
+                        'email' => $p['contact_email'] ?? null,
+                        'is_primary' => 1,
+                        'status' => 'active',
+                        'created_by' => $user['id'],
+                        'created_at' => Crm::now(),
+                        'updated_at' => Crm::now(),
+                    ]);
+                    $contactId = (int) $db->insertID();
+                }
+
+                if ($orgId > 0) {
+                    $org = $db->table('crm_organisations')->where('id', $orgId)->get()->getRowArray() ?? throw new CrmException('Organisation not found.');
+                    $d['organisation_id'] = $orgId;
+                    if ($contactId > 0) {
+                        $d['contact_id'] = $contactId;
+                    }
+                    // Find or create anchor customer record for backward compatibility
+                    $cust = $db->table('crm_customers')->where('organisation_id', $orgId)->get()->getRowArray();
+                    if ($cust) {
+                        $cid = (int) $cust['id'];
+                    } else {
+                        $cid = CustomerService::create([
+                            'name' => $org['name'],
+                            'company_name' => $org['name'],
+                            'customer_type' => $org['type'] ?? 'company',
+                            'organisation_id' => $orgId,
+                            'primary_contact_id' => $contactId ?: null,
+                            'mobile' => $org['primary_phone'] ?? '9000000000',
+                            'email' => $org['primary_email'] ?? null,
+                            'city' => $org['city'] ?? 'Pune',
+                        ], (int) $user['id'], true, 1);
+                    }
+                } elseif ($cid) {
                     if (! AccessScope::canSeeCustomer($user, $cid)) {
-                        throw new CrmException('You do not have access to that customer.');
+                        throw new CrmException('You do not have access to that client.');
+                    }
+                    $cust = $db->table('crm_customers')->where('id', $cid)->get()->getRowArray();
+                    if ($cust && ! empty($cust['organisation_id'])) {
+                        $d['organisation_id'] = (int) $cust['organisation_id'];
+                        $d['contact_id'] = (int) ($cust['primary_contact_id'] ?? 0);
                     }
                 } else {
-                    if (! AccessScope::can($user, 'customers.create')) {
-                        throw new CrmException('Choose an existing customer (you cannot create new customers).');
-                    }
                     $c = $this->pick($p, ['name', 'mobile', 'email', 'city', 'customer_type', 'company_name']);
                     $c = array_filter($c, static fn ($v) => $v !== '');
                     $cid = CustomerService::create($c, (int) $user['id'], $allow);
                 }
+
                 $res = EnquiryService::create($d + ['customer_id' => $cid], $user, $allow);
                 $owner = $res['owner_id'] ? (HistoryService::userNames()[$res['owner_id']] ?? 'a salesperson') : null;
                 $msg = "Enquiry {$res['enquiry_no']} created. " . ($owner ? "Assigned to {$owner} ({$res['assignment']})." : 'No eligible salesperson was available — it is unassigned; managers were alerted.');

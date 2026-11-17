@@ -44,8 +44,8 @@ $qs = static fn (array $extra = []) => '?' . http_build_query(array_merge($f, $e
         <?php foreach ($col['rows'] as $r): ?>
           <article class="kcard" draggable="true" data-id="<?= (int) $r['id'] ?>" data-status="<?= esc($r['status']) ?>" data-next="<?= esc(implode(',', $col['next'])) ?>" data-url="<?= site_url('crm/enquiries/' . (int) $r['id'] . '/status') ?>">
             <a class="n" href="<?= site_url('crm/enquiries/' . (int) $r['id']) ?>"><?= esc($r['enquiry_no']) ?></a> <?= crm_badge($r['priority']) ?>
-            <div><?= esc($r['project_name'] ?: '—') ?></div>
-            <div class="muted small"><?= esc($r['customer_name']) ?></div>
+            <div style="font-weight:600;color:var(--th-dark)"><?= esc($r['organisation_name'] ?? $r['customer_name']) ?></div>
+            <div class="muted small"><?= esc($r['project_name'] ?: '—') ?><?php if (! empty($r['contact_name'])): ?> · <?= esc($r['contact_name']) ?><?php endif; ?></div>
             <div class="muted small"><?= esc($r['owner_name'] ?: 'Unassigned') ?><?= $r['est_budget'] !== null ? ' · ' . crm_money0($r['est_budget']) : '' ?></div>
             <?php if (crm_can('enquiries.edit', 'enquiries.close') && $col['next']): ?>
               <form method="post" action="<?= site_url('crm/enquiries/' . (int) $r['id'] . '/status') ?>" class="gap" style="margin-top:6px"><?= csrf_field() ?>
@@ -65,12 +65,23 @@ $qs = static fn (array $extra = []) => '?' . http_build_query(array_merge($f, $e
       <div class="empty"><strong>No enquiries match these filters</strong>Adjust the filters or create a new enquiry.</div>
     <?php else: ?>
       <div class="tablewrap"><table class="t">
-        <thead><tr><th>Enquiry</th><th>Customer</th><th>Project</th><th>Category</th><th>Status</th><th>Priority</th><th class="num">Score</th><th>Owner</th><th class="num">Budget</th><th>Created</th></tr></thead>
+        <thead><tr><th>Enquiry</th><th>Organisation / Client</th><th>Project</th><th>Category</th><th>Status</th><th>Priority</th><th class="num">Score</th><th>Owner</th><th class="num">Budget</th><th>Created</th></tr></thead>
         <tbody>
         <?php foreach ($rows as $r): ?>
           <tr>
             <td class="nowrap"><a href="<?= site_url('crm/enquiries/' . (int) $r['id']) ?>"><strong><?= esc($r['enquiry_no']) ?></strong></a></td>
-            <td><a href="<?= site_url('crm/customers/' . (int) $r['customer_id']) ?>"><?= esc($r['customer_name']) ?></a><div class="muted small"><?= esc($r['customer_no']) ?></div></td>
+            <td>
+              <a href="<?= ! empty($r['organisation_id']) ? site_url('crm/organisations/' . (int) $r['organisation_id']) : site_url('crm/enquiries/' . (int) $r['id']) ?>">
+                <strong><?= esc($r['organisation_name'] ?? $r['customer_name']) ?></strong>
+              </a>
+              <div class="muted small">
+                <?php if (! empty($r['contact_name'])): ?>
+                  <?= esc($r['contact_name']) ?><?= ! empty($r['contact_designation']) ? ' (' . esc($r['contact_designation']) . ')' : '' ?>
+                <?php else: ?>
+                  <?= esc($r['customer_no'] ?? '') ?>
+                <?php endif; ?>
+              </div>
+            </td>
             <td><?= esc($r['project_name'] ?: '—') ?></td><td><?= esc($r['category_name'] ?: '—') ?></td>
             <td><?= crm_badge($r['status']) ?></td><td><?= crm_badge($r['priority']) ?></td><td class="num"><?= (int) $r['lead_score'] ?></td>
             <td><?= esc($r['owner_name'] ?: 'Unassigned') ?></td><td class="num"><?= $r['est_budget'] !== null ? crm_money0($r['est_budget']) : '—' ?></td>

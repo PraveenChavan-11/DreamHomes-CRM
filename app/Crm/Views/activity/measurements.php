@@ -55,8 +55,19 @@
                 </span>
               </td>
               <td>
-                <div style="font-weight:700;color:var(--text);margin-bottom:2px"><?= esc($m['customer_name']) ?></div>
-                <div class="muted small"><?= esc($m['project_name'] ?: 'Site Opening') ?></div>
+                <div style="font-weight:700;color:var(--text);margin-bottom:2px">
+                  <?php if (! empty($m['organisation_id'])): ?>
+                    <a href="<?= site_url('crm/organisations/' . $m['organisation_id']) ?>" style="color:inherit"><?= esc($m['organisation_name'] ?? $m['customer_name']) ?></a>
+                  <?php else: ?>
+                    <?= esc($m['organisation_name'] ?? $m['customer_name']) ?>
+                  <?php endif; ?>
+                </div>
+                <div class="muted small">
+                  <?php if (! empty($m['contact_person'])): ?>
+                    <span style="font-weight:500;color:var(--th-dark)"><?= esc($m['contact_person']) ?><?= ! empty($m['contact_role']) ? ' (' . esc($m['contact_role']) . ')' : '' ?></span> · 
+                  <?php endif; ?>
+                  <?= esc($m['project_name'] ?: 'Site Opening') ?>
+                </div>
               </td>
               <td>
                 <?php if (! empty($m['items'])): ?>

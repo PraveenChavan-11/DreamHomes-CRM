@@ -72,8 +72,12 @@
               </td>
               <td><span class="badge badge-grey"><?= esc(ucwords(str_replace('_', ' ', $t['request_type']))) ?></span></td>
               <td>
-                <a href="<?= site_url("crm/customers/{$t['customer_id']}") ?>" style="color:inherit;font-weight:600"><?= esc($t['customer_name']) ?></a><br>
-                <span class="muted small"><?= esc($t['customer_mobile']) ?></span>
+                <?php if (! empty($t['organisation_id'])): ?>
+                  <a href="<?= site_url("crm/organisations/{$t['organisation_id']}") ?>" style="color:inherit;font-weight:700"><?= esc($t['organisation_name'] ?? $t['customer_name']) ?></a><br>
+                <?php else: ?>
+                  <strong style="color:inherit"><?= esc($t['organisation_name'] ?? $t['customer_name']) ?></strong><br>
+                <?php endif; ?>
+                <span class="muted small"><?= esc($t['contact_name'] ?? $t['customer_name']) ?><?= ! empty($t['customer_mobile']) ? ' · ' . esc($t['customer_mobile']) : '' ?></span>
               </td>
               <td><?= esc($t['order_no'] ?: '—') ?></td>
               <td style="max-width:280px" class="small">

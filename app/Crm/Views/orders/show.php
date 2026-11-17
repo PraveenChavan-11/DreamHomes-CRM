@@ -28,7 +28,7 @@ $balance = \Crm\Services\Money::round(\Crm\Services\Money::sub($o['grand_total']
 
 <div class="grid g-side mb">
   <div class="card"><div class="hd"><h2>Order details</h2></div><div class="bd"><dl class="kv">
-    <dt>Customer</dt><dd><a href="<?= site_url('crm/customers/' . (int) $c['id']) ?>"><?= esc($c['name']) ?></a> · <?= esc($c['mobile']) ?></dd>
+    <dt>Organisation</dt><dd><?php if (! empty($org['id'])): ?><a href="<?= site_url('crm/organisations/' . (int) $org['id']) ?>"><strong><?= esc($org['name']) ?></strong> (<?= esc($org['org_no']) ?>)</a><?php else: ?><strong><?= esc($c['company_name'] ?: $c['name']) ?></strong><?php endif; ?><?php if (! empty($contact['first_name'])): ?> · Contact: <?= esc($contact['first_name'] . ' ' . $contact['last_name']) ?><?= ! empty($contact['designation']) ? ' (' . esc($contact['designation']) . ')' : '' ?><?php else: ?> · <?= esc($c['name']) ?><?php endif; ?> · <?= esc($contact['mobile_number'] ?? $c['mobile']) ?></dd>
     <dt>Enquiry</dt><dd><a href="<?= site_url('crm/enquiries/' . (int) $e['id']) ?>"><?= esc($e['enquiry_no']) ?></a> <?= crm_badge($e['status']) ?> <?= $e['final_value'] !== null ? '· final value ' . crm_money($e['final_value']) : '' ?></dd>
     <dt>Quotation</dt><dd><a href="<?= site_url('crm/quotations/' . (int) $q['id'] . '?v=' . (int) $v['version_no']) ?>"><?= esc($q['quotation_no']) ?> v<?= (int) $v['version_no'] ?></a> · accepted <?= crm_date($q['responded_at']) ?></dd>
     <dt>Salesperson</dt><dd><?= esc($owner) ?></dd><dt>Created by</dt><dd><?= esc($creator) ?> on <?= crm_dt($o['created_at']) ?></dd>
@@ -43,15 +43,36 @@ $balance = \Crm\Services\Money::round(\Crm\Services\Money::sub($o['grand_total']
 <div class="card mb"><div class="hd"><h2>Items (snapshot of the accepted quotation)</h2></div><div class="bd flush tablewrap"><table class="t">
   <thead><tr><th>#</th><th>Item</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Discount</th><th class="num">GST</th><th class="num">Line total</th></tr></thead><tbody>
   <?php foreach ($items as $n => $i): ?><tr><td><?= $n + 1 ?></td><td><?= esc($i['description']) ?><?= $i['sku'] ? ' <span class="muted small">(' . esc($i['sku']) . ')</span>' : '' ?></td><td class="num"><?= $qty($i['quantity']) ?> <?= esc($i['unit']) ?></td><td class="num"><?= crm_money($i['unit_price']) ?></td><td class="num"><?= crm_money($i['discount_amount']) ?></td><td class="num"><?= crm_money($i['tax_amount']) ?></td><td class="num"><strong><?= crm_money($i['line_total']) ?></strong></td></tr><?php endforeach; ?></tbody></table></div>
-  <div class="bd" style="padding-top:16px;padding-bottom:20px;background:#FAFCFB;border-top:1px solid var(--line-2)">
-    <div class="totals">
-      <div class="row-subtotal"><span>Subtotal</span><span><?= crm_money($o['subtotal']) ?></span></div>
-      <?php if ((float) $o['discount_total'] > 0): ?>
-        <div class="row-discount"><span>Discount Applied</span><span>− <?= crm_money($o['discount_total']) ?></span></div>
-      <?php endif; ?>
-      <div class="row-charge"><span>Additional Charges</span><span><?= crm_money($o['charges_total']) ?></span></div>
-      <div class="row-tax"><span>GST (Taxes)</span><span><?= crm_money($o['tax_total']) ?></span></div>
-      <div class="gt row-grand-total"><span>Order Total (INR)</span><span><?= crm_money($o['grand_total']) ?></span></div>
+  <div class="bd" style="padding:20px 24px;background:#FAFCFB;border-top:1px solid var(--line-2)">
+    <div style="margin-left:auto;width:100%;max-width:460px;background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+      <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+        <tbody>
+          <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+            <td style="padding:8px 0;color:var(--text-muted);font-weight:500">Item Subtotal</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums"><?= crm_money($o['subtotal']) ?></td>
+          </tr>
+          <?php if ((float) $o['discount_total'] > 0): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:8px 0;color:#B91C1C;font-weight:600">Discount Applied</td>
+              <td style="padding:8px 0;text-align:right;color:#B91C1C;font-weight:700;font-variant-numeric:tabular-nums">− <?= crm_money($o['discount_total']) ?></td>
+            </tr>
+          <?php endif; ?>
+          <?php if ((float) $o['charges_total'] > 0): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:7px 0;color:var(--text-muted);font-weight:500">Additional Charges</td>
+              <td style="padding:7px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums"><?= crm_money($o['charges_total']) ?></td>
+            </tr>
+          <?php endif; ?>
+          <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+            <td style="padding:7px 0;color:var(--text-muted);font-size:12.5px">GST (Taxes)</td>
+            <td style="padding:7px 0;text-align:right;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums"><?= crm_money($o['tax_total']) ?></td>
+          </tr>
+          <tr style="border-top:2px solid var(--th-primary)">
+            <td style="padding:14px 0 4px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--th-dark)">Order Total (INR)</td>
+            <td style="padding:14px 0 4px;text-align:right;font-size:22px;font-weight:800;color:var(--th-primary);font-variant-numeric:tabular-nums"><?= crm_money($o['grand_total']) ?></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div></div>
 

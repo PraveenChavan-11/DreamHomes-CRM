@@ -102,12 +102,15 @@ class QuotationController extends CrmController
         if (! empty($g['from'])) { $w[] = 'q.created_at >= ?'; $b[] = $g['from'] . ' 00:00:00'; }
         if (! empty($g['to'])) { $w[] = 'q.created_at <= ?'; $b[] = $g['to'] . ' 23:59:59'; }
         if (! empty($g['enquiry'])) { $w[] = 'e.enquiry_no LIKE ?'; $b[] = '%' . $g['enquiry'] . '%'; }
-        if (! empty($g['q'])) { $w[] = '(q.quotation_no LIKE ? OR c.name LIKE ? OR c.customer_no LIKE ?)'; $b = array_merge($b, ['%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%']); }
+        if (! empty($g['q'])) { $w[] = '(q.quotation_no LIKE ? OR org.name LIKE ? OR ct.first_name LIKE ? OR c.name LIKE ? OR c.customer_no LIKE ?)'; $b = array_merge($b, ['%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%']); }
         $where = implode(' AND ', $w);
-        $from  = 'FROM crm_quotations q JOIN crm_enquiries e ON e.id = q.enquiry_id JOIN crm_customers c ON c.id = q.customer_id JOIN crm_quotation_versions v ON v.id = q.current_version_id LEFT JOIN admin_users u ON u.id = e.current_owner_id';
+        $from  = 'FROM crm_quotations q JOIN crm_enquiries e ON e.id = q.enquiry_id JOIN crm_customers c ON c.id = q.customer_id JOIN crm_quotation_versions v ON v.id = q.current_version_id LEFT JOIN crm_organisations org ON org.id = q.organisation_id LEFT JOIN crm_contacts ct ON ct.id = q.contact_id LEFT JOIN admin_users u ON u.id = e.current_owner_id';
         $sum   = $db->query("SELECT COUNT(*) n, COALESCE(SUM(v.grand_total),0) total {$from} WHERE {$where}", $b)->getRowArray();
         $page  = $this->page();
-        $rows  = $db->query("SELECT q.id, q.quotation_no, q.status, q.created_at, q.responded_at, c.id customer_id, c.name customer_name, e.id enquiry_id, e.enquiry_no, e.project_name,
+        $rows  = $db->query("SELECT q.id, q.quotation_no, q.status, q.created_at, q.responded_at, q.organisation_id, q.contact_id,
+                             COALESCE(org.name, c.company_name, c.name) organisation_name, org.org_no,
+                             COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) contact_name, ct.designation contact_designation,
+                             c.id customer_id, c.name customer_name, e.id enquiry_id, e.enquiry_no, e.project_name,
                              v.version_no, v.grand_total, v.discount_total, v.valid_until, v.is_locked, CONCAT(u.first_name,' ',u.last_name) owner_name
                              {$from} WHERE {$where} ORDER BY q.id DESC LIMIT " . self::PER . ' OFFSET ' . (($page - 1) * self::PER), $b)->getResultArray();
         $byStatus = $db->query("SELECT q.status, COUNT(*) n {$from} WHERE {$where} GROUP BY q.status", $b)->getResultArray();
@@ -270,6 +273,8 @@ class QuotationController extends CrmController
             }
         }
         $c = $db->table('crm_customers')->where('id', $q['customer_id'])->get()->getRowArray();
+        $org = ! empty($q['organisation_id']) ? $db->table('crm_organisations')->where('id', $q['organisation_id'])->get()->getRowArray() : ($db->table('crm_organisations')->where('id', $c['organisation_id'] ?? 0)->get()->getRowArray());
+        $contact = ! empty($q['contact_id']) ? $db->table('crm_contacts')->where('id', $q['contact_id'])->get()->getRowArray() : ($db->table('crm_contacts')->where('id', $c['primary_contact_id'] ?? 0)->get()->getRowArray());
         $e = $db->table('crm_enquiries e')->select("e.*, CONCAT(u.first_name,' ',u.last_name) owner_name")->join('admin_users u', 'u.id = e.current_owner_id', 'left')->where('e.id', $q['enquiry_id'])->get()->getRowArray();
         $negs = $db->table('crm_negotiations n')->select("n.*, CONCAT(u.first_name,' ',u.last_name) requester, v.version_no from_version, rv.version_no result_version")->join('admin_users u', 'u.id = n.requested_by', 'left')
             ->join('crm_quotation_versions v', 'v.id = n.version_id', 'left')->join('crm_quotation_versions rv', 'rv.id = n.resulting_version_id', 'left')->where('n.quotation_id', $id)->orderBy('n.id', 'DESC')->get()->getResultArray();
@@ -279,8 +284,8 @@ class QuotationController extends CrmController
         $open  = array_values(array_filter($negs, static fn ($n) => in_array($n['status'], ['pending', 'escalated', 'approved'], true)));
 
         return $this->render('quotations/show', [
-            'q' => $q, 'c' => $c, 'e' => $e, 'versions' => $versions, 'sel' => $sel, 'cur' => $cur, 'negs' => $negs, 'openNeg' => $open[0] ?? null, 'order' => $order, 'mails' => $mails,
-            'intra' => strcasecmp(trim((string) $c['state']), Settings::get('company.state')) === 0 || trim((string) $c['state']) === '',
+            'q' => $q, 'c' => $c, 'org' => $org, 'contact' => $contact, 'e' => $e, 'versions' => $versions, 'sel' => $sel, 'cur' => $cur, 'negs' => $negs, 'openNeg' => $open[0] ?? null, 'order' => $order, 'mails' => $mails,
+            'intra' => strcasecmp(trim((string) ($org['state'] ?? $c['state'])), Settings::get('company.state')) === 0 || trim((string) ($org['state'] ?? $c['state'])) === '',
         ], $q['quotation_no'] . ' · v' . $sel['version_no'], 'quotations');
     }
 

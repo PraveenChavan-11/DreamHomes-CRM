@@ -14,9 +14,14 @@ final class FulfilmentService
     {
         $db = Crm::db();
         $builder = $db->table('crm_deliveries d')
-            ->select('d.*, o.order_no, c.name as customer_name, c.mobile as customer_mobile')
+            ->select("d.*, o.order_no, o.organisation_id, o.contact_id, org.org_no,
+                      COALESCE(org.name, c.company_name, c.name) as organisation_name,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) as contact_name,
+                      c.name as customer_name, c.mobile as customer_mobile")
             ->join('crm_sales_orders o', 'o.id = d.order_id', 'left')
-            ->join('crm_customers c', 'c.id = d.customer_id', 'left');
+            ->join('crm_customers c', 'c.id = d.customer_id', 'left')
+            ->join('crm_organisations org', 'org.id = o.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = o.contact_id', 'left');
 
         $q = trim((string) ($params['q'] ?? ''));
         if ($q !== '') {
@@ -25,6 +30,8 @@ final class FulfilmentService
                 ->orLike('d.challan_no', $q)
                 ->orLike('d.tracking_no', $q)
                 ->orLike('d.driver_name', $q)
+                ->orLike('org.name', $q)
+                ->orLike('ct.first_name', $q)
                 ->orLike('o.order_no', $q)
                 ->orLike('c.name', $q)
                 ->groupEnd();
@@ -111,9 +118,14 @@ final class FulfilmentService
     {
         $db = Crm::db();
         $builder = $db->table('crm_installations i')
-            ->select('i.*, o.order_no, c.name as customer_name, c.mobile as customer_mobile')
+            ->select("i.*, o.order_no, o.organisation_id, o.contact_id, org.org_no,
+                      COALESCE(org.name, c.company_name, c.name) as organisation_name,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) as contact_name,
+                      c.name as customer_name, c.mobile as customer_mobile")
             ->join('crm_sales_orders o', 'o.id = i.order_id', 'left')
-            ->join('crm_customers c', 'c.id = i.customer_id', 'left');
+            ->join('crm_customers c', 'c.id = i.customer_id', 'left')
+            ->join('crm_organisations org', 'org.id = o.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = o.contact_id', 'left');
 
         $q = trim((string) ($params['q'] ?? ''));
         if ($q !== '') {
@@ -121,6 +133,8 @@ final class FulfilmentService
                 ->like('i.installation_no', $q)
                 ->orLike('i.technician_name', $q)
                 ->orLike('i.customer_signoff_name', $q)
+                ->orLike('org.name', $q)
+                ->orLike('ct.first_name', $q)
                 ->orLike('o.order_no', $q)
                 ->orLike('c.name', $q)
                 ->groupEnd();

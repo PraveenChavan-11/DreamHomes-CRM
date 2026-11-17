@@ -78,9 +78,13 @@ final class EnquiryService
                 throw new CrmException('Enquiries can only be created for active customers.');
             }
             $no  = NumberSequenceService::next('enquiry');
+            $orgId = ! empty($d['organisation_id']) ? (int) $d['organisation_id'] : ($cust['organisation_id'] ?? null);
+            $contactId = ! empty($d['contact_id']) ? (int) $d['contact_id'] : ($cust['primary_contact_id'] ?? null);
             $row = [
-                'enquiry_no' => $no, 'customer_id' => (int) $d['customer_id'], 'project_name' => $d['project_name'] ?? null,
-                'product_category_id' => $d['product_category_id'] ?? null, 'requirements' => $d['requirements'] ?? null, 'site_location' => $d['site_location'] ?? $cust['city'],
+                'enquiry_no' => $no, 'customer_id' => (int) $d['customer_id'],
+                'organisation_id' => $orgId, 'contact_id' => $contactId, 'project_id' => ! empty($d['project_id']) ? (int) $d['project_id'] : null,
+                'project_name' => $d['project_name'] ?? null,
+                'product_category_id' => $d['product_category_id'] ?? null, 'requirements' => $d['requirements'] ?? null, 'site_location' => $d['site_location'] ?? ($cust['city'] ?? 'Pune'),
                 'est_budget' => ($d['est_budget'] ?? '') !== '' ? $d['est_budget'] : null, 'expected_purchase_date' => $d['expected_purchase_date'] ?? null,
                 'source_id' => $d['source_id'] ?? null, 'source_channel' => $d['source_channel'] ?? 'manual', 'priority' => $d['priority'] ?? 'medium',
                 'description' => $d['description'] ?? null, 'status' => 'new', 'team_id' => $d['team_id'] ?? null, 'territory_id' => $d['territory_id'] ?? null,

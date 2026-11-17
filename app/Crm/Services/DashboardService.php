@@ -27,6 +27,8 @@ final class DashboardService
         $m['unassigned']       = (int) $one("SELECT COUNT(*) c FROM crm_enquiries e WHERE e.current_owner_id IS NULL AND e.status = 'new' AND {$o}" . (AccessScope::visibleUserIds($actor) === null ? '' : ' AND 1=0'))['c'];
         $m['by_stage']         = $db->query("SELECT e.status, COUNT(*) n FROM crm_enquiries e WHERE {$o} GROUP BY e.status")->getResultArray();
         $m['customers_total']  = (int) AccessScope::scopeCustomers($db->table('crm_customers c'), $actor)->countAllResults();
+        $m['organisations_total'] = $db->tableExists('crm_organisations') ? (int) $db->table('crm_organisations')->where('account_status', 'active')->countAllResults() : $m['customers_total'];
+        $m['contacts_total'] = $db->tableExists('crm_contacts') ? (int) $db->table('crm_contacts')->where('status', 'active')->countAllResults() : 0;
 
         $m['followups_pending']  = (int) $one("SELECT COUNT(*) c FROM crm_followups f WHERE f.status = 'pending' AND {$fo}")['c'];
         $m['followups_today']    = (int) $one("SELECT COUNT(*) c FROM crm_followups f WHERE f.status = 'pending' AND DATE(f.due_at) = DATE(?) AND {$fo}", [$now])['c'];

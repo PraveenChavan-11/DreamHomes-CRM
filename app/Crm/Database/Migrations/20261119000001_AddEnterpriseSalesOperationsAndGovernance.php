@@ -304,6 +304,16 @@ class AddEnterpriseSalesOperationsAndGovernance extends Migration
             'contact_id' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
         ]);
 
+        $this->alterTableSafely('crm_projects', [
+            'organisation_id' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+            'contact_id' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+        ]);
+
+        $this->alterTableSafely('crm_site_visits', [
+            'organisation_id' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+            'contact_id' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+        ]);
+
         $this->alterTableSafely('crm_products', [
             'cost_price' => ['type' => 'DECIMAL', 'constraint' => '12,2', 'null' => true],
             'target_margin_pct' => ['type' => 'DECIMAL', 'constraint' => '5,2', 'default' => 25.00],

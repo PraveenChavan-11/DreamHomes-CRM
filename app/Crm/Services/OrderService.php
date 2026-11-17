@@ -40,7 +40,10 @@ final class OrderService
             $confirm = ! empty($o['confirm']);
             $at = $o['at'] ?? Crm::now();
             $db->table('crm_sales_orders')->insert([
-                'order_no' => $no, 'quotation_id' => $quotationId, 'version_id' => $v['id'], 'customer_id' => $q['customer_id'], 'enquiry_id' => $q['enquiry_id'], 'salesperson_id' => $e['current_owner_id'],
+                'order_no' => $no, 'quotation_id' => $quotationId, 'version_id' => $v['id'],
+                'organisation_id' => $q['organisation_id'] ?? $e['organisation_id'] ?? null,
+                'contact_id' => $q['contact_id'] ?? $e['contact_id'] ?? null,
+                'customer_id' => $q['customer_id'], 'enquiry_id' => $q['enquiry_id'], 'salesperson_id' => $e['current_owner_id'],
                 'status' => $confirm ? 'confirmed' : 'pending_confirmation', 'confirmed_at' => $confirm ? $at : null, 'advance_amount' => $advance, 'advance_reference' => $o['advance_reference'] ?? null,
                 'expected_delivery' => $o['expected_delivery'] ?? null, 'subtotal' => $v['subtotal'], 'discount_total' => $v['discount_total'], 'tax_total' => $v['tax_total'], 'charges_total' => $v['charges_total'],
                 'grand_total' => $v['grand_total'], 'remarks' => $o['remarks'] ?? null, 'created_by' => $actor['id'], 'is_demo' => (int) $q['is_demo'], 'created_at' => $at,

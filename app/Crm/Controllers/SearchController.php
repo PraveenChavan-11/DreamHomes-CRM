@@ -25,10 +25,15 @@ class SearchController extends CrmController
         // 1. Action shortcuts
         $shortcuts = [
             ['title' => 'New Enquiry', 'category' => 'Action', 'url' => site_url('crm/enquiries/new'), 'perm' => 'enquiries.create', 'icon' => 'plus'],
-            ['title' => 'New Customer', 'category' => 'Action', 'url' => site_url('crm/customers/new'), 'perm' => 'customers.create', 'icon' => 'user-plus'],
+            ['title' => 'New Organisation', 'category' => 'Action', 'url' => site_url('crm/organisations/new'), 'perm' => 'customers.create', 'icon' => 'briefcase'],
+            ['title' => 'New Contact', 'category' => 'Action', 'url' => site_url('crm/contacts/new'), 'perm' => 'customers.create', 'icon' => 'user-plus'],
+            ['title' => 'Organisations Directory', 'category' => 'View', 'url' => site_url('crm/organisations'), 'perm' => 'customers.view', 'icon' => 'briefcase'],
+            ['title' => 'Contacts Directory', 'category' => 'View', 'url' => site_url('crm/contacts'), 'perm' => 'customers.view', 'icon' => 'users'],
             ['title' => 'Pipeline Board', 'category' => 'View', 'url' => site_url('crm/enquiries?view=kanban'), 'perm' => 'enquiries.view', 'icon' => 'trello'],
             ['title' => 'Follow-ups List', 'category' => 'View', 'url' => site_url('crm/followups'), 'perm' => 'followups.manage', 'icon' => 'clock'],
             ['title' => 'Quotations', 'category' => 'View', 'url' => site_url('crm/quotations'), 'perm' => 'quotations.view', 'icon' => 'file-text'],
+            ['title' => 'Commercial Approvals', 'category' => 'View', 'url' => site_url('crm/approvals'), 'perm' => 'quotations.view', 'icon' => 'shield-check'],
+            ['title' => 'Sales Targets', 'category' => 'View', 'url' => site_url('crm/targets'), 'perm' => 'reports.view', 'icon' => 'trending-up'],
             ['title' => 'Sales Orders', 'category' => 'View', 'url' => site_url('crm/orders'), 'perm' => 'orders.view', 'icon' => 'shopping-cart'],
             ['title' => 'QA Command Centre', 'category' => 'QA & Health', 'url' => site_url('crm/qa'), 'perm' => 'settings.manage', 'icon' => 'shield'],
             ['title' => 'System Settings', 'category' => 'Admin', 'url' => site_url('crm/settings'), 'perm' => 'settings.manage', 'icon' => 'settings'],
@@ -46,28 +51,53 @@ class SearchController extends CrmController
             }
         }
 
-        // 2. Customers search (respecting access scope)
-        if (crm_can('customers.view')) {
-            $custs = $db->table('crm_customers')
-                ->select('id, customer_no, name, mobile, email, city')
+        // 2. Organisations & Contacts search
+        if (crm_can('customers.view') && $db->tableExists('crm_organisations')) {
+            $orgs = $db->table('crm_organisations')
+                ->select('id, org_no, name, type, city, primary_phone')
                 ->groupStart()
                     ->like('name', $q)
-                    ->orLike('customer_no', $q)
-                    ->orLike('mobile', $q)
-                    ->orLike('email', $q)
+                    ->orLike('org_no', $q)
+                    ->orLike('primary_phone', $q)
+                    ->orLike('city', $q)
                 ->groupEnd()
                 ->limit(5)
                 ->get()
                 ->getResultArray();
 
-            foreach ($custs as $c) {
+            foreach ($orgs as $org) {
                 $results[] = [
-                    'id' => 'cust-' . $c['id'],
-                    'title' => $c['name'],
-                    'category' => 'Customers',
-                    'url' => site_url('crm/customers/' . $c['id']),
-                    'sub' => $c['customer_no'] . ' · ' . $c['mobile'] . ($c['city'] ? ' · ' . $c['city'] : ''),
+                    'id' => 'org-' . $org['id'],
+                    'title' => $org['name'],
+                    'category' => 'Organisations',
+                    'url' => site_url('crm/organisations/' . $org['id']),
+                    'sub' => $org['org_no'] . ' · ' . ($org['type'] ?? 'Account') . ($org['city'] ? ' · ' . $org['city'] : ''),
                 ];
+            }
+
+            if ($db->tableExists('crm_contacts')) {
+                $contacts = $db->table('crm_contacts c')
+                    ->select('c.id, c.contact_no, c.first_name, c.last_name, c.designation, c.mobile_number, c.organisation_id, o.name as org_name')
+                    ->join('crm_organisations o', 'o.id = c.organisation_id', 'left')
+                    ->groupStart()
+                        ->like('c.first_name', $q)
+                        ->orLike('c.last_name', $q)
+                        ->orLike('c.mobile_number', $q)
+                        ->orLike('c.contact_no', $q)
+                    ->groupEnd()
+                    ->limit(5)
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($contacts as $cnt) {
+                    $results[] = [
+                        'id' => 'cnt-' . $cnt['id'],
+                        'title' => trim($cnt['first_name'] . ' ' . $cnt['last_name']),
+                        'category' => 'Contacts',
+                        'url' => $cnt['organisation_id'] ? site_url('crm/organisations/' . $cnt['organisation_id'] . '?tab=contacts') : site_url('crm/contacts'),
+                        'sub' => ($cnt['designation'] ?: 'Contact') . ($cnt['org_name'] ? ' · ' . $cnt['org_name'] : '') . ' · ' . $cnt['mobile_number'],
+                    ];
+                }
             }
         }
 
@@ -75,11 +105,13 @@ class SearchController extends CrmController
         if (crm_can('enquiries.view')) {
             $visUserIds = AccessScope::visibleUserIds($u);
             $builder = $db->table('crm_enquiries e')
-                ->select('e.id, e.enquiry_no, e.project_name, e.status, c.name customer_name')
-                ->join('crm_customers c', 'c.id = e.customer_id')
+                ->select('e.id, e.enquiry_no, e.project_name, e.status, COALESCE(o.name, c.name) org_name')
+                ->join('crm_customers c', 'c.id = e.customer_id', 'left')
+                ->join('crm_organisations o', 'o.id = e.organisation_id', 'left')
                 ->groupStart()
                     ->like('e.enquiry_no', $q)
                     ->orLike('e.project_name', $q)
+                    ->orLike('o.name', $q)
                     ->orLike('c.name', $q)
                 ->groupEnd();
 
@@ -95,7 +127,7 @@ class SearchController extends CrmController
                     'title' => $e['enquiry_no'] . ' · ' . ($e['project_name'] ?: 'Enquiry'),
                     'category' => 'Enquiries',
                     'url' => site_url('crm/enquiries/' . $e['id']),
-                    'sub' => $e['customer_name'] . ' · ' . crm_label($e['status']),
+                    'sub' => ($e['org_name'] ?: 'Account') . ' · ' . crm_label($e['status']),
                 ];
             }
         }
@@ -103,10 +135,12 @@ class SearchController extends CrmController
         // 4. Quotations search
         if (crm_can('quotations.view')) {
             $quotes = $db->table('crm_quotations q')
-                ->select('q.id, q.quotation_no, q.status, c.name customer_name')
-                ->join('crm_customers c', 'c.id = q.customer_id')
+                ->select('q.id, q.quotation_no, q.status, COALESCE(o.name, c.name) org_name')
+                ->join('crm_customers c', 'c.id = q.customer_id', 'left')
+                ->join('crm_organisations o', 'o.id = q.organisation_id', 'left')
                 ->groupStart()
                     ->like('q.quotation_no', $q)
+                    ->orLike('o.name', $q)
                     ->orLike('c.name', $q)
                 ->groupEnd()
                 ->limit(5)
@@ -119,7 +153,7 @@ class SearchController extends CrmController
                     'title' => $qt['quotation_no'],
                     'category' => 'Quotations',
                     'url' => site_url('crm/quotations/' . $qt['id']),
-                    'sub' => $qt['customer_name'] . ' · ' . crm_label($qt['status']),
+                    'sub' => ($qt['org_name'] ?: 'Quotation') . ' · ' . crm_label($qt['status']),
                 ];
             }
         }

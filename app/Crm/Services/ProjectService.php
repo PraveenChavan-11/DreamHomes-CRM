@@ -12,8 +12,12 @@ final class ProjectService
     {
         $db = Crm::db();
         $builder = $db->table('crm_projects p')
-            ->select("p.*, c.name as customer_name, c.mobile as customer_mobile, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
+            ->select("p.*, COALESCE(org.name, c.company_name, c.name) as organisation_name, org.org_no,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) as contact_name, ct.mobile as contact_mobile,
+                      c.name as customer_name, c.mobile as customer_mobile, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
             ->join('crm_customers c', 'c.id = p.customer_id', 'left')
+            ->join('crm_organisations org', 'org.id = p.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = p.contact_id', 'left')
             ->join('admin_users u', 'u.id = p.assigned_to', 'left');
 
         $q = trim((string) ($params['q'] ?? ''));
@@ -22,6 +26,9 @@ final class ProjectService
                 ->like('p.name', $q)
                 ->orLike('p.project_no', $q)
                 ->orLike('p.site_location', $q)
+                ->orLike('org.name', $q)
+                ->orLike('ct.first_name', $q)
+                ->orLike('ct.last_name', $q)
                 ->orLike('c.name', $q)
                 ->orLike('c.mobile', $q)
                 ->groupEnd();

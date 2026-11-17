@@ -64,8 +64,12 @@
                 <a href="<?= site_url("crm/orders/{$d['order_id']}") ?>" style="color:inherit;font-weight:600"><?= esc($d['order_no']) ?></a>
               </td>
               <td>
-                <a href="<?= site_url("crm/customers/{$d['customer_id']}") ?>" style="color:inherit;font-weight:600"><?= esc($d['customer_name']) ?></a><br>
-                <span class="muted small"><?= esc($d['customer_mobile']) ?></span>
+                <?php if (! empty($d['organisation_id'])): ?>
+                  <a href="<?= site_url("crm/organisations/{$d['organisation_id']}") ?>" style="color:inherit;font-weight:700"><?= esc($d['organisation_name'] ?? $d['customer_name']) ?></a><br>
+                <?php else: ?>
+                  <strong style="color:inherit"><?= esc($d['organisation_name'] ?? $d['customer_name']) ?></strong><br>
+                <?php endif; ?>
+                <span class="muted small"><?= esc($d['contact_name'] ?? $d['customer_name']) ?><?= ! empty($d['customer_mobile']) ? ' · ' . esc($d['customer_mobile']) : '' ?></span>
               </td>
               <td>
                 <?= esc($d['vehicle_details'] ?: 'Dedicated Transport') ?><br>

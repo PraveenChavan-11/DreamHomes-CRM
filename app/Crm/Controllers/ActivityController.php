@@ -138,8 +138,12 @@ class ActivityController extends CrmController
         $tab = in_array($this->request->getGet('tab'), ['scheduled', 'completed', 'all'], true) ? $this->request->getGet('tab') : 'scheduled';
         $mk = function () use ($tab) {
             $b = Crm::db()->table('crm_site_visits v')
-                ->select("v.*, e.enquiry_no, e.project_name, c.name AS customer_name, CONCAT(u.first_name,' ',u.last_name) AS user_name, (SELECT COUNT(*) FROM crm_site_measurements m WHERE m.visit_id = v.id) AS meas_versions")
-                ->join('crm_enquiries e', 'e.id = v.enquiry_id')->join('crm_customers c', 'c.id = v.customer_id')->join('admin_users u', 'u.id = v.assigned_to', 'left');
+                ->select("v.*, e.enquiry_no, e.project_name, COALESCE(o.name, c.company_name, c.name) AS organisation_name, COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) AS contact_person, ct.designation AS contact_role, o.id AS organisation_id, ct.id AS contact_id, c.name AS customer_name, CONCAT(u.first_name,' ',u.last_name) AS user_name, (SELECT COUNT(*) FROM crm_site_measurements m WHERE m.visit_id = v.id) AS meas_versions")
+                ->join('crm_enquiries e', 'e.id = v.enquiry_id')
+                ->join('crm_customers c', 'c.id = v.customer_id', 'left')
+                ->join('crm_organisations o', 'o.id = e.organisation_id', 'left')
+                ->join('crm_contacts ct', 'ct.id = e.contact_id', 'left')
+                ->join('admin_users u', 'u.id = v.assigned_to', 'left');
             AccessScope::scopeEnquiries($b, $this->user(), 'e');
             if ($tab !== 'all') {
                 $b->where('v.status', $tab);
@@ -160,10 +164,17 @@ class ActivityController extends CrmController
         $db = Crm::db();
         $q = trim((string) $this->request->getGet('q'));
         $b = $db->table('crm_site_measurements m')
-            ->select("m.*, v.visit_no, v.scheduled_at, e.enquiry_no, e.project_name, c.name AS customer_name, c.mobile AS customer_mobile, CONCAT(u.first_name, ' ', u.last_name) AS recorded_by_name")
+            ->select("m.*, v.visit_no, v.scheduled_at, e.enquiry_no, e.project_name, 
+                      COALESCE(o.name, c.company_name, c.name) AS organisation_name, 
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) AS contact_person,
+                      ct.designation AS contact_role,
+                      o.id AS organisation_id, ct.id AS contact_id,
+                      c.name AS customer_name, c.mobile AS customer_mobile, CONCAT(u.first_name, ' ', u.last_name) AS recorded_by_name")
             ->join('crm_site_visits v', 'v.id = m.visit_id')
             ->join('crm_enquiries e', 'e.id = v.enquiry_id')
-            ->join('crm_customers c', 'c.id = v.customer_id')
+            ->join('crm_customers c', 'c.id = v.customer_id', 'left')
+            ->join('crm_organisations o', 'o.id = e.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = e.contact_id', 'left')
             ->join('admin_users u', 'u.id = m.recorded_by', 'left');
         AccessScope::scopeEnquiries($b, $this->user(), 'e');
 
@@ -172,7 +183,10 @@ class ActivityController extends CrmController
                 ->like('v.visit_no', $q)
                 ->orLike('e.enquiry_no', $q)
                 ->orLike('e.project_name', $q)
+                ->orLike('o.name', $q)
                 ->orLike('c.name', $q)
+                ->orLike('ct.first_name', $q)
+                ->orLike('ct.last_name', $q)
                 ->orLike('m.revision_note', $q)
                 ->groupEnd();
         }

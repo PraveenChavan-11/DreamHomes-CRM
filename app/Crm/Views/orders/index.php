@@ -27,10 +27,15 @@ $statuses = ['draft', 'pending_confirmation', 'confirmed', 'on_hold', 'cancelled
 <div class="card">
 <?php if (! $rows): ?><div class="empty"><strong>No sales orders match</strong>Orders are created from accepted quotations.</div>
 <?php else: ?>
-  <div class="bd flush tablewrap"><table class="t"><thead><tr><th>Order</th><th>Customer</th><th>Quotation</th><th>Salesperson</th><th>Status</th><th class="num">Value</th><th class="num">Advance</th><th>Expected delivery</th><th>Created</th></tr></thead><tbody>
+  <div class="bd flush tablewrap"><table class="t"><thead><tr><th>Order</th><th>Organisation / Client</th><th>Quotation</th><th>Salesperson</th><th>Status</th><th class="num">Value</th><th class="num">Advance</th><th>Expected delivery</th><th>Created</th></tr></thead><tbody>
   <?php foreach ($rows as $r): ?><tr>
     <td><a href="<?= site_url('crm/orders/' . (int) $r['id']) ?>"><strong><?= esc($r['order_no']) ?></strong></a></td>
-    <td><a href="<?= site_url('crm/customers/' . (int) $r['customer_id']) ?>"><?= esc($r['customer_name']) ?></a></td>
+    <td>
+      <a href="<?= ! empty($r['organisation_id']) ? site_url('crm/organisations/' . (int) $r['organisation_id']) : site_url('crm/orders/' . (int) $r['id']) ?>">
+        <strong><?= esc($r['organisation_name'] ?? $r['customer_name']) ?></strong>
+      </a>
+      <?php if (! empty($r['contact_name'])): ?><div class="muted small"><?= esc($r['contact_name']) ?></div><?php endif; ?>
+    </td>
     <td><a href="<?= site_url('crm/quotations/' . (int) $r['quotation_id']) ?>"><?= esc($r['quotation_no']) ?></a></td>
     <td><?= esc((string) $r['salesperson'] ?: '—') ?></td><td><?= crm_badge($r['status']) ?></td>
     <td class="num"><strong><?= crm_money($r['grand_total']) ?></strong></td><td class="num"><?= crm_money($r['advance_amount']) ?></td>

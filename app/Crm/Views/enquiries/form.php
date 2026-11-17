@@ -25,28 +25,51 @@ $selId = (int) (old('customer_id') ?: ($selected['id'] ?? 0));
 <form id="enq-form" method="post" action="<?= site_url('crm/enquiries/create') ?>" data-validate class="card">
   <?= csrf_field() ?>
   <div class="bd">
-    <h2 class="mb">Customer</h2>
+    <h2 class="mb">Organisation &amp; Client Account</h2>
     <fieldset style="border:0;padding:0;margin:0 0 14px">
-      <legend class="muted small">Who is this enquiry for?</legend>
-      <label style="display:inline-flex;gap:6px;margin-right:18px"><input type="radio" name="customer_mode" value="existing" style="width:auto;min-height:0"<?= $mode === 'existing' ? ' checked' : '' ?>> Existing customer</label>
-      <?php if (crm_can('customers.create')): ?><label style="display:inline-flex;gap:6px"><input type="radio" name="customer_mode" value="new" style="width:auto;min-height:0"<?= $mode === 'new' ? ' checked' : '' ?>> New customer</label><?php endif; ?>
+      <legend class="muted small">Which business organisation is this enquiry for?</legend>
+      <label style="display:inline-flex;gap:6px;margin-right:18px"><input type="radio" name="org_mode" value="existing" style="width:auto;min-height:0"<?= $mode !== 'new' ? ' checked' : '' ?>> Existing organisation</label>
+      <?php if (crm_can('customers.create')): ?><label style="display:inline-flex;gap:6px"><input type="radio" name="org_mode" value="new" style="width:auto;min-height:0"<?= $mode === 'new' ? ' checked' : '' ?>> + New organisation</label><?php endif; ?>
     </fieldset>
 
-    <div class="form" id="cust-existing">
-      <div class="full"><label for="customer_id">Select customer</label>
-        <select id="customer_id" name="customer_id" data-search>
-          <option value="">— choose —</option>
-          <?php foreach ($customers as $c): ?><option value="<?= (int) $c['id'] ?>"<?= $selId === (int) $c['id'] ? ' selected' : '' ?>><?= esc($c['customer_no'] . ' · ' . $c['name'] . ' · ' . $c['mobile'] . ($c['city'] ? ' · ' . $c['city'] : '')) ?></option><?php endforeach; ?>
-          <?php if ($selected && ! in_array((int) $selected['id'], array_map('intval', array_column($customers, 'id')), true)): ?><option value="<?= (int) $selected['id'] ?>" selected><?= esc($selected['customer_no'] . ' · ' . $selected['name']) ?></option><?php endif; ?>
-        </select><?= crm_err('customer_id') ?></div>
+    <div class="form" id="org-existing">
+      <div>
+        <label class="req" for="organisation_id">Business Organisation</label>
+        <select id="organisation_id" name="organisation_id" data-search required>
+          <option value="">— choose organisation —</option>
+          <?php foreach ($organisations ?? [] as $o): ?>
+            <option value="<?= (int) $o['id'] ?>"<?= ($selected_org_id ?? 0) === (int) $o['id'] ? ' selected' : '' ?>><?= esc($o['org_no'] . ' · ' . $o['name'] . ($o['city'] ? ' (' . $o['city'] . ')' : '')) ?></option>
+          <?php endforeach; ?>
+        </select>
+        <?= crm_err('organisation_id') ?>
+      </div>
+      <div>
+        <label for="contact_id">Primary Contact Person</label>
+        <select id="contact_id" name="contact_id" data-search>
+          <option value="">— default primary contact —</option>
+          <?php foreach ($contacts ?? [] as $cnt): ?>
+            <option value="<?= (int) $cnt['id'] ?>" data-org="<?= (int) $cnt['organisation_id'] ?>"><?= esc($cnt['first_name'] . ' ' . $cnt['last_name'] . ($cnt['designation'] ? ' · ' . $cnt['designation'] : '') . ' (' . $cnt['mobile_number'] . ')') ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
     </div>
 
     <?php if (crm_can('customers.create')): ?>
-    <div class="form" id="cust-new">
-      <div><label class="req" for="c_name">Customer name</label><input id="c_name" name="name" value="<?= esc(old('name')) ?>" maxlength="150"><?= crm_err('name') ?></div>
-      <div><label class="req" for="c_mobile">Mobile</label><input id="c_mobile" name="mobile" value="<?= esc(old('mobile')) ?>" inputmode="tel" maxlength="15" placeholder="10-digit mobile"><?= crm_err('mobile') ?></div>
-      <div><label for="c_email">Email</label><input id="c_email" type="email" name="email" value="<?= esc(old('email')) ?>"><?= crm_err('email') ?></div>
-      <div><label for="c_city">City</label><input id="c_city" name="city" value="<?= esc(old('city')) ?>"></div>
+    <div class="form" id="org-new" style="display:none">
+      <div><label class="req" for="org_name">Organisation name</label><input id="org_name" name="org_name" value="<?= esc(old('org_name')) ?>" maxlength="150"><?= crm_err('org_name') ?></div>
+      <div>
+        <label for="org_type">Organisation type</label>
+        <select id="org_type" name="org_type">
+          <?php foreach (['Builder / Developer', 'Architect', 'Interior Designer', 'Corporate', 'Contractor', 'Individual', 'Institutional', 'Referral Partner'] as $ot): ?>
+            <option value="<?= esc($ot) ?>"><?= esc($ot) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <div><label class="req" for="contact_name">Contact person</label><input id="contact_name" name="contact_name" value="<?= esc(old('contact_name')) ?>" maxlength="100"></div>
+      <div><label for="contact_designation">Designation</label><input id="contact_designation" name="contact_designation" value="<?= esc(old('contact_designation')) ?>" placeholder="e.g. Director, Purchase Manager"></div>
+      <div><label class="req" for="contact_mobile">Mobile</label><input id="contact_mobile" name="contact_mobile" value="<?= esc(old('contact_mobile')) ?>" inputmode="tel" maxlength="15" placeholder="10-digit mobile"></div>
+      <div><label for="contact_email">Email</label><input id="contact_email" type="email" name="contact_email" value="<?= esc(old('contact_email')) ?>"></div>
+      <div><label for="org_city">City</label><input id="org_city" name="org_city" value="<?= esc(old('org_city', 'Pune')) ?>"></div>
     </div>
     <?php endif; ?>
 
@@ -76,17 +99,40 @@ $selId = (int) (old('customer_id') ?: ($selected['id'] ?? 0));
 </form>
 
 <script>
-// Progressive enhancement: show only the relevant customer block. Without JS both blocks stay visible and the server uses the chosen customer_id when present.
 (function () {
-  var radios = document.querySelectorAll('input[name=customer_mode]'), ex = document.getElementById('cust-existing'), nw = document.getElementById('cust-new');
-  if (!radios.length || !nw) return;
+  var radios = document.querySelectorAll('input[name=org_mode]'), ex = document.getElementById('org-existing'), nw = document.getElementById('org-new');
+  var orgSel = document.getElementById('organisation_id'), cntSel = document.getElementById('contact_id');
+  
   function sync() {
-    var m = document.querySelector('input[name=customer_mode]:checked').value;
-    ex.style.display = m === 'existing' ? '' : 'none'; nw.style.display = m === 'new' ? '' : 'none';
-    var sel = document.getElementById('customer_id'); if (sel) { sel.disabled = m !== 'existing'; }
-    ['c_name', 'c_mobile'].forEach(function (i) { var n = document.getElementById(i); if (n) { n.required = m === 'new'; n.disabled = m !== 'new'; } });
-    ['c_email', 'c_city'].forEach(function (i) { var n = document.getElementById(i); if (n) n.disabled = m !== 'new'; });
+    var checked = document.querySelector('input[name=org_mode]:checked');
+    var m = checked ? checked.value : 'existing';
+    if (ex) ex.style.display = m === 'existing' ? '' : 'none';
+    if (nw) nw.style.display = m === 'new' ? '' : 'none';
+    if (orgSel) orgSel.disabled = m !== 'existing';
+    ['org_name', 'contact_name', 'contact_mobile'].forEach(function (i) {
+      var el = document.getElementById(i);
+      if (el) { el.required = (m === 'new'); el.disabled = (m !== 'new'); }
+    });
   }
-  radios.forEach(function (r) { r.addEventListener('change', sync); }); sync();
+
+  function filterContacts() {
+    if (!orgSel || !cntSel) return;
+    var selectedOrg = orgSel.value;
+    var opts = cntSel.querySelectorAll('option');
+    opts.forEach(function (opt) {
+      if (!opt.value) { opt.style.display = ''; return; }
+      var org = opt.getAttribute('data-org');
+      if (!selectedOrg || org === selectedOrg) {
+        opt.style.display = '';
+      } else {
+        opt.style.display = 'none';
+      }
+    });
+  }
+
+  radios.forEach(function (r) { r.addEventListener('change', sync); });
+  if (orgSel) orgSel.addEventListener('change', filterContacts);
+  sync();
+  filterContacts();
 })();
 </script>

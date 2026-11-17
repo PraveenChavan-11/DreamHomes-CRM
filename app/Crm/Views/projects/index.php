@@ -60,8 +60,12 @@
               </td>
               <td><b><?= esc($p['name']) ?></b></td>
               <td>
-                <a href="<?= site_url("crm/customers/{$p['customer_id']}") ?>" style="color:inherit;font-weight:600"><?= esc($p['customer_name']) ?></a><br>
-                <span class="muted small"><?= esc($p['customer_mobile']) ?></span>
+                <?php if (! empty($p['organisation_id'])): ?>
+                  <a href="<?= site_url("crm/organisations/{$p['organisation_id']}") ?>" style="color:inherit;font-weight:700"><?= esc($p['organisation_name'] ?? $p['customer_name']) ?></a><br>
+                <?php else: ?>
+                  <b style="color:inherit"><?= esc($p['organisation_name'] ?? $p['customer_name']) ?></b><br>
+                <?php endif; ?>
+                <span class="muted small"><?= esc($p['contact_name'] ?? $p['customer_name']) ?><?= ! empty($p['contact_mobile']) ? ' · ' . esc($p['contact_mobile']) : '' ?></span>
               </td>
               <td><?= esc($p['site_location'] ?: $p['city'] ?: 'Pune') ?></td>
               <td><b><?= $p['budget'] ? crm_money($p['budget']) : '—' ?></b></td>

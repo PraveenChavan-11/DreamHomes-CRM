@@ -133,6 +133,48 @@ final class Crm
                 }
                 ReferenceData::seedAll();
             }
+            if ($db->tableExists('crm_projects')) {
+                foreach (['organisation_id' => 'INT UNSIGNED NULL', 'contact_id' => 'INT UNSIGNED NULL'] as $col => $type) {
+                    if (! $db->fieldExists($col, 'crm_projects')) {
+                        $db->query("ALTER TABLE crm_projects ADD COLUMN {$col} {$type}");
+                    }
+                }
+            }
+            if ($db->tableExists('crm_site_visits')) {
+                foreach (['organisation_id' => 'INT UNSIGNED NULL', 'contact_id' => 'INT UNSIGNED NULL'] as $col => $type) {
+                    if (! $db->fieldExists($col, 'crm_site_visits')) {
+                        $db->query("ALTER TABLE crm_site_visits ADD COLUMN {$col} {$type}");
+                    }
+                }
+            }
+            if ($db->tableExists('crm_customers')) {
+                foreach (['organisation_id' => 'INT UNSIGNED NULL', 'primary_contact_id' => 'INT UNSIGNED NULL'] as $col => $type) {
+                    if (! $db->fieldExists($col, 'crm_customers')) {
+                        $db->query("ALTER TABLE crm_customers ADD COLUMN {$col} {$type}");
+                    }
+                }
+            }
+            if ($db->tableExists('crm_enquiries')) {
+                foreach (['organisation_id' => 'INT UNSIGNED NULL', 'contact_id' => 'INT UNSIGNED NULL'] as $col => $type) {
+                    if (! $db->fieldExists($col, 'crm_enquiries')) {
+                        $db->query("ALTER TABLE crm_enquiries ADD COLUMN {$col} {$type}");
+                    }
+                }
+            }
+            if ($db->tableExists('crm_quotations')) {
+                foreach (['organisation_id' => 'INT UNSIGNED NULL', 'contact_id' => 'INT UNSIGNED NULL'] as $col => $type) {
+                    if (! $db->fieldExists($col, 'crm_quotations')) {
+                        $db->query("ALTER TABLE crm_quotations ADD COLUMN {$col} {$type}");
+                    }
+                }
+            }
+            if ($db->tableExists('crm_sales_orders')) {
+                foreach (['organisation_id' => 'INT UNSIGNED NULL', 'contact_id' => 'INT UNSIGNED NULL'] as $col => $type) {
+                    if (! $db->fieldExists($col, 'crm_sales_orders')) {
+                        $db->query("ALTER TABLE crm_sales_orders ADD COLUMN {$col} {$type}");
+                    }
+                }
+            }
             if ($db->tableExists('crm_status_transitions')) {
                 $active = ['new', 'assigned', 'contacted', 'qualified', 'site_visit', 'quotation_preparation', 'quotation_sent', 'negotiation'];
                 foreach ($active as $f) {

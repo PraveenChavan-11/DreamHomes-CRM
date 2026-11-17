@@ -27,7 +27,7 @@ $fill = static fn (array $r) => implode(',', array_map(static fn ($k) => $k . '=
     <div class="gap" style="margin-top:6px">
       <?= crm_badge($e['status']) ?> <?= crm_badge($e['priority']) ?>
       <span class="muted small">Lead score <strong><?= (int) $e['lead_score'] ?></strong></span>
-      <span class="muted small">Customer <a href="<?= site_url('crm/customers/' . (int) $e['customer_id']) ?>"><?= esc($e['customer_name']) ?> (<?= esc($e['customer_no']) ?>)</a></span>
+      <span class="muted small"><?php if (! empty($e['organisation_id'])): ?>Account: <a href="<?= site_url('crm/organisations/' . (int) $e['organisation_id']) ?>"><strong><?= esc($e['organisation_name'] ?: $e['customer_name']) ?></strong> (<?= esc($e['org_no'] ?: '') ?>)</a><?php else: ?>Account: <strong><?= esc($e['customer_name']) ?></strong><?php endif; ?><?php if (! empty($e['contact_person_name'])): ?> · Contact: <?= esc($e['contact_person_name']) ?><?= ! empty($e['contact_person_designation']) ? ' (' . esc($e['contact_person_designation']) . ')' : '' ?><?php endif; ?></span>
       <span class="muted small">Owner <strong><?= esc($e['owner_name'] ?: 'Unassigned') ?></strong><?= $e['team_name'] ? ' · ' . esc($e['team_name']) : '' ?></span>
     </div>
   </div>

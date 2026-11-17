@@ -688,21 +688,21 @@ final class DemoSeeder
             if ($row) {
                 $orgId = (int) $row['id'];
                 $db->table('crm_organisations')->where('id', $orgId)->update([
-                    'name' => $d[0], 'type' => $d[1], 'industry' => $d[2], 'account_rating' => $d[3],
+                    'name' => $d[0], 'org_type' => $d[1], 'industry' => $d[2], 'account_rating' => $d[3],
                     'business_category' => $d[4], 'gstin' => $d[5], 'pan' => $d[6], 'primary_email' => $d[7],
                     'primary_phone' => $d[8], 'registered_address' => $d[9], 'billing_address' => $d[9],
                     'default_site_address' => $d[9], 'city' => 'Pune', 'state' => 'Maharashtra',
-                    'pin_code' => $d[11], 'owner_user_id' => $ownerId, 'account_status' => 'active', 'updated_at' => $now,
+                    'pincode' => $d[11], 'account_owner_id' => $ownerId, 'account_status' => 'active', 'updated_at' => $now,
                 ]);
             } else {
                 $db->table('crm_organisations')->insert([
-                    'org_no' => $orgNo, 'name' => $d[0], 'type' => $d[1], 'industry' => $d[2], 'account_rating' => $d[3],
+                    'org_no' => $orgNo, 'name' => $d[0], 'org_type' => $d[1], 'industry' => $d[2], 'account_rating' => $d[3],
                     'business_category' => $d[4], 'gstin' => $d[5], 'pan' => $d[6], 'primary_email' => $d[7],
                     'primary_phone' => $d[8], 'registered_address' => $d[9], 'billing_address' => $d[9],
                     'default_site_address' => $d[9], 'city' => 'Pune', 'state' => 'Maharashtra',
-                    'pin_code' => $d[11], 'country' => 'India', 'owner_user_id' => $ownerId,
+                    'pincode' => $d[11], 'country' => 'India', 'account_owner_id' => $ownerId,
                     'account_status' => 'active', 'notes' => 'Key enterprise account for architectural fenestration, premium modular kitchens and bathroom fitouts.',
-                    'created_by' => $adminId, 'is_demo' => 1, 'created_at' => $now, 'updated_at' => $now,
+                    'created_by' => $adminId, 'created_at' => $now, 'updated_at' => $now,
                 ]);
                 $orgId = (int) $db->insertID();
             }
@@ -734,7 +734,7 @@ final class DemoSeeder
                 $db->table('crm_contacts')->where('id', $cntId)->update([
                     'organisation_id' => $parentOrgId, 'first_name' => $fName, 'last_name' => $lName,
                     'designation' => $desig, 'contact_role' => $role, 'mobile' => $mob,
-                    'email' => strtolower("{$fName}.{$lName}@demo.invalid"), 'whatsapp_no' => $mob,
+                    'email' => strtolower("{$fName}.{$lName}@demo.invalid"), 'whatsapp' => $mob,
                     'is_primary' => $isPrimary, 'is_decision_maker' => $isDM, 'status' => 'active', 'updated_at' => $now,
                 ]);
             } else {
@@ -742,41 +742,77 @@ final class DemoSeeder
                     'contact_no' => $cntNo, 'organisation_id' => $parentOrgId, 'first_name' => $fName,
                     'last_name' => $lName, 'designation' => $desig, 'department' => 'Projects & Commercial',
                     'contact_role' => $role, 'mobile' => $mob, 'alternate_number' => '+91 20 6' . sprintf('%06d', 700000 + $c),
-                    'email' => strtolower("{$fName}.{$lName}@demo.invalid"), 'whatsapp_no' => $mob,
-                    'preferred_channel' => ['phone', 'email', 'whatsapp', 'in_person'][$c % 4],
+                    'email' => strtolower("{$fName}.{$lName}@demo.invalid"), 'whatsapp' => $mob,
+                    'preferred_channel' => ['call', 'email', 'whatsapp', 'in_person'][$c % 4],
                     'is_decision_maker' => $isDM, 'is_primary' => $isPrimary, 'status' => 'active',
                     'remarks' => 'Key commercial liaison with full technical sign-off authority.',
-                    'created_by' => $adminId, 'is_demo' => 1, 'created_at' => $now, 'updated_at' => $now,
+                    'created_by' => $adminId, 'created_at' => $now, 'updated_at' => $now,
                 ]);
                 $cntId = (int) $db->insertID();
             }
             $this->reg('crm_contacts', $cntId);
             $contactIds[$c] = $cntId;
-
-            // Update primary contact on organisation
-            if ($isPrimary) {
-                $db->table('crm_organisations')->where('id', $parentOrgId)->update(['primary_contact_id' => $cntId]);
-            }
         }
 
-        // Link existing customers, enquiries, quotations, orders to organisations and contacts
+        // Link and anchor all customers, projects, enquiries, quotations, orders, visits under real organisations and contacts
         $customers = $db->table('crm_customers')->get()->getResultArray();
+        $b2bProjects = [
+            'Infinity Towers Ultra-Luxury Glazing',
+            'Life Republic Master Suite Fenestration',
+            'YOO Pune Penthouse European Kitchens',
+            'Blue Waters Thermostatic Rain Showers',
+            'Pride Panorama Architectural Sliding Windows',
+            'Eco-Housing DGU Acoustic Glass Profiles',
+            'Mittal Commercial Complex Main Entryway',
+            'Child-Centric Villas Custom Kitchenette',
+            'Model Colony Studio Facade System',
+            'Koregaon Park Luxury Villa Interior Glazing',
+            'Senapati Bapat Road Corporate Fitouts',
+            'Mindspace Tower Executive Restrooms',
+            'Aundh Centre Premium Modular Units',
+            'Wanowrie Turnkey Villa Solutions',
+            'Bhosari Industrial Administrative Wing',
+        ];
         foreach ($customers as $ci => $cust) {
             $linkedOrgId = $orgIds[$ci % 20];
             $linkedCntId = $contactIds[$ci % 50];
+            $orgRow = $db->table('crm_organisations')->where('id', $linkedOrgId)->get()->getRowArray();
+            $cntRow = $db->table('crm_contacts')->where('id', $linkedCntId)->get()->getRowArray();
+
             $db->table('crm_customers')->where('id', $cust['id'])->update([
                 'organisation_id' => $linkedOrgId,
                 'primary_contact_id' => $linkedCntId,
+                'name' => $orgRow['name'] ?? $cust['name'],
+                'company_name' => $orgRow['name'] ?? $cust['name'],
+                'primary_contact' => $cntRow ? ($cntRow['first_name'] . ' ' . $cntRow['last_name']) : $cust['primary_contact'],
+                'mobile' => $cntRow['mobile'] ?? ($orgRow['primary_phone'] ?? $cust['mobile']),
+                'email' => $cntRow['email'] ?? ($orgRow['primary_email'] ?? $cust['email']),
+                'city' => $orgRow['city'] ?? $cust['city'],
+                'state' => $orgRow['state'] ?? $cust['state'],
+                'pin_code' => $orgRow['pincode'] ?? $cust['pin_code'],
+                'gstin' => $orgRow['gstin'] ?? $cust['gstin'],
+            ]);
+            $db->table('crm_projects')->where('customer_id', $cust['id'])->update([
+                'organisation_id' => $linkedOrgId,
+                'contact_id' => $linkedCntId,
+                'name' => ($orgRow['name'] ?? 'Project') . ' - ' . $b2bProjects[$ci % count($b2bProjects)],
+                'site_location' => ($orgRow['default_site_address'] ?? null) ?: ($orgRow['city'] ?? 'Pune'),
             ]);
             $db->table('crm_enquiries')->where('customer_id', $cust['id'])->update([
                 'organisation_id' => $linkedOrgId,
                 'contact_id' => $linkedCntId,
+                'project_name' => ($orgRow['name'] ?? 'Enquiry') . ' - ' . $b2bProjects[$ci % count($b2bProjects)],
+                'site_location' => ($orgRow['default_site_address'] ?? null) ?: ($orgRow['city'] ?? 'Pune'),
             ]);
             $db->table('crm_quotations')->where('customer_id', $cust['id'])->update([
                 'organisation_id' => $linkedOrgId,
                 'contact_id' => $linkedCntId,
             ]);
             $db->table('crm_sales_orders')->where('customer_id', $cust['id'])->update([
+                'organisation_id' => $linkedOrgId,
+                'contact_id' => $linkedCntId,
+            ]);
+            $db->table('crm_site_visits')->where('customer_id', $cust['id'])->update([
                 'organisation_id' => $linkedOrgId,
                 'contact_id' => $linkedCntId,
             ]);
@@ -805,36 +841,48 @@ final class DemoSeeder
             $linkedOrg = $orgIds[$a % 20];
             $linkedContact = $contactIds[$a % 50];
 
-            $status = $a < 35 ? 'completed' : ($a < 50 ? 'scheduled' : ($a < 55 ? 'rescheduled' : 'missed'));
+            $status = $a < 35 ? 'completed' : ($a < 50 ? 'scheduled' : ($a < 55 ? 'rescheduled' : 'cancelled'));
             $dateOffset = $a < 35 ? -($a + 1) : ($a < 45 ? ($a - 35) : -($a - 45 + 3));
             $actDate = date('Y-m-d', strtotime("{$dateOffset} days"));
-            $schedAt = date('Y-m-d H:i:s', strtotime("{$actDate} " . (10 + ($a % 7)) . ":30:00"));
+            $startTime = sprintf('%02d:30:00', 10 + ($a % 7));
+            $endTime = sprintf('%02d:30:00', 11 + ($a % 7));
 
             $convLeadId = ($a >= 20 && $a < 30) ? (int) ($db->table('crm_enquiries')->where('is_demo', 1)->orderBy('id', 'ASC')->limit(1, $a - 20)->get()->getRow()->id ?? null) : null;
 
             $existAct = $db->table('crm_sales_activities')->where('activity_no', $actNo)->get()->getRowArray();
+            $actData = [
+                'activity_no' => $actNo,
+                'organisation_id' => $linkedOrg,
+                'contact_id' => $linkedContact,
+                'activity_type' => $aType,
+                'assigned_user_id' => $assignedRep,
+                'created_by' => $assignedRep,
+                'activity_date' => $actDate,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'location' => 'Client Head Office / Project Site',
+                'discussion_summary' => $subj . '. Detailed commercial discussion addressing client specifications, product variants, and commercial budgets.',
+                'requirement_identified' => 'Premium architectural profiles, thermal break sliding systems and modular bathroom hardware.',
+                'product_interest' => 'Aluminium Windows, Modular Kitchens, Bath Fittings',
+                'est_business_value' => 150000.00 + ($a * 12500),
+                'next_action' => $status === 'completed' ? 'Prepare and send itemized revision quotation' : 'Follow up with purchase committee',
+                'next_followup_date' => date('Y-m-d H:i:s', strtotime("{$actDate} +3 days")),
+                'status' => $status,
+                'outcome' => ($status === 'completed' ? 'proposal_presented' : 'followup_required'),
+                'converted_to_lead_id' => $convLeadId,
+                'converted_at' => ($convLeadId ? date('Y-m-d H:i:s', strtotime($actDate)) : null),
+                'created_at' => date('Y-m-d H:i:s', strtotime($actDate)),
+                'updated_at' => $now,
+            ];
+
             if ($existAct) {
-                $db->table('crm_sales_activities')->where('id', $existAct['id'])->update([
-                    'organisation_id' => $linkedOrg, 'contact_id' => $linkedContact,
-                    'activity_type' => $aType, 'subject' => $subj, 'activity_date' => $actDate,
-                    'scheduled_at' => $schedAt, 'assigned_user_id' => $assignedRep, 'status' => $status,
-                    'converted_to_enquiry_id' => $convLeadId, 'updated_at' => $now,
-                ]);
+                $db->table('crm_sales_activities')->where('id', $existAct['id'])->update($actData);
+                $actId = (int) $existAct['id'];
             } else {
-                $db->table('crm_sales_activities')->insert([
-                    'activity_no' => $actNo, 'organisation_id' => $linkedOrg, 'contact_id' => $linkedContact,
-                    'activity_type' => $aType, 'subject' => $subj,
-                    'description' => "Detailed sales interaction addressing client specifications, product variants, and commercial budgets for project openings.",
-                    'activity_date' => $actDate, 'scheduled_at' => $schedAt,
-                    'assigned_user_id' => $assignedRep, 'location' => 'Client Head Office / Project Site',
-                    'status' => $status, 'outcome' => ($status === 'completed' ? 'proposal_presented' : null),
-                    'outcome_notes' => ($status === 'completed' ? 'Client verified architectural drawings and requested final itemized commercial proposal.' : null),
-                    'completed_at' => ($status === 'completed' ? $schedAt : null),
-                    'converted_to_enquiry_id' => $convLeadId, 'converted_at' => ($convLeadId ? $schedAt : null),
-                    'created_by' => $assignedRep, 'is_demo' => 1, 'created_at' => $schedAt, 'updated_at' => $now,
-                ]);
+                $db->table('crm_sales_activities')->insert($actData);
+                $actId = (int) $db->insertID();
             }
-            $this->reg('crm_sales_activities', (int) ($existAct['id'] ?? $db->insertID()));
+            $this->reg('crm_sales_activities', $actId);
         }
 
         // 4. Seed 12 Commercial Approvals (Matrix Scenarios)
@@ -869,17 +917,18 @@ final class DemoSeeder
                 'status' => $appStatus,
                 'proposed_selling_price' => $gTotal,
                 'standard_selling_price' => round($gTotal * 1.12, 2),
+                'cost_price' => round($gTotal * 0.72, 2),
                 'requested_discount_pct' => $discPct,
                 'requested_discount_amount' => round($gTotal * ($discPct / 100), 2),
                 'net_taxable_value' => round($gTotal / 1.18, 2),
                 'grand_total' => $gTotal,
+                'projected_margin_pct' => round(28.0 - $discPct, 2),
                 'salesperson_justification' => 'Key commercial account comparing competitor proposals from local fabricators. Additional volume discount needed to secure the contract.',
                 'action_by_user_id' => $approver,
                 'action_at' => $approver ? date('Y-m-d H:i:s', strtotime('-1 day')) : null,
                 'manager_remarks' => $appStatus === 'approved' ? 'Approved based on project scale and high-margin product mix.' : ($appStatus === 'returned_for_revision' ? 'Discount too steep. Counter-offer with 7% discount and complimentary installation.' : null),
                 'rejection_reason' => $appStatus === 'rejected' ? 'Proposed commercial discount reduces gross margin below the required 18% floor. Counter-offer required.' : null,
                 'sla_due_at' => date('Y-m-d H:i:s', strtotime('+1 day')),
-                'is_demo' => 1,
                 'created_at' => date('Y-m-d H:i:s', strtotime('-2 days')),
                 'updated_at' => $now,
             ];
@@ -935,16 +984,22 @@ final class DemoSeeder
                     'target_no' => $tNo, 'user_id' => $repId, 'team_id' => null,
                     'frequency' => 'monthly', 'period_start' => $mStart, 'period_end' => $mEnd,
                     'period_label' => $mLabel, 'revenue_target' => $revGoal,
-                    'orders_target' => 6, 'activities_target' => 30, 'quotations_target' => 15,
-                    'collections_target' => 900000.00, 'is_demo' => 1, 'created_by' => $adminId,
+                    'confirmed_orders_target' => 6, 'organisations_target' => 8, 'contacts_target' => 20,
+                    'leads_target' => 25, 'qualified_leads_target' => 18, 'site_visits_target' => 15,
+                    'meetings_target' => 30, 'calls_target' => 60, 'followups_target' => 45,
+                    'quotations_target' => 15, 'quotations_approved_target' => 12, 'quotations_accepted_target' => 8,
+                    'conversion_rate_target' => 35.00, 'collections_target' => 900000.00,
+                    'assigned_by_user_id' => $adminId, 'status' => 'active',
                     'created_at' => $now, 'updated_at' => $now,
                 ];
                 if ($existTgt) {
                     $db->table('crm_sales_targets')->where('id', $existTgt['id'])->update($tData);
+                    $tgtId = (int) $existTgt['id'];
                 } else {
                     $db->table('crm_sales_targets')->insert($tData);
+                    $tgtId = (int) $db->insertID();
                 }
-                $this->reg('crm_sales_targets', (int) ($existTgt['id'] ?? $db->insertID()));
+                $this->reg('crm_sales_targets', $tgtId);
             }
         }
 
@@ -952,15 +1007,27 @@ final class DemoSeeder
         for ($w = 1; $w <= 4; $w++) {
             $targetIdx++;
             $tNo = 'TGT-' . sprintf('%04d', $targetIdx);
-            $db->table('crm_sales_targets')->insert([
+            $existTgt = $db->table('crm_sales_targets')->where('target_no', $tNo)->get()->getRowArray();
+            $tData = [
                 'target_no' => $tNo, 'user_id' => null, 'team_id' => 1,
                 'frequency' => 'quarterly', 'period_start' => date('Y-10-01'), 'period_end' => date('Y-12-31'),
                 'period_label' => 'Q3 FY26 - Windows Division', 'revenue_target' => 7500000.00,
-                'orders_target' => 35, 'activities_target' => 180, 'quotations_target' => 90,
-                'collections_target' => 6000000.00, 'is_demo' => 1, 'created_by' => $adminId,
+                'confirmed_orders_target' => 35, 'organisations_target' => 40, 'contacts_target' => 100,
+                'leads_target' => 120, 'qualified_leads_target' => 90, 'site_visits_target' => 70,
+                'meetings_target' => 180, 'calls_target' => 350, 'followups_target' => 220,
+                'quotations_target' => 90, 'quotations_approved_target' => 75, 'quotations_accepted_target' => 45,
+                'conversion_rate_target' => 40.00, 'collections_target' => 6000000.00,
+                'assigned_by_user_id' => $adminId, 'status' => 'active',
                 'created_at' => $now, 'updated_at' => $now,
-            ]);
-            $this->reg('crm_sales_targets', (int) $db->insertID());
+            ];
+            if ($existTgt) {
+                $db->table('crm_sales_targets')->where('id', $existTgt['id'])->update($tData);
+                $tgtId = (int) $existTgt['id'];
+            } else {
+                $db->table('crm_sales_targets')->insert($tData);
+                $tgtId = (int) $db->insertID();
+            }
+            $this->reg('crm_sales_targets', $tgtId);
         }
 
         // 6. Seed all 28 Email Templates
@@ -970,20 +1037,21 @@ final class DemoSeeder
         $mailTemplates = ['enquiry_ack', 'quotation_sent', 'quotation_revised', 'quotation_approved', 'order_confirmation', 'payment_receipt', 'delivery_dispatched', 'installation_completed'];
         for ($m = 0; $m < 40; $m++) {
             $tpl = $mailTemplates[$m % count($mailTemplates)];
-            $status = $m < 34 ? 'sent' : ($m < 37 ? 'queued' : 'failed');
             $db->table('crm_email_log')->insert([
                 'to_email' => 'client' . ($m + 1) . '@company.demo.invalid',
+                'from_email' => 'sales@dreamhomes.demo.invalid',
                 'customer_id' => (int) ($customers[$m % count($customers)]['id'] ?? 1),
                 'organisation_id' => $orgIds[$m % 20],
                 'template_code' => $tpl,
                 'subject' => 'Official Notice: ' . ucwords(str_replace('_', ' ', $tpl)) . ' - Dream Homes Interior Solutions',
-                'status' => $status,
+                'body_html' => '<p>Dear Client, Please find attached the official correspondence from Dream Homes Interior Solutions.</p>',
+                'status' => 'queued',
+                'provider' => 'log_only',
                 'provider_message_id' => 'msg-' . bin2hex(random_bytes(8)),
-                'error' => ($status === 'failed' ? 'SMTP Error: Connection timed out on port 465 (simulated failure for retry testing).' : null),
-                'retry_count' => ($status === 'failed' ? 1 : 0),
+                'attempts' => 0,
                 'triggered_by_user' => $adminId,
                 'is_demo' => 1,
-                'sent_at' => ($status === 'sent' ? date('Y-m-d H:i:s', strtotime("-{$m} hours")) : null),
+                'sent_at' => null,
                 'created_at' => date('Y-m-d H:i:s', strtotime("-{$m} hours")),
             ]);
             $this->reg('crm_email_log', (int) $db->insertID());
@@ -1004,16 +1072,16 @@ final class DemoSeeder
             $type = $notifTypes[$n % count($notifTypes)];
             $msg = $notifMessages[$n % count($notifMessages)];
             $recipient = $execIds[$n % count($execIds)];
-            $isRead = ($n < 35) ? 1 : 0;
+            $isRead = ($n < 35);
 
             $db->table('crm_notifications')->insert([
                 'user_id' => $recipient,
-                'type' => $type,
+                'event_type' => $type,
                 'title' => ucwords(str_replace('.', ' ', $type)),
-                'message' => $msg,
+                'body' => $msg,
                 'link' => 'crm/quotations',
-                'is_read' => $isRead,
                 'read_at' => ($isRead ? date('Y-m-d H:i:s', strtotime("-{$n} hours")) : null),
+                'is_demo' => 1,
                 'created_at' => date('Y-m-d H:i:s', strtotime("-{$n} hours")),
             ]);
             $this->reg('crm_notifications', (int) $db->insertID());

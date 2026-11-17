@@ -12,9 +12,14 @@ final class AfterSalesService
     {
         $db = Crm::db();
         $builder = $db->table('crm_service_requests s')
-            ->select("s.*, c.name as customer_name, c.mobile as customer_mobile, o.order_no, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
+            ->select("s.*, o.organisation_id, o.contact_id, org.org_no,
+                      COALESCE(org.name, c.company_name, c.name) as organisation_name,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) as contact_name,
+                      c.name as customer_name, c.mobile as customer_mobile, o.order_no, CONCAT(u.first_name, ' ', u.last_name) as assigned_name")
             ->join('crm_customers c', 'c.id = s.customer_id', 'left')
             ->join('crm_sales_orders o', 'o.id = s.order_id', 'left')
+            ->join('crm_organisations org', 'org.id = o.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = o.contact_id', 'left')
             ->join('admin_users u', 'u.id = s.assigned_to', 'left');
 
         $q = trim((string) ($params['q'] ?? ''));
@@ -22,6 +27,8 @@ final class AfterSalesService
             $builder->groupStart()
                 ->like('s.ticket_no', $q)
                 ->orLike('s.issue_description', $q)
+                ->orLike('org.name', $q)
+                ->orLike('ct.first_name', $q)
                 ->orLike('c.name', $q)
                 ->orLike('c.mobile', $q)
                 ->orLike('o.order_no', $q)

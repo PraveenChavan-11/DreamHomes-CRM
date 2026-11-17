@@ -12,9 +12,14 @@ final class PaymentService
     {
         $db = Crm::db();
         $builder = $db->table('crm_payments p')
-            ->select('p.*, c.name as customer_name, c.mobile as customer_mobile, o.order_no, o.grand_total as order_total')
+            ->select("p.*, o.organisation_id, o.contact_id, org.org_no,
+                      COALESCE(org.name, c.company_name, c.name) as organisation_name,
+                      COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) as contact_name,
+                      c.name as customer_name, c.mobile as customer_mobile, o.order_no, o.grand_total as order_total")
             ->join('crm_customers c', 'c.id = p.customer_id', 'left')
-            ->join('crm_sales_orders o', 'o.id = p.order_id', 'left');
+            ->join('crm_sales_orders o', 'o.id = p.order_id', 'left')
+            ->join('crm_organisations org', 'org.id = o.organisation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = o.contact_id', 'left');
 
         $q = trim((string) ($params['q'] ?? ''));
         if ($q !== '') {
@@ -22,6 +27,8 @@ final class PaymentService
                 ->like('p.payment_no', $q)
                 ->orLike('p.receipt_no', $q)
                 ->orLike('p.transaction_reference', $q)
+                ->orLike('org.name', $q)
+                ->orLike('ct.first_name', $q)
                 ->orLike('c.name', $q)
                 ->orLike('c.mobile', $q)
                 ->orLike('o.order_no', $q)

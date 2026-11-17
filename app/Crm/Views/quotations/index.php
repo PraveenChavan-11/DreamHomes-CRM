@@ -31,12 +31,20 @@ $statuses = ['draft', 'sent', 'negotiation', 'revised', 'accepted', 'rejected', 
   <div class="empty"><strong>No quotations match</strong>Adjust the filters, or create a quotation from an enquiry.</div>
 <?php else: ?>
   <div class="bd flush tablewrap"><table class="t">
-    <thead><tr><th>Quotation</th><th>Customer · project</th><th>Enquiry</th><th>Salesperson</th><th>Status</th><th class="num">Version</th><th class="num">Discount</th><th class="num">Total</th><th>Valid until</th><th>Created</th></tr></thead>
+    <thead><tr><th>Quotation</th><th>Organisation / Client</th><th>Enquiry</th><th>Salesperson</th><th>Status</th><th class="num">Version</th><th class="num">Discount</th><th class="num">Total</th><th>Valid until</th><th>Created</th></tr></thead>
     <tbody>
     <?php foreach ($rows as $r): ?>
       <tr>
         <td><a href="<?= site_url('crm/quotations/' . (int) $r['id']) ?>"><strong><?= esc($r['quotation_no']) ?></strong></a></td>
-        <td><a href="<?= site_url('crm/customers/' . (int) $r['customer_id']) ?>"><?= esc($r['customer_name']) ?></a><div class="small muted"><?= esc((string) $r['project_name']) ?></div></td>
+        <td>
+          <a href="<?= ! empty($r['organisation_id']) ? site_url('crm/organisations/' . (int) $r['organisation_id']) : site_url('crm/quotations/' . (int) $r['id']) ?>">
+            <strong><?= esc($r['organisation_name'] ?? $r['customer_name']) ?></strong>
+          </a>
+          <div class="small muted">
+            <?php if (! empty($r['contact_name'])): ?><span><?= esc($r['contact_name']) ?> · </span><?php endif; ?>
+            <?= esc((string) $r['project_name']) ?>
+          </div>
+        </td>
         <td><a href="<?= site_url('crm/enquiries/' . (int) $r['enquiry_id']) ?>"><?= esc($r['enquiry_no']) ?></a></td>
         <td><?= esc((string) $r['owner_name'] ?: '—') ?></td>
         <td><?= crm_badge($r['status']) ?><?= (int) $r['is_locked'] ? '' : ' <span class="small muted">(editable)</span>' ?></td>

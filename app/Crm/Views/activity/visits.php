@@ -11,7 +11,17 @@
   <?php foreach ($rows as $v): $late = $v['status'] === 'scheduled' && $v['scheduled_at'] < date('Y-m-d H:i:s'); ?>
     <tr><td><a href="<?= site_url('crm/visits/' . (int) $v['id']) ?>"><strong><?= esc($v['visit_no']) ?></strong></a></td>
       <td class="nowrap"><?= crm_dt($v['scheduled_at']) ?><?= $late ? '<div style="margin-top:4px"><span class="badge badge-amber">Awaiting completion</span></div>' : '' ?></td>
-      <td><strong><?= esc($v['customer_name']) ?></strong><div class="muted small"><a href="<?= site_url('crm/enquiries/' . (int) $v['enquiry_id']) ?>"><?= esc($v['enquiry_no']) ?></a> · <?= esc($v['project_name'] ?: 'Enquiry Site') ?></div></td>
+      <td>
+        <?php if (! empty($v['organisation_id'])): ?>
+          <a href="<?= site_url('crm/organisations/' . $v['organisation_id']) ?>"><strong><?= esc($v['organisation_name'] ?? $v['customer_name']) ?></strong></a>
+        <?php else: ?>
+          <strong><?= esc($v['organisation_name'] ?? $v['customer_name']) ?></strong>
+        <?php endif; ?>
+        <div class="muted small">
+          <?php if (! empty($v['contact_person'])): ?><span><?= esc($v['contact_person']) ?><?= ! empty($v['contact_role']) ? ' (' . esc($v['contact_role']) . ')' : '' ?> · </span><?php endif; ?>
+          <a href="<?= site_url('crm/enquiries/' . (int) $v['enquiry_id']) ?>"><?= esc($v['enquiry_no']) ?></a> · <?= esc($v['project_name'] ?: 'Enquiry Site') ?>
+        </div>
+      </td>
       <td><?= esc($v['user_name']) ?></td><td><?= crm_badge($v['status']) ?></td><td><?= esc($v['address'] ?: '—') ?></td><td class="num" style="font-weight:600"><?= (int) $v['meas_versions'] ?></td>
       <td style="text-align:right"><a class="btn alt sm" href="<?= site_url('crm/visits/' . (int) $v['id']) ?>"><?= $v['status'] === 'scheduled' ? 'Record visit' : 'Open' ?></a></td></tr>
   <?php endforeach; ?></tbody></table></div><?= $pager ?><?php endif; ?>

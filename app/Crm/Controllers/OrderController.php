@@ -46,14 +46,14 @@ class OrderController extends CrmController
         $w  = [$this->scopeSql()];
         $b  = [];
         if (! empty($g['status'])) { $w[] = 'o.status = ?'; $b[] = $g['status']; }
-        if (! empty($g['q'])) { $w[] = '(o.order_no LIKE ? OR qt.quotation_no LIKE ? OR c.name LIKE ?)'; $b = array_merge($b, ['%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%']); }
+        if (! empty($g['q'])) { $w[] = '(o.order_no LIKE ? OR qt.quotation_no LIKE ? OR org.name LIKE ? OR ct.first_name LIKE ? OR c.name LIKE ?)'; $b = array_merge($b, ['%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%', '%' . $g['q'] . '%']); }
         if (! empty($g['from'])) { $w[] = 'o.created_at >= ?'; $b[] = $g['from'] . ' 00:00:00'; }
         if (! empty($g['to'])) { $w[] = 'o.created_at <= ?'; $b[] = $g['to'] . ' 23:59:59'; }
         $where = implode(' AND ', $w);
-        $from  = 'FROM crm_sales_orders o JOIN crm_enquiries e ON e.id = o.enquiry_id JOIN crm_customers c ON c.id = o.customer_id JOIN crm_quotations qt ON qt.id = o.quotation_id LEFT JOIN admin_users u ON u.id = o.salesperson_id';
+        $from  = 'FROM crm_sales_orders o JOIN crm_enquiries e ON e.id = o.enquiry_id JOIN crm_customers c ON c.id = o.customer_id JOIN crm_quotations qt ON qt.id = o.quotation_id LEFT JOIN crm_organisations org ON org.id = o.organisation_id LEFT JOIN crm_contacts ct ON ct.id = o.contact_id LEFT JOIN admin_users u ON u.id = o.salesperson_id';
         $sum   = $db->query("SELECT COUNT(*) n, COALESCE(SUM(o.grand_total),0) total, COALESCE(SUM(o.advance_amount),0) advance {$from} WHERE {$where}", $b)->getRowArray();
         $page  = $this->page();
-        $rows  = $db->query("SELECT o.*, c.name customer_name, qt.quotation_no, e.enquiry_no, CONCAT(u.first_name,' ',u.last_name) salesperson {$from} WHERE {$where} ORDER BY o.id DESC LIMIT " . self::PER . ' OFFSET ' . (($page - 1) * self::PER), $b)->getResultArray();
+        $rows  = $db->query("SELECT o.*, COALESCE(org.name, c.company_name, c.name) organisation_name, org.org_no, COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) contact_name, c.name customer_name, qt.quotation_no, e.enquiry_no, CONCAT(u.first_name,' ',u.last_name) salesperson {$from} WHERE {$where} ORDER BY o.id DESC LIMIT " . self::PER . ' OFFSET ' . (($page - 1) * self::PER), $b)->getResultArray();
         $awaiting = [];
         if (crm_can('orders.manage')) {
             $awaiting = $db->query("SELECT qt.id, qt.quotation_no, c.name customer_name, v.grand_total, v.version_no FROM crm_quotations qt JOIN crm_enquiries e ON e.id = qt.enquiry_id JOIN crm_customers c ON c.id = qt.customer_id
@@ -135,6 +135,10 @@ class OrderController extends CrmController
         $o  = $this->loadO($id);
         $db = Crm::db();
         $c  = $db->table('crm_customers')->where('id', $o['customer_id'])->get()->getRowArray();
+        $orgId = ! empty($o['organisation_id']) ? (int) $o['organisation_id'] : (int) ($c['organisation_id'] ?? 0);
+        $contactId = ! empty($o['contact_id']) ? (int) $o['contact_id'] : (int) ($c['primary_contact_id'] ?? 0);
+        $org = $orgId ? $db->table('crm_organisations')->where('id', $orgId)->get()->getRowArray() : null;
+        $contact = $contactId ? $db->table('crm_contacts')->where('id', $contactId)->get()->getRowArray() : null;
         $e  = $db->table('crm_enquiries')->where('id', $o['enquiry_id'])->get()->getRowArray();
         $q  = $db->table('crm_quotations')->where('id', $o['quotation_id'])->get()->getRowArray();
         $v  = $db->table('crm_quotation_versions')->where('id', $o['version_id'])->get()->getRowArray();
@@ -142,7 +146,7 @@ class OrderController extends CrmController
         $events = array_map(static fn ($ev) => HistoryService::present($ev, $names), $db->table('crm_workflow_events')->where(['entity_type' => 'sales_order', 'entity_id' => $id])->orderBy('created_at')->orderBy('id')->get()->getResultArray());
 
         return $this->render('orders/show', [
-            'o' => $o, 'c' => $c, 'e' => $e, 'q' => $q, 'v' => $v, 'items' => $db->table('crm_sales_order_items')->where('order_id', $id)->orderBy('id')->get()->getResultArray(),
+            'o' => $o, 'c' => $c, 'org' => $org, 'contact' => $contact, 'e' => $e, 'q' => $q, 'v' => $v, 'items' => $db->table('crm_sales_order_items')->where('order_id', $id)->orderBy('id')->get()->getResultArray(),
             'docs' => $db->table('crm_documents')->where(['entity_type' => 'sales_order', 'entity_id' => $id])->orderBy('id', 'DESC')->get()->getResultArray(),
             'events' => $events, 'flow' => OrderService::ORDER_FLOW[$o['status']] ?? [], 'owner' => $names[(int) $o['salesperson_id']] ?? '—', 'creator' => $names[(int) $o['created_by']] ?? '—',
         ], $o['order_no'], 'orders');

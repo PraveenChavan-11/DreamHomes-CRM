@@ -1248,6 +1248,7 @@ dl.kv dd {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding-right: 18px;
 }
 
 .totals > div > span:last-child {
@@ -1256,7 +1257,8 @@ dl.kv dd {
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-family: inherit;
-  margin-left: 16px;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 /* Discount row highlight */

@@ -74,9 +74,12 @@ if (! empty($visits)) {
     <h1><?= esc($title) ?></h1>
     <p class="muted small">Live figures from DHIS database · refreshed <?= esc(crm_dt($m['generated_at'])) ?></p>
   </div>
-  <div class="gap">
+  <div class="gap" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
     <?php if (crm_can('enquiries.create')): ?><a class="btn teal" href="<?= site_url('crm/enquiries/new') ?>">+ New enquiry</a><?php endif; ?>
-    <?php if (crm_can('customers.create')): ?><a class="btn alt" href="<?= site_url('crm/customers/new') ?>">+ New customer</a><?php endif; ?>
+    <?php if (crm_can('customers.create')): ?>
+      <a class="btn alt" href="<?= site_url('crm/organisations/new') ?>">+ New organisation</a>
+      <a class="btn alt" href="<?= site_url('crm/contacts/new') ?>">+ New contact</a>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -96,7 +99,7 @@ if (! empty($visits)) {
   <?= $kpi('Confirmed Revenue', crm_money0($m['won_value']), $n($m['orders_count']) . ' confirmed orders', 'crm/orders', 'primary') ?>
   <?= $kpi('Quotation Value', crm_money0($m['quotations_value']), $n($m['quotations_count']) . ' active quotes', 'crm/quotations') ?>
   <?= $kpi('Conversion Rate', $conv, $n($m['won_count']) . ' won · ' . $n($m['lost_count']) . ' lost', 'crm/reports/conversion', 'good') ?>
-  <?= $kpi('Total Customers', $n($m['customers_total']), $n($m['enquiries_active']) . ' active leads', 'crm/customers') ?>
+  <?= $kpi('Total Organisations', $n($m['organisations_total'] ?? $m['customers_total']), $n($m['enquiries_active']) . ' active accounts', 'crm/organisations') ?>
 <?php else: ?>
   <?= $kpi('My Active Enquiries', $n($m['enquiries_active']), $n($m['enquiries_total']) . ' assigned to me', 'crm/enquiries', 'primary') ?>
   <?= $kpi('Follow-ups Today', $n($m['followups_today']), ($m['followups_overdue'] ? $m['followups_overdue'] . ' overdue' : 'On schedule'), 'crm/followups', $m['followups_overdue'] ? 'warn' : 'good') ?>

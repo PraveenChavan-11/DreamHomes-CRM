@@ -59,21 +59,14 @@ class CustomerController extends CrmController
         ];
     }
 
-    public function index(): string
+    public function index()
     {
-        $g     = $this->request->getGet();
-        $page  = $this->page();
-        $per   = 25;
-        $total = (int) $this->query($g)->countAllResults(false);
-        $rows  = $this->query($g)->orderBy('c.created_at', 'DESC')->orderBy('c.id', 'DESC')->limit($per, ($page - 1) * $per)->get()->getResultArray();
-        $cities = Crm::db()->query("SELECT DISTINCT city FROM crm_customers WHERE city IS NOT NULL AND city <> '' ORDER BY city LIMIT 200")->getResultArray();
-
-        return $this->render('customers/index', ['rows' => $rows, 'total' => $total, 'per' => $per, 'page' => $page, 'g' => $g, 'cities' => array_column($cities, 'city')] + $this->lookups(), 'Customers', 'customers');
+        return redirect()->to(site_url('crm/organisations'));
     }
 
-    public function new(): string
+    public function new()
     {
-        return $this->render('customers/form', ['c' => [], 'action' => site_url('crm/customers/create'), 'mode' => 'new'] + $this->lookups(), 'New customer', 'customers');
+        return redirect()->to(site_url('crm/organisations/new'));
     }
 
     /** Only let the user pick an owner they may see; executives always own what they create. */
@@ -115,11 +108,14 @@ class CustomerController extends CrmController
         return $c;
     }
 
-    public function edit(string $id): string
+    public function edit(string $id)
     {
-        $c = $this->load((int) $id);
-
-        return $this->render('customers/form', ['c' => $c, 'action' => site_url("crm/customers/{$c['id']}/update"), 'mode' => 'edit'] + $this->lookups(), 'Edit ' . $c['customer_no'], 'customers');
+        $db = Crm::db();
+        $c = $db->table('crm_customers')->where('id', (int) $id)->get()->getRowArray();
+        if ($c && ! empty($c['organisation_id'])) {
+            return redirect()->to(site_url("crm/organisations/{$c['organisation_id']}"));
+        }
+        return redirect()->to(site_url('crm/organisations'));
     }
 
     public function update(string $id)
@@ -151,56 +147,22 @@ class CustomerController extends CrmController
 
     public function export()
     {
-        $g    = $this->request->getGet();
-        $rows = $this->query($g)->orderBy('c.customer_no')->limit(20000)->get()->getResultArray();
-        $head = ['Customer No', 'Name', 'Type', 'Company', 'Contact', 'Mobile', 'Email', 'City', 'State', 'PIN', 'GSTIN', 'Source', 'Owner', 'Status', 'Enquiries', 'Created'];
-        $safe = static fn ($v) => is_string($v) && isset($v[0]) && in_array($v[0], ['=', '+', '-', '@'], true) && ! is_numeric($v) ? "'" . $v : $v;
-        $data = array_map(static fn ($r) => array_map($safe, [$r['customer_no'], $r['name'], $r['customer_type'], $r['company_name'], $r['primary_contact'], $r['mobile'], $r['email'], $r['city'], $r['state'], $r['pin_code'], $r['gstin'], $r['source_name'], $r['owner_name'], $r['status'], $r['enquiry_count'], $r['created_at']]), $rows);
-        AuditService::audit('customers.exported', 'report', 'customers', ['meta' => ['rows' => count($rows), 'filters' => $g]]);
-        if (($g['format'] ?? '') === 'csv') {
-            $fh = fopen('php://temp', 'r+');
-            fputcsv($fh, $head);
-            foreach ($data as $r) {
-                fputcsv($fh, $r);
-            }
-            rewind($fh);
-
-            return $this->download((string) stream_get_contents($fh), 'customers-' . date('Ymd') . '.csv', 'text/csv; charset=utf-8');
-        }
-        $ss = new Spreadsheet();
-        $sh = $ss->getActiveSheet()->setTitle('Customers');
-        $sh->fromArray([$head], null, 'A1');
-        $sh->getStyle('A1:P1')->getFont()->setBold(true);
-        $sh->fromArray($data, null, 'A2');
-        foreach (range('A', 'P') as $col) {
-            $sh->getColumnDimension($col)->setAutoSize(true);
-        }
-        ob_start();
-        (new Xlsx($ss))->save('php://output');
-
-        return $this->download((string) ob_get_clean(), 'customers-' . date('Ymd') . '.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        return redirect()->to(site_url('crm/organisations/export'));
     }
 
-    public function show(string $id): string
+    public function show(string $id)
     {
-        $this->load((int) $id);
-        try {
-            $t = HistoryService::customerTabs((int) $id, $this->user());
-        } catch (CrmException) {
-            throw new PageNotFoundException('Not found');
+        $db = Crm::db();
+        $c = $db->table('crm_customers')->where('id', (int) $id)->get()->getRowArray();
+        if ($c && ! empty($c['organisation_id'])) {
+            return redirect()->to(site_url("crm/organisations/{$c['organisation_id']}"));
         }
-        $tab = (string) ($this->request->getGet('tab') ?? 'overview');
-        if (! isset(self::TABS[$tab])) {
-            $tab = 'overview';
+        if ($c) {
+            $org = $db->table('crm_organisations')->where('name', $c['name'])->orWhere('name', $c['company_name'])->get()->getRowArray();
+            if ($org) {
+                return redirect()->to(site_url("crm/organisations/{$org['id']}"));
+            }
         }
-        $counts = [];
-        foreach (self::TABS as $k => $_) {
-            $src = ['salespeople' => 'salespeople', 'approvals' => 'approvals', 'workflow' => 'workflow'][$k] ?? $k;
-            $counts[$k] = is_array($t[$src] ?? null) && $k !== 'overview' ? count($t[$src]) : null;
-        }
-        $db   = Crm::db();
-        $meta = $db->query("SELECT s.name source_name, CONCAT(o.first_name,' ',o.last_name) owner_name FROM crm_customers c LEFT JOIN crm_lead_sources s ON s.id = c.source_id LEFT JOIN admin_users o ON o.id = c.owner_user_id WHERE c.id = ?", [(int) $id])->getRowArray();
-
-        return $this->render('customers/show', ['t' => $t, 'c' => $t['customer'] + (array) $meta, 'tab' => $tab, 'tabs' => self::TABS, 'counts' => $counts], $t['customer']['customer_no'] . ' · ' . $t['customer']['name'], 'customers');
+        return redirect()->to(site_url('crm/organisations'));
     }
 }
