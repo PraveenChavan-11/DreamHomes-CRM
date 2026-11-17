@@ -143,6 +143,15 @@ final class Crm
                     }
                 }
             }
+            if ($db->tableExists('crm_organisations') && $db->table('crm_organisations')->countAllResults() === 0 && $db->tableExists('crm_customers') && $db->table('crm_customers')->countAllResults() > 0) {
+                OrganisationService::syncFromCustomers();
+            }
+            if ($db->tableExists('crm_approval_rules') && $db->table('crm_approval_rules')->countAllResults() === 0) {
+                ApprovalService::seedDefaultRules();
+            }
+            if ($db->tableExists('crm_email_templates') && $db->table('crm_email_templates')->countAllResults() === 0) {
+                CommunicationService::seedAll28Templates();
+            }
         } catch (\Throwable $e) {
             log_message('error', 'Crm::ensureSchema failed: ' . $e->getMessage());
         }

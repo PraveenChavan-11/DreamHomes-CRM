@@ -29,7 +29,7 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
             $routes->get('', 'OrganisationController::index');
             $routes->get('new', 'OrganisationController::new', ['filter' => 'crmperm:customers.create']);
             $routes->post('create', 'OrganisationController::create', ['filter' => 'crmperm:customers.create']);
-            $routes->post('sync', 'OrganisationController::sync', ['filter' => 'crmperm:customers.create']);
+            $routes->match(['get', 'post'], 'sync', 'OrganisationController::sync', ['filter' => 'crmperm:customers.create']);
             $routes->get('(:num)', 'OrganisationController::show/$1');
             $routes->get('(:num)/edit', 'OrganisationController::edit/$1', ['filter' => 'crmperm:customers.edit']);
             $routes->post('(:num)/update', 'OrganisationController::update/$1', ['filter' => 'crmperm:customers.edit']);
