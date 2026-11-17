@@ -125,6 +125,7 @@ final class DemoSeeder
             $this->products();
             $this->customers();
             $this->pipeline();
+            $this->enterpriseOperations();
             $db->transCommit();
         } catch (\Throwable $e) {
             $db->transRollback();
@@ -645,6 +646,377 @@ final class DemoSeeder
         }
         if ($k === 10) {
             OrderService::setStatus($o['id'], 'closed', $M);
+        }
+    }
+
+    private function enterpriseOperations(): void
+    {
+        $db = Crm::db();
+        $now = Crm::now();
+        $adminId = (int) ($this->admin['id'] ?? 1);
+        $execIds = $this->execs;
+
+        // 1. Seed 20 Organisations
+        $orgData = [
+            ['Godrej Properties Pune', 'Builder / Developer', 'Real Estate Development', 'Hot', 'Corporate', '27AABCU9603R1ZM', 'AABCU9603R', 'pune.sales@godrejproperties.demo.invalid', '+91 20 6789 1000', 'Godrej Millennium, Koregaon Park Road, Pune', 'Koregaon Park', '411001'],
+            ['Kolte-Patil Developers Ltd', 'Builder / Developer', 'Residential & Township', 'Hot', 'Corporate', '27AAACK1104G1ZP', 'AAACK1104G', 'corporate@koltepatil.demo.invalid', '+91 20 6698 7100', '2nd Floor, City Point, Dhole Patil Road, Pune', 'Dhole Patil Road', '411001'],
+            ['Panchshil Realty Group', 'Builder / Developer', 'Luxury Commercial & Residential', 'Hot', 'Corporate', '27AABCP8821M1ZX', 'AABCP8821M', 'crm@panchshil.demo.invalid', '+91 20 6647 3000', 'Tech Park One, Tower E, Airport Road, Yerwada, Pune', 'Yerwada', '411006'],
+            ['VTP Realty Projects', 'Builder / Developer', 'Urban Infrastructure', 'Warm', 'Corporate', '27AABCV5542K1ZB', 'AABCV5542K', 'info@vtprealty.demo.invalid', '+91 20 6734 8888', 'VTP House, Nagar Road, Viman Nagar, Pune', 'Viman Nagar', '411014'],
+            ['Pride Purple Group', 'Builder / Developer', 'Integrated Townships', 'Warm', 'Corporate', '27AAACP9901J1ZD', 'AAACP9901J', 'sales@pridepurple.demo.invalid', '+91 20 6605 9999', 'Pride Purple Square, Wakad, Pune', 'Wakad', '411057'],
+            ['Rohan Builders & Developers', 'Builder / Developer', 'Eco-Housing & Construction', 'Warm', 'Corporate', '27AAACR4412Q1ZF', 'AAACR4412Q', 'connect@rohanbuilders.demo.invalid', '+91 20 7101 7101', '1 Modibaug, Commercial Building, Shivajinagar, Pune', 'Shivajinagar', '411016'],
+            ['Mittal Group Infrastructure', 'Builder / Developer', 'Commercial Complexes', 'Cold', 'Corporate', '27AAACM3319E1ZH', 'AAACM3319E', 'projects@mittalgroup.demo.invalid', '+91 20 2613 4500', 'Mittal Towers, M.G. Road, Camp, Pune', 'Camp', '411001'],
+            ['Gera Developments Pvt Ltd', 'Builder / Developer', 'Child-Centric Homes & Villas', 'Warm', 'Corporate', '27AAACG2298F1ZK', 'AAACG2298F', 'sales@gera.demo.invalid', '+91 20 6720 7700', 'Gera Legend, North Main Road, Koregaon Park, Pune', 'Koregaon Park', '411001'],
+            ['Studio Morphogenesis Architects', 'Architect', 'Architectural Design Studio', 'Hot', 'Partnership', '27AAMFS4412H1ZQ', 'AAMFS4412H', 'design@morphogenesis.demo.invalid', '+91 20 2565 1200', 'Studio 4, Model Colony, Shivajinagar, Pune', 'Shivajinagar', '411016'],
+            ['Studio Lotus Pune', 'Architect', 'Luxury Interior & Architecture', 'Hot', 'Proprietorship', '27BAPSL8891N1ZS', 'BAPSL8891N', 'pune@studiolotus.demo.invalid', '+91 20 2683 4567', 'Bungalow 12, Lane 7, Koregaon Park, Pune', 'Koregaon Park', '411001'],
+            ['Arcop Associates Architects', 'Architect', 'Master Planning & Facades', 'Warm', 'Partnership', '27AAAFA1123P1ZU', 'AAAFA1123P', 'info@arcop.demo.invalid', '+91 20 2544 9876', 'Senapati Bapat Road, Deccan, Pune', 'Senapati Bapat Road', '411016'],
+            ['Mindspace Interior Architects', 'Interior Designer', 'Premium Residential Interiors', 'Hot', 'Private Limited', '27AABCM7765L1ZW', 'AABCM7765L', 'projects@mindspace.demo.invalid', '+91 20 2729 3344', 'Mindspace Tower, Baner Road, Baner, Pune', 'Baner', '411045'],
+            ['Design Matrix Interiors', 'Interior Designer', 'Modular Systems & Fitouts', 'Warm', 'Partnership', '27AADFD9981K1ZY', 'AADFD9981K', 'hello@designmatrix.demo.invalid', '+91 20 2588 6677', 'Aundh Corporate Center, DP Road, Aundh, Pune', 'Aundh', '411007'],
+            ['Kalpataru Interior Studio', 'Interior Designer', 'Turnkey Interior Solutions', 'Hot', 'Proprietorship', '27AALPK2234M1ZA', 'AALPK2234M', 'contact@kalpatarustudio.demo.invalid', '+91 20 2699 1122', 'Salunke Vihar Road, Wanowrie, Pune', 'Wanowrie', '411040'],
+            ['Horizon Civil Contractors', 'Contractor', 'Civil & Structural Fitouts', 'Warm', 'Partnership', '27AAHFH5567R1ZC', 'AAHFH5567R', 'contracts@horizoncivil.demo.invalid', '+91 20 2742 8899', 'MIDC Industrial Area, Bhosari, Pune', 'Bhosari', '411026'],
+            ['BuildCraft Engineering Ltd', 'Contractor', 'Glazing & Fenestration Contractors', 'Warm', 'Corporate', '27AABCB8819Q1ZE', 'AABCB8819Q', 'estimating@buildcraft.demo.invalid', '+91 20 2712 4455', 'Plot 45, Pimpri Industrial Belt, Pimpri, Pune', 'Pimpri', '411018'],
+            ['PrimeSpace Corporate Facilities', 'Corporate', 'IT Parks & Co-working Spaces', 'Hot', 'Corporate', '27AABCP1190N1ZG', 'AABCP1190N', 'facilities@primespace.demo.invalid', '+91 20 6799 5500', 'Phase 1, Hinjewadi Rajiv Gandhi Infotech Park, Pune', 'Hinjewadi', '411057'],
+            ['Apex IT Park Solutions', 'Corporate', 'Commercial Office Infrastructure', 'Warm', 'Corporate', '27AABCA3341P1ZJ', 'AABCA3341P', 'admin@apexitpark.demo.invalid', '+91 20 6622 9900', 'EON Free Zone, Kharadi, Pune', 'Kharadi', '411014'],
+            ['Symbiosis International Infrastructure', 'Institutional', 'Educational & Campus Facilities', 'Warm', 'Trust', '27AAATS8876F1ZL', 'AAATS8876F', 'infra@symbiosis.demo.invalid', '+91 20 2811 6200', 'Symbiosis Knowledge Village, Lavale, Mulshi, Pune', 'Lavale', '412115'],
+            ['Elite Residences Club', 'Referral Partner', 'High-Net-Worth Advisory', 'Hot', 'LLP', '27AAKFE4432G1ZN', 'AAKFE4432G', 'concierge@eliteresidences.demo.invalid', '+91 20 2615 7788', 'Boat Club Road, Bund Garden, Pune', 'Boat Club Road', '411001'],
+        ];
+
+        $orgIds = [];
+        foreach ($orgData as $idx => $d) {
+            $orgNo = 'ORG-' . sprintf('%04d', $idx + 1);
+            $ownerId = $execIds[$idx % count($execIds)];
+            $row = $db->table('crm_organisations')->where('org_no', $orgNo)->get()->getRowArray();
+            if ($row) {
+                $orgId = (int) $row['id'];
+                $db->table('crm_organisations')->where('id', $orgId)->update([
+                    'name' => $d[0], 'type' => $d[1], 'industry' => $d[2], 'account_rating' => $d[3],
+                    'business_category' => $d[4], 'gstin' => $d[5], 'pan' => $d[6], 'primary_email' => $d[7],
+                    'primary_phone' => $d[8], 'registered_address' => $d[9], 'billing_address' => $d[9],
+                    'default_site_address' => $d[9], 'city' => 'Pune', 'state' => 'Maharashtra',
+                    'pin_code' => $d[11], 'owner_user_id' => $ownerId, 'account_status' => 'active', 'updated_at' => $now,
+                ]);
+            } else {
+                $db->table('crm_organisations')->insert([
+                    'org_no' => $orgNo, 'name' => $d[0], 'type' => $d[1], 'industry' => $d[2], 'account_rating' => $d[3],
+                    'business_category' => $d[4], 'gstin' => $d[5], 'pan' => $d[6], 'primary_email' => $d[7],
+                    'primary_phone' => $d[8], 'registered_address' => $d[9], 'billing_address' => $d[9],
+                    'default_site_address' => $d[9], 'city' => 'Pune', 'state' => 'Maharashtra',
+                    'pin_code' => $d[11], 'country' => 'India', 'owner_user_id' => $ownerId,
+                    'account_status' => 'active', 'notes' => 'Key enterprise account for architectural fenestration, premium modular kitchens and bathroom fitouts.',
+                    'created_by' => $adminId, 'is_demo' => 1, 'created_at' => $now, 'updated_at' => $now,
+                ]);
+                $orgId = (int) $db->insertID();
+            }
+            $this->reg('crm_organisations', $orgId);
+            $orgIds[$idx] = $orgId;
+        }
+
+        // 2. Seed 50 Contacts linked to the 20 Organisations
+        $firstNames = ['Rajesh', 'Sanjay', 'Vikram', 'Anil', 'Sunil', 'Manish', 'Deepak', 'Arjun', 'Sameer', 'Pravin', 'Ramesh', 'Mahesh', 'Gaurav', 'Nitin', 'Alok', 'Vivek', 'Hemant', 'Kishore', 'Sudhir', 'Ashok', 'Kavita', 'Smita', 'Pooja', 'Ananya', 'Ritu', 'Meenal', 'Deepa', 'Sangeeta', 'Shalini', 'Tanvi'];
+        $lastNames = ['Sharma', 'Verma', 'Agarwal', 'Mehta', 'Singhania', 'Chopra', 'Jindal', 'Malhotra', 'Goenka', 'Todi', 'Kapadia', 'Dalal', 'Saraf', 'Piramal', 'Somani', 'Ruia', 'Dhoot', 'Kirloskar', 'Wadia', 'Godrej'];
+        $designations = ['Managing Director', 'Principal Architect', 'Chief Procurement Officer', 'VP Projects', 'Head of Supply Chain', 'Lead Interior Designer', 'Project Director', 'Senior Project Manager', 'Commercial Manager', 'Chief Architect'];
+        $roles = ['Owner', 'Director', 'Purchase Manager', 'Project Manager', 'Architect', 'Interior Designer', 'Finance / Accounts', 'Site Engineer', 'Procurement Executive'];
+
+        $contactIds = [];
+        for ($c = 0; $c < 50; $c++) {
+            $cntNo = 'CNT-' . sprintf('%04d', $c + 1);
+            $parentOrgId = $orgIds[$c % 20];
+            $isPrimary = ($c < 20) ? 1 : 0; // First contact for each of the 20 orgs is Primary
+            $isDM = ($c < 25) ? 1 : 0;
+            $fName = $firstNames[$c % count($firstNames)];
+            $lName = $lastNames[$c % count($lastNames)];
+            $desig = $designations[$c % count($designations)];
+            $role = $roles[$c % count($roles)];
+            $mob = '+91 98' . sprintf('%02d', 20 + $c) . ' ' . sprintf('%05d', 11000 + $c * 37);
+
+            $existingCnt = $db->table('crm_contacts')->where('contact_no', $cntNo)->get()->getRowArray();
+            if ($existingCnt) {
+                $cntId = (int) $existingCnt['id'];
+                $db->table('crm_contacts')->where('id', $cntId)->update([
+                    'organisation_id' => $parentOrgId, 'first_name' => $fName, 'last_name' => $lName,
+                    'designation' => $desig, 'contact_role' => $role, 'mobile' => $mob,
+                    'email' => strtolower("{$fName}.{$lName}@demo.invalid"), 'whatsapp_no' => $mob,
+                    'is_primary' => $isPrimary, 'is_decision_maker' => $isDM, 'status' => 'active', 'updated_at' => $now,
+                ]);
+            } else {
+                $db->table('crm_contacts')->insert([
+                    'contact_no' => $cntNo, 'organisation_id' => $parentOrgId, 'first_name' => $fName,
+                    'last_name' => $lName, 'designation' => $desig, 'department' => 'Projects & Commercial',
+                    'contact_role' => $role, 'mobile' => $mob, 'alternate_number' => '+91 20 6' . sprintf('%06d', 700000 + $c),
+                    'email' => strtolower("{$fName}.{$lName}@demo.invalid"), 'whatsapp_no' => $mob,
+                    'preferred_channel' => ['phone', 'email', 'whatsapp', 'in_person'][$c % 4],
+                    'is_decision_maker' => $isDM, 'is_primary' => $isPrimary, 'status' => 'active',
+                    'remarks' => 'Key commercial liaison with full technical sign-off authority.',
+                    'created_by' => $adminId, 'is_demo' => 1, 'created_at' => $now, 'updated_at' => $now,
+                ]);
+                $cntId = (int) $db->insertID();
+            }
+            $this->reg('crm_contacts', $cntId);
+            $contactIds[$c] = $cntId;
+
+            // Update primary contact on organisation
+            if ($isPrimary) {
+                $db->table('crm_organisations')->where('id', $parentOrgId)->update(['primary_contact_id' => $cntId]);
+            }
+        }
+
+        // Link existing customers, enquiries, quotations, orders to organisations and contacts
+        $customers = $db->table('crm_customers')->get()->getResultArray();
+        foreach ($customers as $ci => $cust) {
+            $linkedOrgId = $orgIds[$ci % 20];
+            $linkedCntId = $contactIds[$ci % 50];
+            $db->table('crm_customers')->where('id', $cust['id'])->update([
+                'organisation_id' => $linkedOrgId,
+                'primary_contact_id' => $linkedCntId,
+            ]);
+            $db->table('crm_enquiries')->where('customer_id', $cust['id'])->update([
+                'organisation_id' => $linkedOrgId,
+                'contact_id' => $linkedCntId,
+            ]);
+            $db->table('crm_quotations')->where('customer_id', $cust['id'])->update([
+                'organisation_id' => $linkedOrgId,
+                'contact_id' => $linkedCntId,
+            ]);
+            $db->table('crm_sales_orders')->where('customer_id', $cust['id'])->update([
+                'organisation_id' => $linkedOrgId,
+                'contact_id' => $linkedCntId,
+            ]);
+        }
+
+        // 3. Seed 60 Sales Activities
+        $activityTypes = ['customer_visit', 'architect_meeting', 'phone_call', 'site_measurement', 'quotation_presentation', 'client_demo', 'follow_up', 'payment_collection'];
+        $activitySubjects = [
+            'Architectural blueprint review & fenestration opening confirmation',
+            'Vitrum Slimline sliding system catalogue demonstration to senior partner',
+            'Follow-up call regarding commercial terms & milestone discount structure',
+            'Physical site survey: checking lintel heights and civil opening squareness',
+            'Commercial proposal presentation to Chief Procurement Officer',
+            'Showroom display walkthrough for Grohe bath fittings & rain shower sets',
+            'Technical coordination meeting with site structural engineer',
+            'Advance payment collection discussion & formal invoice delivery',
+            'Hafele modular kitchen hardware sample demonstration',
+            'Final commercial negotiation with Managing Director',
+        ];
+
+        for ($a = 0; $a < 60; $a++) {
+            $actNo = 'ACT-' . sprintf('%04d', $a + 1);
+            $aType = $activityTypes[$a % count($activityTypes)];
+            $subj = $activitySubjects[$a % count($activitySubjects)];
+            $assignedRep = $execIds[$a % count($execIds)];
+            $linkedOrg = $orgIds[$a % 20];
+            $linkedContact = $contactIds[$a % 50];
+
+            $status = $a < 35 ? 'completed' : ($a < 50 ? 'scheduled' : ($a < 55 ? 'rescheduled' : 'missed'));
+            $dateOffset = $a < 35 ? -($a + 1) : ($a < 45 ? ($a - 35) : -($a - 45 + 3));
+            $actDate = date('Y-m-d', strtotime("{$dateOffset} days"));
+            $schedAt = date('Y-m-d H:i:s', strtotime("{$actDate} " . (10 + ($a % 7)) . ":30:00"));
+
+            $convLeadId = ($a >= 20 && $a < 30) ? (int) ($db->table('crm_enquiries')->where('is_demo', 1)->orderBy('id', 'ASC')->limit(1, $a - 20)->get()->getRow()->id ?? null) : null;
+
+            $existAct = $db->table('crm_sales_activities')->where('activity_no', $actNo)->get()->getRowArray();
+            if ($existAct) {
+                $db->table('crm_sales_activities')->where('id', $existAct['id'])->update([
+                    'organisation_id' => $linkedOrg, 'contact_id' => $linkedContact,
+                    'activity_type' => $aType, 'subject' => $subj, 'activity_date' => $actDate,
+                    'scheduled_at' => $schedAt, 'assigned_user_id' => $assignedRep, 'status' => $status,
+                    'converted_to_enquiry_id' => $convLeadId, 'updated_at' => $now,
+                ]);
+            } else {
+                $db->table('crm_sales_activities')->insert([
+                    'activity_no' => $actNo, 'organisation_id' => $linkedOrg, 'contact_id' => $linkedContact,
+                    'activity_type' => $aType, 'subject' => $subj,
+                    'description' => "Detailed sales interaction addressing client specifications, product variants, and commercial budgets for project openings.",
+                    'activity_date' => $actDate, 'scheduled_at' => $schedAt,
+                    'assigned_user_id' => $assignedRep, 'location' => 'Client Head Office / Project Site',
+                    'status' => $status, 'outcome' => ($status === 'completed' ? 'proposal_presented' : null),
+                    'outcome_notes' => ($status === 'completed' ? 'Client verified architectural drawings and requested final itemized commercial proposal.' : null),
+                    'completed_at' => ($status === 'completed' ? $schedAt : null),
+                    'converted_to_enquiry_id' => $convLeadId, 'converted_at' => ($convLeadId ? $schedAt : null),
+                    'created_by' => $assignedRep, 'is_demo' => 1, 'created_at' => $schedAt, 'updated_at' => $now,
+                ]);
+            }
+            $this->reg('crm_sales_activities', (int) ($existAct['id'] ?? $db->insertID()));
+        }
+
+        // 4. Seed 12 Commercial Approvals (Matrix Scenarios)
+        $quotations = $db->table('crm_quotations q')
+            ->select('q.*, qv.id as version_id, qv.grand_total, qv.subtotal, qv.discount_total, qv.taxable_total')
+            ->join('crm_quotation_versions qv', 'qv.quotation_id = q.id', 'left')
+            ->orderBy('q.id', 'ASC')
+            ->limit(12)
+            ->get()->getResultArray();
+        $approvalStatuses = ['approved', 'approved', 'approved', 'approved', 'pending', 'pending', 'pending', 'pending', 'rejected', 'rejected', 'returned_for_revision', 'approved'];
+
+        foreach ($quotations as $qidx => $q) {
+            $aprNo = 'APR-' . sprintf('%04d', $qidx + 1);
+            $appStatus = $approvalStatuses[$qidx % count($approvalStatuses)];
+            $discPct = 6.0 + ($qidx * 1.5);
+            $levelReq = $discPct > 15.0 ? 2 : 1;
+            $approver = ($appStatus === 'approved' || $appStatus === 'rejected') ? $adminId : null;
+            $gTotal = (float) (!empty($q['grand_total']) ? $q['grand_total'] : (120000 + ($qidx * 18500)));
+            $vId = (int) (!empty($q['version_id']) ? $q['version_id'] : ($q['current_version_id'] ?? 1));
+
+            $existApr = $db->table('crm_quotation_approvals')->where('approval_no', $aprNo)->get()->getRowArray();
+            $aprData = [
+                'approval_no' => $aprNo,
+                'quotation_id' => $q['id'],
+                'quotation_version_id' => $vId,
+                'organisation_id' => $q['organisation_id'] ?? $orgIds[$qidx % 20],
+                'contact_id' => $q['contact_id'] ?? $contactIds[$qidx % 50],
+                'salesperson_id' => $execIds[$qidx % count($execIds)],
+                'approval_level' => $levelReq,
+                'max_approval_level' => 2,
+                'required_role' => $levelReq === 2 ? 'commercial_head' : 'sales_manager',
+                'status' => $appStatus,
+                'proposed_selling_price' => $gTotal,
+                'standard_selling_price' => round($gTotal * 1.12, 2),
+                'requested_discount_pct' => $discPct,
+                'requested_discount_amount' => round($gTotal * ($discPct / 100), 2),
+                'net_taxable_value' => round($gTotal / 1.18, 2),
+                'grand_total' => $gTotal,
+                'salesperson_justification' => 'Key commercial account comparing competitor proposals from local fabricators. Additional volume discount needed to secure the contract.',
+                'action_by_user_id' => $approver,
+                'action_at' => $approver ? date('Y-m-d H:i:s', strtotime('-1 day')) : null,
+                'manager_remarks' => $appStatus === 'approved' ? 'Approved based on project scale and high-margin product mix.' : ($appStatus === 'returned_for_revision' ? 'Discount too steep. Counter-offer with 7% discount and complimentary installation.' : null),
+                'rejection_reason' => $appStatus === 'rejected' ? 'Proposed commercial discount reduces gross margin below the required 18% floor. Counter-offer required.' : null,
+                'sla_due_at' => date('Y-m-d H:i:s', strtotime('+1 day')),
+                'is_demo' => 1,
+                'created_at' => date('Y-m-d H:i:s', strtotime('-2 days')),
+                'updated_at' => $now,
+            ];
+
+            if ($existApr) {
+                $db->table('crm_quotation_approvals')->where('id', $existApr['id'])->update($aprData);
+                $aprId = (int) $existApr['id'];
+            } else {
+                $db->table('crm_quotation_approvals')->insert($aprData);
+                $aprId = (int) $db->insertID();
+            }
+            $this->reg('crm_quotation_approvals', $aprId);
+
+            // Update quotation approval status
+            $db->table('crm_quotations')->where('id', $q['id'])->update([
+                'approval_status' => $appStatus,
+                'is_commercially_approved' => ($appStatus === 'approved') ? 1 : 0,
+                'current_approval_id' => $aprId,
+            ]);
+
+            // Seed clarification thread notes
+            $db->table('crm_approval_clarifications')->where('approval_id', $aprId)->delete();
+            $db->table('crm_approval_clarifications')->insert([
+                'approval_id' => $aprId,
+                'sender_user_id' => $execIds[$qidx % count($execIds)],
+                'message' => "Client has verified Saint-Gobain profile specs. Proposing {$discPct}% concession to lock the sales order before month end.",
+                'created_at' => date('Y-m-d H:i:s', strtotime('-2 days')),
+            ]);
+            if ($appStatus !== 'pending') {
+                $db->table('crm_approval_clarifications')->insert([
+                    'approval_id' => $aprId,
+                    'sender_user_id' => $adminId,
+                    'message' => $appStatus === 'approved' ? 'Terms reviewed and verified against margin matrix. Approved.' : 'Requires price revision per commercial guidelines.',
+                    'created_at' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                ]);
+            }
+        }
+
+        // 5. Seed 25 Sales Targets across cadences
+        $targetMonths = [date('Y-m-01'), date('Y-m-01', strtotime('-1 month')), date('Y-m-01', strtotime('+1 month'))];
+        $targetIdx = 0;
+        foreach ($targetMonths as $mStart) {
+            $mEnd = date('Y-m-t', strtotime($mStart));
+            $mLabel = date('F Y', strtotime($mStart));
+
+            // Per executive monthly targets
+            foreach ($execIds as $repId) {
+                $targetIdx++;
+                $tNo = 'TGT-' . sprintf('%04d', $targetIdx);
+                $revGoal = 1200000.00;
+                $existTgt = $db->table('crm_sales_targets')->where('target_no', $tNo)->get()->getRowArray();
+                $tData = [
+                    'target_no' => $tNo, 'user_id' => $repId, 'team_id' => null,
+                    'frequency' => 'monthly', 'period_start' => $mStart, 'period_end' => $mEnd,
+                    'period_label' => $mLabel, 'revenue_target' => $revGoal,
+                    'orders_target' => 6, 'activities_target' => 30, 'quotations_target' => 15,
+                    'collections_target' => 900000.00, 'is_demo' => 1, 'created_by' => $adminId,
+                    'created_at' => $now, 'updated_at' => $now,
+                ];
+                if ($existTgt) {
+                    $db->table('crm_sales_targets')->where('id', $existTgt['id'])->update($tData);
+                } else {
+                    $db->table('crm_sales_targets')->insert($tData);
+                }
+                $this->reg('crm_sales_targets', (int) ($existTgt['id'] ?? $db->insertID()));
+            }
+        }
+
+        // Seed 4 Team Quarterly Targets & 3 Weekly Targets
+        for ($w = 1; $w <= 4; $w++) {
+            $targetIdx++;
+            $tNo = 'TGT-' . sprintf('%04d', $targetIdx);
+            $db->table('crm_sales_targets')->insert([
+                'target_no' => $tNo, 'user_id' => null, 'team_id' => 1,
+                'frequency' => 'quarterly', 'period_start' => date('Y-10-01'), 'period_end' => date('Y-12-31'),
+                'period_label' => 'Q3 FY26 - Windows Division', 'revenue_target' => 7500000.00,
+                'orders_target' => 35, 'activities_target' => 180, 'quotations_target' => 90,
+                'collections_target' => 6000000.00, 'is_demo' => 1, 'created_by' => $adminId,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $this->reg('crm_sales_targets', (int) $db->insertID());
+        }
+
+        // 6. Seed all 28 Email Templates
+        CommunicationService::seedAll28Templates();
+
+        // 7. Seed 40 Email Logs
+        $mailTemplates = ['enquiry_ack', 'quotation_sent', 'quotation_revised', 'quotation_approved', 'order_confirmation', 'payment_receipt', 'delivery_dispatched', 'installation_completed'];
+        for ($m = 0; $m < 40; $m++) {
+            $tpl = $mailTemplates[$m % count($mailTemplates)];
+            $status = $m < 34 ? 'sent' : ($m < 37 ? 'queued' : 'failed');
+            $db->table('crm_email_log')->insert([
+                'to_email' => 'client' . ($m + 1) . '@company.demo.invalid',
+                'customer_id' => (int) ($customers[$m % count($customers)]['id'] ?? 1),
+                'organisation_id' => $orgIds[$m % 20],
+                'template_code' => $tpl,
+                'subject' => 'Official Notice: ' . ucwords(str_replace('_', ' ', $tpl)) . ' - Dream Homes Interior Solutions',
+                'status' => $status,
+                'provider_message_id' => 'msg-' . bin2hex(random_bytes(8)),
+                'error' => ($status === 'failed' ? 'SMTP Error: Connection timed out on port 465 (simulated failure for retry testing).' : null),
+                'retry_count' => ($status === 'failed' ? 1 : 0),
+                'triggered_by_user' => $adminId,
+                'is_demo' => 1,
+                'sent_at' => ($status === 'sent' ? date('Y-m-d H:i:s', strtotime("-{$m} hours")) : null),
+                'created_at' => date('Y-m-d H:i:s', strtotime("-{$m} hours")),
+            ]);
+            $this->reg('crm_email_log', (int) $db->insertID());
+        }
+
+        // 8. Seed 60 Notifications
+        $notifTypes = ['quotation.approval_required', 'quotation.approved', 'quotation.rejected', 'enquiry.assigned', 'activity.reminder', 'payment.received'];
+        $notifMessages = [
+            'Commercial approval required for quotation with requested 12.5% discount.',
+            'Quotation has been APPROVED by management. You may now dispatch to client.',
+            'Quotation commercial concession was declined. Please review rejection reason.',
+            'New high-value enterprise lead assigned to your queue via round-robin.',
+            'Reminder: Customer site survey scheduled today at 11:30 AM.',
+            'Payment milestone received: ₹ 2,45,000 via NEFT. Receipt generated.',
+        ];
+
+        for ($n = 0; $n < 60; $n++) {
+            $type = $notifTypes[$n % count($notifTypes)];
+            $msg = $notifMessages[$n % count($notifMessages)];
+            $recipient = $execIds[$n % count($execIds)];
+            $isRead = ($n < 35) ? 1 : 0;
+
+            $db->table('crm_notifications')->insert([
+                'user_id' => $recipient,
+                'type' => $type,
+                'title' => ucwords(str_replace('.', ' ', $type)),
+                'message' => $msg,
+                'link' => 'crm/quotations',
+                'is_read' => $isRead,
+                'read_at' => ($isRead ? date('Y-m-d H:i:s', strtotime("-{$n} hours")) : null),
+                'created_at' => date('Y-m-d H:i:s', strtotime("-{$n} hours")),
+            ]);
+            $this->reg('crm_notifications', (int) $db->insertID());
         }
     }
 }

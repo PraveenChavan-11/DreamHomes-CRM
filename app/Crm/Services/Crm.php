@@ -119,7 +119,7 @@ final class Crm
                     `updated_at` DATETIME NULL
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             }
-            if (! $db->tableExists('crm_projects') || ! $db->tableExists('crm_master_records')) {
+            if (! $db->tableExists('crm_projects') || ! $db->tableExists('crm_master_records') || ! $db->tableExists('crm_organisations') || ! $db->tableExists('crm_quotation_approvals') || ! $db->tableExists('crm_sales_activities') || ! $db->tableExists('crm_sales_targets')) {
                 $files = glob(APPPATH . 'Crm/Database/Migrations/*.php');
                 if ($files) {
                     sort($files);

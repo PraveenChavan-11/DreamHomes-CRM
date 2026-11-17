@@ -24,6 +24,41 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
         $routes->post('notifications/read', 'DashboardController::markRead');
         $routes->post('notifications/(:num)/read', 'DashboardController::markRead/$1');
 
+        // organisations
+        $routes->group('organisations', ['filter' => 'crmperm:customers.view'], static function ($routes) {
+            $routes->get('', 'OrganisationController::index');
+            $routes->get('new', 'OrganisationController::new', ['filter' => 'crmperm:customers.create']);
+            $routes->post('create', 'OrganisationController::create', ['filter' => 'crmperm:customers.create']);
+            $routes->post('sync', 'OrganisationController::sync', ['filter' => 'crmperm:customers.create']);
+            $routes->get('(:num)', 'OrganisationController::show/$1');
+            $routes->get('(:num)/edit', 'OrganisationController::edit/$1', ['filter' => 'crmperm:customers.edit']);
+            $routes->post('(:num)/update', 'OrganisationController::update/$1', ['filter' => 'crmperm:customers.edit']);
+            $routes->post('(:num)/status', 'OrganisationController::status/$1', ['filter' => 'crmperm:customers.deactivate']);
+        });
+
+        // contacts
+        $routes->group('contacts', ['filter' => 'crmperm:customers.view'], static function ($routes) {
+            $routes->get('', 'ContactController::index');
+            $routes->get('new', 'ContactController::new', ['filter' => 'crmperm:customers.create']);
+            $routes->post('create', 'ContactController::create', ['filter' => 'crmperm:customers.create']);
+            $routes->get('(:num)/edit', 'ContactController::edit/$1', ['filter' => 'crmperm:customers.edit']);
+            $routes->post('(:num)/update', 'ContactController::update/$1', ['filter' => 'crmperm:customers.edit']);
+            $routes->post('(:num)/primary', 'ContactController::setPrimary/$1', ['filter' => 'crmperm:customers.edit']);
+        });
+
+        // sales activities (dedicated module)
+        $routes->group('activities', ['filter' => 'crmperm:enquiries.view,followups.manage'], static function ($routes) {
+            $routes->get('', 'SalesActivityController::index');
+            $routes->get('new', 'SalesActivityController::new');
+            $routes->post('create', 'SalesActivityController::create');
+            $routes->get('(:num)', 'SalesActivityController::show/$1');
+            $routes->get('(:num)/edit', 'SalesActivityController::edit/$1');
+            $routes->post('(:num)/update', 'SalesActivityController::update/$1');
+            $routes->post('(:num)/complete', 'SalesActivityController::complete/$1');
+            $routes->post('(:num)/reschedule', 'SalesActivityController::reschedule/$1');
+            $routes->post('(:num)/convert', 'SalesActivityController::convertToLead/$1');
+        });
+
         // customers
         $routes->group('customers', ['filter' => 'crmperm:customers.view'], static function ($routes) {
             $routes->get('', 'CustomerController::index');
@@ -86,6 +121,34 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
             $routes->get('(:num)/compare', 'QuotationController::compare/$1');
             $routes->get('(:num)/pdf/(:num)', 'QuotationController::pdf/$1/$2');
             $routes->get('(:num)/preview/(:num)', 'QuotationController::previewVersion/$1/$2');
+        });
+
+        // commercial quotation approvals (multi-level discount governance)
+        $routes->group('approvals', ['filter' => 'crmperm:quotations.view'], static function ($routes) {
+            $routes->get('', 'ApprovalController::index');
+            $routes->get('(:num)', 'ApprovalController::show/$1');
+            $routes->post('(:num)/decide', 'ApprovalController::decide/$1');
+            $routes->post('(:num)/clarify', 'ApprovalController::clarify/$1');
+        });
+
+        // sales targets & performance management
+        $routes->group('targets', ['filter' => 'crmperm:reports.view,dashboard.view'], static function ($routes) {
+            $routes->get('', 'TargetController::index');
+            $routes->get('new', 'TargetController::new');
+            $routes->post('create', 'TargetController::create');
+            $routes->get('(:num)', 'TargetController::show/$1');
+            $routes->get('(:num)/edit', 'TargetController::edit/$1');
+            $routes->post('(:num)/update', 'TargetController::update/$1');
+        });
+
+        // central communication centre & email templates
+        $routes->group('communication', ['filter' => 'crmperm:emails.view'], static function ($routes) {
+            $routes->get('templates', 'CommunicationController::templates');
+            $routes->get('templates/(:num)/edit', 'CommunicationController::editTemplate/$1');
+            $routes->post('templates/(:num)/update', 'CommunicationController::updateTemplate/$1');
+            $routes->get('logs', 'CommunicationController::logs');
+            $routes->post('logs/(:num)/retry', 'CommunicationController::retryLog/$1');
+            $routes->post('record', 'CommunicationController::recordCommunication');
         });
 
         // negotiations & discount approvals
@@ -158,6 +221,9 @@ $routes->group('crm', ['namespace' => 'Crm\Controllers'], static function ($rout
         $routes->get('audit', 'AdminController::audit', ['filter' => 'crmperm:audit.view']);
         $routes->get('settings', 'AdminController::settings', ['filter' => 'crmperm:settings.manage']);
         $routes->post('settings', 'AdminController::saveSettings', ['filter' => 'crmperm:settings.manage']);
+        $routes->get('settings/governance', 'GovernanceController::index', ['filter' => 'crmperm:settings.manage']);
+        $routes->post('settings/governance/rule', 'GovernanceController::saveRule', ['filter' => 'crmperm:settings.manage']);
+        $routes->post('settings/governance/rule/(:num)/toggle', 'GovernanceController::toggleRule/$1', ['filter' => 'crmperm:settings.manage']);
         $routes->get('demo', 'AdminController::demo', ['filter' => 'crmperm:demo.reset']);
         $routes->post('demo/reset', 'AdminController::demoReset', ['filter' => 'crmperm:demo.reset']);
         $routes->get('health', 'AdminController::health', ['filter' => 'crmperm:settings.manage']);

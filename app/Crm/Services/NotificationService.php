@@ -53,4 +53,54 @@ final class NotificationService
         }
         $b->update(['read_at' => Crm::now()]);
     }
+
+    /**
+     * Central Event Dispatcher: dispatches in-app notifications and queues matching emails.
+     */
+    public static function trigger(string $event, array $payload): void
+    {
+        $db = Crm::db();
+        $msg = $payload['message'] ?? 'Transaction notification';
+        $title = $payload['title'] ?? match ($event) {
+            'quotation.approval_requested' => 'Commercial Approval Requested',
+            'quotation.approved' => 'Quotation Approved',
+            'quotation.rejected' => 'Quotation Rejected',
+            'quotation.revision_requested' => 'Quotation Returned for Revision',
+            'quotation.clarification_requested' => 'Approval Clarification Requested',
+            'lead.assigned' => 'New Opportunity Assigned',
+            'target.assigned' => 'Sales Target Assigned',
+            'order.confirmed' => 'Sales Order Confirmed',
+            default => crm_label($event),
+        };
+
+        $link = $payload['link'] ?? match ($event) {
+            'quotation.approval_requested', 'quotation.clarification_requested' => ! empty($payload['approval_id']) ? 'crm/approvals/' . (int) $payload['approval_id'] : 'crm/approvals',
+            'quotation.approved', 'quotation.rejected', 'quotation.revision_requested' => ! empty($payload['quotation_id']) ? 'crm/quotations/' . (int) $payload['quotation_id'] : 'crm/quotations',
+            'lead.assigned' => ! empty($payload['enquiry_id']) ? 'crm/enquiries/' . (int) $payload['enquiry_id'] : 'crm/enquiries',
+            'target.assigned' => 'crm/targets',
+            'order.confirmed' => ! empty($payload['order_id']) ? 'crm/orders/' . (int) $payload['order_id'] : 'crm/orders',
+            default => 'crm',
+        };
+
+        $recipients = [];
+        if (! empty($payload['recipient_id'])) {
+            $recipients[] = (int) $payload['recipient_id'];
+        } elseif (! empty($payload['recipient_user_id'])) {
+            $recipients[] = (int) $payload['recipient_user_id'];
+        } elseif (! empty($payload['user_id'])) {
+            $recipients[] = (int) $payload['user_id'];
+        } elseif (! empty($payload['owner_id'])) {
+            $recipients[] = (int) $payload['owner_id'];
+        } elseif (str_contains($event, 'approval_requested')) {
+            $rows = $db->query("SELECT DISTINCT u.id FROM admin_users u JOIN user_roles ur ON ur.user_id = u.id JOIN roles r ON r.id = ur.role_id WHERE u.is_active = 1 AND r.name IN ('admin', 'sales_manager', 'business_admin')")->getResultArray();
+            foreach ($rows as $r) {
+                $recipients[] = (int) $r['id'];
+            }
+        }
+
+        $dedupePrefix = $event . ':' . ($payload['quotation_id'] ?? ($payload['enquiry_id'] ?? time()));
+        foreach ($recipients as $uid) {
+            self::notify($uid, $event, $title, $msg, $link, $dedupePrefix . ':' . $uid);
+        }
+    }
 }

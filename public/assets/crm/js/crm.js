@@ -81,7 +81,7 @@
       }
       return;
     }
-    var closeBtn = e.target.closest('[data-close], .modal-close, [data-modal-close], .btn-close, [data-dismiss="modal"]');
+    var closeBtn = e.target.closest('[data-close], .modal-close, [data-modal-close], .btn-close, [data-dismiss="modal"], .close, [aria-label="Close"], [data-cancel]');
     if (closeBtn) {
       e.preventDefault();
       var mm = closeBtn.closest('.modal');
@@ -297,7 +297,7 @@
     var selectors = (step.target || '').split(',').map(function (s) { return s.trim(); });
     for (var i = 0; i < selectors.length; i++) {
       if (selectors[i]) {
-        targetEl = $(selectors[i]);
+        try { targetEl = $(selectors[i]); } catch (ex) {}
         if (targetEl) break;
       }
     }
@@ -321,25 +321,26 @@
     }
 
     tourBackdrop.style.display = 'block';
+    tourPopover.style.display = 'block';
 
-    var popWidth = Math.min(360, window.innerWidth - 32);
-    var popHeight = 250;
+    var popWidth = Math.min(380, window.innerWidth - 32);
+    var popHeight = tourPopover.offsetHeight || 260;
 
-    // Check if target element exists and is rendered
-    if (targetEl && targetEl.getBoundingClientRect) {
-      // If element is inside the sidebar, scroll the sidebar to reveal it
+    // Scroll element into view if present
+    if (targetEl) {
       var side = targetEl.closest('.side');
-      if (side) {
-        if (window.innerWidth <= 860 && !side.classList.contains('open')) {
-          side.classList.add('open');
-        }
-        var targetOffset = targetEl.offsetTop;
-        if (targetOffset < side.scrollTop || targetOffset > side.scrollTop + side.clientHeight - 80) {
-          side.scrollTop = Math.max(0, targetOffset - 80);
-        }
+      if (side && window.innerWidth <= 860 && !side.classList.contains('open')) {
+        side.classList.add('open');
       }
+      try {
+        targetEl.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+      } catch (ex) {}
+    }
 
-      var rect = targetEl.getBoundingClientRect();
+    var rect = targetEl && targetEl.getBoundingClientRect ? targetEl.getBoundingClientRect() : null;
+    var isVisible = rect && (rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight);
+
+    if (isVisible) {
       var pad = 6;
       var spotTop = Math.max(0, rect.top - pad);
       var spotLeft = Math.max(0, rect.left - pad);
@@ -352,26 +353,25 @@
       tourSpotlight.style.width = spotWidth + 'px';
       tourSpotlight.style.height = spotHeight + 'px';
 
-      // Smart viewport-relative positioning
       var popTop = 0;
       var popLeft = 0;
 
-      if (rect.right < 380 && window.innerWidth >= 768) {
-        // Sidebar item: place to the right of the spotlight
+      if (rect.right < 380 && window.innerWidth >= 768 && (rect.right + 20 + popWidth <= window.innerWidth)) {
+        // Sidebar item: place immediately to the right of the spotlight
         popLeft = rect.right + 20;
         popTop = rect.top - 8;
       } else if (rect.bottom + popHeight + 20 <= window.innerHeight) {
-        // Ample room below target
+        // Room below target
         popTop = rect.bottom + 14;
-        popLeft = rect.left;
+        popLeft = Math.max(16, rect.left);
       } else if (rect.top - popHeight - 20 >= 0) {
-        // Ample room above target
+        // Room above target
         popTop = rect.top - popHeight - 14;
-        popLeft = rect.left;
+        popLeft = Math.max(16, rect.left);
       } else {
-        // Fallback: place in safe right area or center
-        popTop = (window.innerHeight - popHeight) / 2;
-        popLeft = rect.right + 20 <= window.innerWidth - popWidth ? rect.right + 20 : (window.innerWidth - popWidth) / 2;
+        // Center fallback
+        popTop = Math.max(16, (window.innerHeight - popHeight) / 2);
+        popLeft = Math.max(16, (window.innerWidth - popWidth) / 2);
       }
 
       // STRICT CLAMP to guarantee 100% viewport visibility on all screens
@@ -382,9 +382,9 @@
       tourPopover.style.left = popLeft + 'px';
       tourPopover.style.width = popWidth + 'px';
     } else {
-      // Centered fallback if element not on page
+      // Centered fallback if element not on page or hidden
       tourSpotlight.style.display = 'none';
-      var popTop = Math.max(16, (window.innerHeight - popHeight) / 2);
+      var popTop = Math.max(20, (window.innerHeight - popHeight) / 2);
       var popLeft = Math.max(16, (window.innerWidth - popWidth) / 2);
       tourPopover.style.top = popTop + 'px';
       tourPopover.style.left = popLeft + 'px';
@@ -459,10 +459,19 @@
     fetch(window.CRM_BASE + 'crm/tour/get', { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (tour) {
-        if (!tour || !tour.steps) return;
+        if (!tour || !tour.steps || !tour.steps.length) return;
         activeTour = tour;
-        if (force || (!tour.is_completed && !tour.is_skipped)) {
+        var params = new URLSearchParams(window.location.search);
+        var urlStep = params.get('tour_step');
+        if (urlStep !== null && !isNaN(parseInt(urlStep, 10))) {
+          renderTourStep(parseInt(urlStep, 10));
+          return;
+        }
+        if (force) {
           renderTourStep(0);
+        } else if (!tour.is_completed && !tour.is_skipped) {
+          var s = parseInt(tour.last_step, 10);
+          renderTourStep((isNaN(s) || s < 0 || s >= tour.steps.length) ? 0 : s);
         }
       }).catch(function () {});
   }

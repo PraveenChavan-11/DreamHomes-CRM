@@ -7,9 +7,14 @@ final class NumberSequenceService
 {
     public const DEFAULTS = [
         'customer'     => ['CUS', 4],
+        'organisation' => ['ORG', 4],
+        'contact'      => ['CNT', 4],
         'enquiry'      => ['ENQ', 4],
         'lead'         => ['LEAD', 4],
+        'activity'     => ['ACT', 4],
         'quotation'    => ['QT', 4],
+        'approval'     => ['APR', 4],
+        'target'       => ['TGT', 4],
         'negotiation'  => ['NEG', 4],
         'order'        => ['SO', 4],
         'visit'        => ['SV', 4],

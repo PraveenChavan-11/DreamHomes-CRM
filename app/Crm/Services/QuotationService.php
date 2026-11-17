@@ -207,13 +207,41 @@ final class QuotationService
             }
             $lines = $lines ?: RequirementService::toQuotationLines($enquiryId);
             $calc = self::price($lines, $charges, $actor, null, $meta['target_total'] ?? null);
+            $eval = ApprovalService::evaluate((float) $calc['subtotal'], (float) $calc['discount_total'], (float) $calc['grand_total'], $actor, $lines);
+
             $no   = NumberSequenceService::next('quotation');
-            $db->table('crm_quotations')->insert(['quotation_no' => $no, 'enquiry_id' => $enquiryId, 'customer_id' => $e['customer_id'], 'status' => 'draft', 'created_by' => $actor['id'], 'is_demo' => $isDemo]);
+            $status = $eval['requires_approval'] ? 'pending_approval' : 'draft';
+            $appStatus = $eval['requires_approval'] ? 'pending_level_1' : 'none';
+            $isApproved = $eval['requires_approval'] ? 0 : 1;
+
+            $db->table('crm_quotations')->insert([
+                'quotation_no' => $no,
+                'enquiry_id' => $enquiryId,
+                'customer_id' => $e['customer_id'],
+                'organisation_id' => $e['organisation_id'] ?? null,
+                'contact_id' => $e['contact_id'] ?? null,
+                'status' => $status,
+                'approval_status' => $appStatus,
+                'is_commercially_approved' => $isApproved,
+                'created_by' => $actor['id'],
+                'is_demo' => $isDemo,
+            ]);
             $qid = (int) $db->insertID();
-            $db->table('crm_quotation_versions')->insert(['quotation_id' => $qid, 'version_no' => 1, 'created_by' => $actor['id'], 'created_at' => Crm::now()] + self::versionMeta($meta));
+            $db->table('crm_quotation_versions')->insert([
+                'quotation_id' => $qid,
+                'version_no' => 1,
+                'approval_status' => $appStatus,
+                'created_by' => $actor['id'],
+                'created_at' => Crm::now(),
+            ] + self::versionMeta($meta));
             $vid = (int) $db->insertID();
             self::writeVersionBody($vid, $calc);
             $db->table('crm_quotations')->where('id', $qid)->update(['current_version_id' => $vid]);
+
+            if ($eval['requires_approval']) {
+                $justification = ! empty($meta['justification']) ? (string) $meta['justification'] : implode('; ', $eval['reasons']);
+                ApprovalService::submitForApproval($qid, $vid, $justification, $actor);
+            }
             if (in_array($e['status'], ['contacted', 'qualified', 'site_visit'], true)) {
                 WorkflowService::transition($enquiryId, 'quotation_preparation', $actor, "Quotation {$no} prepared");
             }
@@ -283,6 +311,9 @@ final class QuotationService
 
         return Crm::tx(static function ($db) use ($quotationId, $actor, $channel, $toEmail) {
             $q = self::loadQuotation($quotationId, $actor);
+            if (isset($q['is_commercially_approved']) && (int) $q['is_commercially_approved'] === 0) {
+                throw new CrmException("Commercial Approval Required: Quotation {$q['quotation_no']} is currently " . crm_label($q['approval_status'] ?? 'pending_approval') . ". Only approved commercial offers can be forwarded to customers.");
+            }
             $c = $db->table('crm_customers')->where('id', $q['customer_id'])->get()->getRowArray();
             $v = $db->query('SELECT * FROM crm_quotation_versions WHERE id = ? FOR UPDATE', [$q['current_version_id']])->getRowArray();
             if ((int) $v['is_locked'] === 1) {
@@ -387,12 +418,28 @@ final class QuotationService
                 throw CrmException::validation(['reason' => 'State why the quotation is being revised (e.g. customer asked for a different variant or size).']);
             }
             $calc = self::price($lines, $charges, $actor, $ceiling, $meta['target_total'] ?? null);
+            $eval = ApprovalService::evaluate((float) $calc['subtotal'], (float) $calc['discount_total'], (float) $calc['grand_total'], $actor, $lines);
+
             $vno  = (int) $prev['version_no'] + 1;
-            $db->table('crm_quotation_versions')->insert(['quotation_id' => $quotationId, 'version_no' => $vno, 'created_by' => $actor['id'], 'created_at' => Crm::now(), 'revision_reason' => mb_substr((string) $reason, 0, 500), 'source_followup_id' => $followupId] + self::versionMeta($meta, $prev));
+            $appStatus = ($eval['requires_approval'] && ! $negotiationId) ? 'pending_level_1' : 'approved';
+            $isApproved = ($eval['requires_approval'] && ! $negotiationId) ? 0 : 1;
+
+            $db->table('crm_quotation_versions')->insert(['quotation_id' => $quotationId, 'version_no' => $vno, 'approval_status' => $appStatus, 'created_by' => $actor['id'], 'created_at' => Crm::now(), 'revision_reason' => mb_substr((string) $reason, 0, 500), 'source_followup_id' => $followupId] + self::versionMeta($meta, $prev));
             $vid = (int) $db->insertID();
             self::writeVersionBody($vid, $calc);
             self::recordChanges($quotationId, (int) $prev['id'], $vid, (int) $prev['version_no'], $vno, (string) $reason, (int) $actor['id']);
-            $db->table('crm_quotations')->where('id', $quotationId)->update(['current_version_id' => $vid, 'status' => 'revised']);
+            
+            $qStatus = ($eval['requires_approval'] && ! $negotiationId) ? 'pending_approval' : 'revised';
+            $db->table('crm_quotations')->where('id', $quotationId)->update([
+                'current_version_id' => $vid,
+                'status' => $qStatus,
+                'approval_status' => $appStatus,
+                'is_commercially_approved' => $isApproved,
+            ]);
+
+            if ($eval['requires_approval'] && ! $negotiationId) {
+                ApprovalService::submitForApproval($quotationId, $vid, (string) $reason, $actor);
+            }
             if ($negotiationId) {
                 $db->table('crm_negotiations')->where('id', $negotiationId)->update(['status' => 'applied', 'final_discount_amount' => $calc['discount_total'], 'resulting_version_id' => $vid]);
             }

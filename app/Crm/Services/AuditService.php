@@ -97,4 +97,10 @@ final class AuditService
 
         return (int) $db->insertID();
     }
+
+    /** Convenience alias for audit() with metadata payload */
+    public static function record(string $eventType, string $entityType, string|int|null $entityId, array $meta = []): int
+    {
+        return self::audit($eventType, $entityType, $entityId, ['meta' => $meta]);
+    }
 }

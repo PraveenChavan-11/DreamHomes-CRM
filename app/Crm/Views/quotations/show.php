@@ -23,10 +23,44 @@ $canNeg = crm_can('negotiations.create') && $locked && in_array($q['status'], ['
     <a class="btn alt" target="_blank" rel="noopener" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/preview/' . (int) $sel['version_no']) ?>">Preview HTML</a>
     <?php if (count($versions) > 1): ?><a class="btn alt" href="<?= site_url('crm/quotations/' . (int) $q['id'] . '/compare') ?>">Compare versions</a><?php endif; ?>
     <?php if (crm_can('quotations.send') && ! $closed): ?>
-      <?php if (! $locked): ?><button class="btn teal" type="button" data-modal="m-send">Send to customer</button><?php else: ?><button class="btn alt" type="button" data-modal="m-resend">Resend email</button><?php endif; ?>
+      <?php if (! $locked): ?>
+        <?php if (! empty($q['is_commercially_approved'])): ?>
+          <button class="btn teal" type="button" data-modal="m-send">Send Approved Quotation</button>
+        <?php elseif (! empty($q['current_approval_id'])): ?>
+          <a class="btn alt" style="color:#B45309;border-color:#FDE68A;background:#FEF3C7" href="<?= site_url('crm/approvals/' . (int) $q['current_approval_id']) ?>" title="Requires Commercial Management Approval">
+            🔒 Approval Pending (View Request)
+          </a>
+        <?php else: ?>
+          <button class="btn teal" type="button" data-modal="m-send">Send to customer</button>
+        <?php endif; ?>
+      <?php else: ?>
+        <button class="btn alt" type="button" data-modal="m-resend">Resend email</button>
+      <?php endif; ?>
     <?php endif; ?>
   </div>
 </div>
+
+<?php if (! empty($q['is_commercially_approved'])): ?>
+  <div class="card" style="margin-bottom:16px;background:#F0FDF4;border-color:#BBF7D0;padding:12px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <strong style="color:#166534">✓ Commercially Approved by Management</strong>
+        <div class="small muted">This quotation has met commercial governance requirements and is authorized for customer distribution.</div>
+      </div>
+      <span class="badge badge-green">Authorized</span>
+    </div>
+  </div>
+<?php elseif (! empty($q['current_approval_id'])): ?>
+  <div class="card" style="margin-bottom:16px;background:#FEF3C7;border-color:#FDE68A;padding:12px 18px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <strong style="color:#92400E">⚠️ Commercial Approval In Progress (<?= esc(crm_label($q['approval_status'] ?? 'pending')) ?>)</strong>
+        <div class="small muted">A commercial concession was proposed that requires manager authorization. Client sending is gated until approved.</div>
+      </div>
+      <a class="btn sm teal" href="<?= site_url('crm/approvals/' . (int) $q['current_approval_id']) ?>">Review Approval Request &rarr;</a>
+    </div>
+  </div>
+<?php endif; ?>
 
 <div class="grid g-side mb">
   <div class="card">
@@ -87,35 +121,63 @@ $canNeg = crm_can('negotiations.create') && $locked && in_array($q['status'], ['
       </tr>
     <?php endforeach; ?>
     </tbody></table></div>
-  <div class="bd" style="padding-top:16px;padding-bottom:20px;background:#FAFCFB;border-top:1px solid var(--line-2)">
-    <div class="totals">
-      <div class="row-subtotal"><span>Subtotal</span><span><?= crm_money($sel['subtotal']) ?></span></div>
-      <?php if ((float) $sel['discount_total'] > 0): ?>
-        <div class="row-discount"><span>Discount Applied</span><span>− <?= crm_money($sel['discount_total']) ?></span></div>
-      <?php endif; ?>
-      <?php if ($sel['target_total'] !== null): ?>
-        <div class="small muted" style="padding:4px 0 6px;border-bottom:1px dashed rgba(0,0,0,0.06);display:flex;justify-content:space-between">
-          <span>↳ Agreed Final Price Adjustment (Target <?= crm_money($sel['target_total']) ?>)</span>
-          <span><?= crm_money($sel['adjustment_amount']) ?></span>
-        </div>
-      <?php endif; ?>
-      <div class="row-taxable"><span>Net Taxable Value</span><span><?= crm_money($sel['taxable_total']) ?></span></div>
-      <?php foreach ($sel['charges'] as $ch): ?>
-        <div class="row-charge"><span><?= esc($ch['name']) ?></span><span><?= crm_money($ch['amount']) ?></span></div>
-      <?php endforeach; ?>
-      <?php if ($intra): ?>
-        <div class="row-tax"><span>Central GST (CGST @ 9%)</span><span><?= crm_money($cgst) ?></span></div>
-        <div class="row-tax"><span>State GST (SGST @ 9%)</span><span><?= crm_money($cgst) ?></span></div>
-      <?php else: ?>
-        <div class="row-tax"><span>Integrated GST (IGST @ 18%)</span><span><?= crm_money($igst) ?></span></div>
-      <?php endif; ?>
-      <?php if ((float) $sel['round_off'] != 0.0): ?>
-        <div class="row-roundoff"><span class="muted small">Round Off</span><span><?= ((float) $sel['round_off'] > 0 ? '+ ' : '') . crm_money($sel['round_off']) ?></span></div>
-      <?php endif; ?>
-      <div class="gt row-grand-total">
-        <span>Grand Total (INR)</span>
-        <span><?= crm_money($sel['grand_total']) ?></span>
-      </div>
+  <div class="bd" style="padding:20px 24px;background:#FAFCFB;border-top:1px solid var(--line-2)">
+    <div style="margin-left:auto;width:100%;max-width:460px;background:#FFFFFF;border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;box-shadow:0 1px 4px rgba(0,0,0,0.04)">
+      <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+        <tbody>
+          <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+            <td style="padding:8px 0;color:var(--text-muted);font-weight:500">Item Subtotal</td>
+            <td style="padding:8px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums"><?= crm_money($sel['subtotal']) ?></td>
+          </tr>
+          <?php if ((float) $sel['discount_total'] > 0): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:8px 0;color:#B91C1C;font-weight:600">Discount Applied</td>
+              <td style="padding:8px 0;text-align:right;color:#B91C1C;font-weight:700;font-variant-numeric:tabular-nums">− <?= crm_money($sel['discount_total']) ?></td>
+            </tr>
+          <?php endif; ?>
+          <?php if ($sel['target_total'] !== null): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:6px 0;font-size:12px;color:var(--text-muted)">↳ Agreed Target Adjustment</td>
+              <td style="padding:6px 0;text-align:right;font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums"><?= crm_money($sel['adjustment_amount']) ?></td>
+            </tr>
+          <?php endif; ?>
+          <tr style="border-top:1px solid var(--line);border-bottom:1px dashed rgba(0,0,0,0.08)">
+            <td style="padding:9px 0;font-weight:600;color:var(--th-dark)">Net Taxable Value</td>
+            <td style="padding:9px 0;text-align:right;font-weight:700;color:var(--th-dark);font-variant-numeric:tabular-nums"><?= crm_money($sel['taxable_total']) ?></td>
+          </tr>
+          <?php foreach ($sel['charges'] as $ch): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:7px 0;color:var(--text-muted);font-weight:500"><?= esc($ch['name']) ?></td>
+              <td style="padding:7px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums"><?= crm_money($ch['amount']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if ($intra): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:7px 0;color:var(--text-muted);font-size:12.5px">Central GST (CGST @ 9%)</td>
+              <td style="padding:7px 0;text-align:right;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums"><?= crm_money($cgst) ?></td>
+            </tr>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:7px 0;color:var(--text-muted);font-size:12.5px">State GST (SGST @ 9%)</td>
+              <td style="padding:7px 0;text-align:right;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums"><?= crm_money($cgst) ?></td>
+            </tr>
+          <?php else: ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:7px 0;color:var(--text-muted);font-size:12.5px">Integrated GST (IGST @ 18%)</td>
+              <td style="padding:7px 0;text-align:right;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums"><?= crm_money($igst) ?></td>
+            </tr>
+          <?php endif; ?>
+          <?php if ((float) $sel['round_off'] != 0.0): ?>
+            <tr style="border-bottom:1px dashed rgba(0,0,0,0.08)">
+              <td style="padding:7px 0;color:var(--text-muted);font-size:12px">Round Off</td>
+              <td style="padding:7px 0;text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums"><?= ((float) $sel['round_off'] > 0 ? '+ ' : '') . crm_money($sel['round_off']) ?></td>
+            </tr>
+          <?php endif; ?>
+          <tr style="border-top:2px solid var(--th-primary)">
+            <td style="padding:14px 0 4px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--th-dark)">Grand Total (INR)</td>
+            <td style="padding:14px 0 4px;text-align:right;font-size:22px;font-weight:800;color:var(--th-primary);font-variant-numeric:tabular-nums"><?= crm_money($sel['grand_total']) ?></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
