@@ -260,7 +260,12 @@ final class OrganisationService
         $org = self::get($id) ?? throw new CrmException('Organisation not found.');
 
         // Contacts
-        $contacts = $db->table('crm_contacts')->where('organisation_id', $id)->orderBy('is_primary', 'DESC')->orderBy('id', 'ASC')->get()->getResultArray();
+        $contacts = $db->table('crm_contacts')
+            ->select('*, whatsapp, whatsapp AS whatsapp_no, mobile, mobile AS mobile_number')
+            ->where('organisation_id', $id)
+            ->orderBy('is_primary', 'DESC')
+            ->orderBy('id', 'ASC')
+            ->get()->getResultArray();
 
         // Projects
         $projects = $db->table('crm_projects')->where('customer_id IN (SELECT id FROM crm_customers WHERE organisation_id = ' . $id . ')')->orWhere('id IN (SELECT project_id FROM crm_sales_activities WHERE organisation_id = ' . $id . ' AND project_id IS NOT NULL)')->get()->getResultArray();
@@ -277,7 +282,13 @@ final class OrganisationService
 
         // Sales Activities
         $activities = $db->table('crm_sales_activities sa')
-            ->select("sa.*, CONCAT(u.first_name, ' ', u.last_name) AS assigned_user_name, c.first_name, c.last_name, c.mobile AS contact_mobile")
+            ->select("sa.*,
+                COALESCE(sa.discussion_summary, sa.product_interest, sa.activity_no) AS subject,
+                sa.discussion_summary AS description,
+                sa.activity_date AS scheduled_at,
+                CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, '')) AS contact_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS assigned_user_name,
+                c.first_name, c.last_name, c.mobile AS contact_mobile")
             ->join('admin_users u', 'u.id = sa.assigned_user_id', 'left')
             ->join('crm_contacts c', 'c.id = sa.contact_id', 'left')
             ->where('sa.organisation_id', $id)
@@ -297,9 +308,12 @@ final class OrganisationService
 
         // Quotations & Versions
         $quotations = $db->table('crm_quotations q')
-            ->select("q.*, e.enquiry_no, qv.grand_total, qv.version_no, qv.is_locked, CONCAT(u.first_name, ' ', u.last_name) AS author_name")
+            ->select("q.*, e.enquiry_no, qv.grand_total, qv.discount_total, qv.subtotal, qv.version_no, qv.version_no AS current_version_no, qv.is_locked,
+                CONCAT(COALESCE(ct.first_name, ''), ' ', COALESCE(ct.last_name, '')) AS contact_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS author_name")
             ->join('crm_enquiries e', 'e.id = q.enquiry_id', 'left')
             ->join('crm_quotation_versions qv', 'qv.id = q.current_version_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = q.contact_id', 'left')
             ->join('admin_users u', 'u.id = q.created_by', 'left')
             ->where('q.organisation_id', $id)
             ->orWhere('e.organisation_id', $id)
@@ -309,8 +323,16 @@ final class OrganisationService
 
         // Approvals
         $approvals = $db->table('crm_quotation_approvals qa')
-            ->select("qa.*, q.quotation_no, CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name, CONCAT(app.first_name, ' ', app.last_name) AS approver_name")
+            ->select("qa.*, q.quotation_no, qv.version_no,
+                CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS requester_name,
+                qa.standard_selling_price AS original_amount,
+                qa.proposed_selling_price AS requested_amount,
+                qa.requested_discount_pct AS discount_pct,
+                qa.action_at AS decision_at,
+                CONCAT(app.first_name, ' ', app.last_name) AS approver_name")
             ->join('crm_quotations q', 'q.id = qa.quotation_id', 'left')
+            ->join('crm_quotation_versions qv', 'qv.id = qa.quotation_version_id', 'left')
             ->join('admin_users u', 'u.id = qa.salesperson_id', 'left')
             ->join('admin_users app', 'app.id = qa.action_by_user_id', 'left')
             ->where('qa.organisation_id', $id)
@@ -320,8 +342,11 @@ final class OrganisationService
 
         // Orders
         $orders = $db->table('crm_sales_orders so')
-            ->select("so.*, q.quotation_no, CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name")
+            ->select("so.*, q.quotation_no,
+                CONCAT(COALESCE(ct.first_name, ''), ' ', COALESCE(ct.last_name, '')) AS contact_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS salesperson_name")
             ->join('crm_quotations q', 'q.id = so.quotation_id', 'left')
+            ->join('crm_contacts ct', 'ct.id = so.contact_id', 'left')
             ->join('admin_users u', 'u.id = so.salesperson_id', 'left')
             ->where('so.organisation_id', $id)
             ->orWhere('so.customer_id IN (SELECT id FROM crm_customers WHERE organisation_id = ' . $id . ')')

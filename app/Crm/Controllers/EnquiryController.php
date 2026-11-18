@@ -30,7 +30,7 @@ class EnquiryController extends CrmController
         $row = Crm::db()->table('crm_enquiries e')
             ->select("e.*, COALESCE(org.name, c.company_name, c.name) AS organisation_name, org.org_no,
                       COALESCE(CONCAT(ct.first_name, ' ', ct.last_name), c.name) AS contact_person_name,
-                      ct.designation AS contact_person_designation, ct.mobile_number AS contact_person_mobile, ct.email AS contact_person_email,
+                      ct.designation AS contact_person_designation, ct.mobile AS contact_person_mobile, ct.mobile AS mobile_number, ct.email AS contact_person_email,
                       c.name AS customer_name, c.customer_no, c.mobile AS customer_mobile, c.email AS customer_email, c.city AS customer_city, CONCAT(o.first_name,' ',o.last_name) AS owner_name,
                       t.name AS team_name, pc.name AS category_name, ls.name AS source_name, lr.name AS lost_reason, CONCAT(cb.first_name,' ',cb.last_name) AS closed_by_name")
             ->join('crm_customers c', 'c.id = e.customer_id', 'left')
@@ -193,7 +193,7 @@ class EnquiryController extends CrmController
             ->get()->getResultArray();
 
         $contacts = $db->table('crm_contacts')
-            ->select('id, organisation_id, first_name, last_name, designation, mobile_number, email')
+            ->select('id, organisation_id, first_name, last_name, designation, mobile, mobile AS mobile_number, email')
             ->where('status', 'active')
             ->orderBy('first_name')
             ->get()->getResultArray();
@@ -268,7 +268,7 @@ class EnquiryController extends CrmController
                         'first_name' => $parts[0],
                         'last_name' => $parts[1] ?? '',
                         'designation' => $p['contact_designation'] ?? 'Primary Contact',
-                        'mobile_number' => $p['contact_mobile'] ?? '9000000000',
+                        'mobile' => $p['contact_mobile'] ?? '9000000000',
                         'email' => $p['contact_email'] ?? null,
                         'is_primary' => 1,
                         'status' => 'active',

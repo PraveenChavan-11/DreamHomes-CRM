@@ -47,7 +47,15 @@ final class CommunicationService
     {
         $db = self::db();
         return $db->table('crm_communication_logs cl')
-            ->select("cl.*, c.first_name, c.last_name, c.mobile AS contact_mobile, CONCAT(u.first_name, ' ', u.last_name) AS logged_by_name")
+            ->select("cl.*,
+                cl.communication_type AS channel,
+                cl.message_body AS body,
+                cl.outcome AS delivery_status,
+                c.mobile AS recipient_address,
+                c.first_name, c.last_name, c.mobile AS contact_mobile,
+                CONCAT(COALESCE(c.first_name, ''), ' ', COALESCE(c.last_name, '')) AS contact_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS sender_name,
+                CONCAT(u.first_name, ' ', u.last_name) AS logged_by_name")
             ->join('crm_contacts c', 'c.id = cl.contact_id', 'left')
             ->join('admin_users u', 'u.id = cl.logged_by_user_id', 'left')
             ->where('cl.organisation_id', $orgId)

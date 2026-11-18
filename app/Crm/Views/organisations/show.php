@@ -166,7 +166,11 @@ $tabs = [
             </td>
             <td><?= esc($cnt['designation'] ?? '—') ?><div class="muted small"><?= esc(crm_label($cnt['contact_role'] ?? '')) ?></div></td>
             <td><?= ! empty($cnt['is_decision_maker']) ? '<span class="badge badge-blue">Key Decision Maker</span>' : 'Influencer / Staff' ?></td>
-            <td><?= esc($cnt['mobile']) ?><?= $cnt['whatsapp_no'] ? '<div class="muted small">WA: ' . esc($cnt['whatsapp_no']) . '</div>' : '' ?></td>
+            <td>
+              <?= esc($cnt['mobile'] ?? '') ?>
+              <?php $wa = $cnt['whatsapp'] ?? ($cnt['whatsapp_no'] ?? null); ?>
+              <?php if (! empty($wa)): ?><div class="muted small">WA: <?= esc($wa) ?></div><?php endif; ?>
+            </td>
             <td><?= $cnt['email'] ? '<a href="mailto:' . esc($cnt['email']) . '">' . esc($cnt['email']) . '</a>' : '—' ?></td>
             <td><?= esc(crm_label($cnt['preferred_channel'] ?? 'phone')) ?></td>
             <td><?= crm_badge($cnt['status'] ?? 'active') ?></td>
@@ -264,15 +268,15 @@ $tabs = [
         <?php foreach ($activities as $act): ?>
           <tr>
             <td>
-              <a href="<?= site_url('crm/activities/' . $act['id']) ?>"><strong><?= esc($act['subject']) ?></strong></a>
-              <div class="muted small"><?= esc($act['activity_no']) ?></div>
+              <a href="<?= site_url('crm/activities/' . $act['id']) ?>"><strong><?= esc($act['subject'] ?? ($act['discussion_summary'] ?: 'Activity #' . ($act['activity_no'] ?? $act['id']))) ?></strong></a>
+              <div class="muted small"><?= esc($act['activity_no'] ?? ('#' . $act['id'])) ?></div>
             </td>
-            <td><?= esc(crm_label($act['activity_type'])) ?></td>
+            <td><?= esc(crm_label($act['activity_type'] ?? 'activity')) ?></td>
             <td><?= esc($act['contact_name'] ?? '—') ?></td>
-            <td><?= esc(crm_dt($act['scheduled_at'])) ?></td>
+            <td><?= esc(crm_dt($act['scheduled_at'] ?? ($act['activity_date'] ?? null))) ?></td>
             <td><?= esc($act['assigned_user_name'] ?? '—') ?></td>
-            <td><?= esc(mb_strimwidth($act['outcome'] ?: ($act['description'] ?: '—'), 0, 45, '...')) ?></td>
-            <td><?= crm_badge($act['status']) ?></td>
+            <td><?= esc(mb_strimwidth(($act['outcome'] ?? '') ?: (($act['description'] ?? ($act['discussion_summary'] ?? '')) ?: '—'), 0, 45, '...')) ?></td>
+            <td><?= crm_badge($act['status'] ?? 'scheduled') ?></td>
             <td><a class="btn sm alt" href="<?= site_url('crm/activities/' . $act['id']) ?>">View</a></td>
           </tr>
         <?php endforeach; ?>
@@ -302,8 +306,8 @@ $tabs = [
               <div class="muted small">v<?= (int) ($q['current_version_no'] ?? 1) ?></div>
             </td>
             <td><?= esc($q['contact_name'] ?? '—') ?></td>
-            <td class="num"><strong><?= crm_money($q['grand_total']) ?></strong></td>
-            <td class="num"><?= crm_money($q['discount_total']) ?></td>
+            <td class="num"><strong><?= crm_money($q['grand_total'] ?? 0) ?></strong></td>
+            <td class="num"><?= crm_money($q['discount_total'] ?? 0) ?></td>
             <td>
               <?php if (! empty($q['is_commercially_approved'])): ?>
                 <span class="badge badge-green">✓ Commercially Approved</span>
@@ -338,13 +342,13 @@ $tabs = [
         <?php foreach ($approvals as $apr): ?>
           <tr>
             <td><a href="<?= site_url('crm/approvals/' . $apr['id']) ?>"><strong><?= esc($apr['approval_no']) ?></strong></a></td>
-            <td><a href="<?= site_url('crm/quotations/' . $apr['quotation_id']) ?>"><?= esc($apr['quotation_no']) ?> (v<?= (int) $apr['version_no'] ?>)</a></td>
-            <td><?= esc($apr['requester_name']) ?></td>
-            <td class="num"><?= crm_money($apr['original_amount']) ?></td>
-            <td class="num"><strong><?= crm_money($apr['requested_amount']) ?></strong></td>
-            <td class="num"><strong style="color:#B91C1C"><?= number_format((float) $apr['discount_pct'], 1) ?>%</strong></td>
+            <td><a href="<?= site_url('crm/quotations/' . $apr['quotation_id']) ?>"><?= esc($apr['quotation_no']) ?> (v<?= (int) ($apr['version_no'] ?? 1) ?>)</a></td>
+            <td><?= esc($apr['requester_name'] ?? ($apr['salesperson_name'] ?? '—')) ?></td>
+            <td class="num"><?= crm_money($apr['original_amount'] ?? ($apr['standard_selling_price'] ?? 0)) ?></td>
+            <td class="num"><strong><?= crm_money($apr['requested_amount'] ?? ($apr['proposed_selling_price'] ?? 0)) ?></strong></td>
+            <td class="num"><strong style="color:#B91C1C"><?= number_format((float) ($apr['discount_pct'] ?? ($apr['requested_discount_pct'] ?? 0)), 1) ?>%</strong></td>
             <td><?= crm_badge($apr['status']) ?></td>
-            <td><?= esc(crm_dt($apr['decision_at'])) ?></td>
+            <td><?= esc(crm_dt($apr['decision_at'] ?? ($apr['action_at'] ?? null))) ?></td>
             <td><a class="btn sm alt" href="<?= site_url('crm/approvals/' . $apr['id']) ?>">Review</a></td>
           </tr>
         <?php endforeach; ?>
@@ -419,13 +423,13 @@ $tabs = [
         <tbody>
         <?php foreach ($communications as $com): ?>
           <tr>
-            <td><?= esc(crm_label($com['channel'])) ?></td>
-            <td><?= esc(crm_label($com['direction'])) ?></td>
-            <td><strong><?= esc($com['subject']) ?></strong><div class="muted small"><?= esc(mb_strimwidth($com['body'] ?? '', 0, 60, '...')) ?></div></td>
-            <td><?= esc($com['recipient_address'] ?? '—') ?></td>
-            <td><?= esc($com['sender_name'] ?? 'System') ?></td>
+            <td><?= esc(crm_label($com['channel'] ?? ($com['communication_type'] ?? 'direct'))) ?></td>
+            <td><?= esc(crm_label($com['direction'] ?? 'outgoing')) ?></td>
+            <td><strong><?= esc($com['subject'] ?? 'Direct Communication') ?></strong><div class="muted small"><?= esc(mb_strimwidth(($com['body'] ?? ($com['message_body'] ?? '')) ?: '', 0, 60, '...')) ?></div></td>
+            <td><?= esc($com['recipient_address'] ?? ($com['contact_mobile'] ?? '—')) ?></td>
+            <td><?= esc($com['sender_name'] ?? ($com['logged_by_name'] ?? 'System')) ?></td>
             <td><?= esc(crm_dt($com['created_at'])) ?></td>
-            <td><?= crm_badge($com['delivery_status'] ?? 'sent') ?></td>
+            <td><?= crm_badge($com['delivery_status'] ?? ($com['outcome'] ?? 'sent')) ?></td>
           </tr>
         <?php endforeach; ?>
         </tbody>

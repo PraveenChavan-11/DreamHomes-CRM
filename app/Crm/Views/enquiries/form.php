@@ -48,7 +48,7 @@ $selId = (int) (old('customer_id') ?: ($selected['id'] ?? 0));
         <select id="contact_id" name="contact_id" data-search>
           <option value="">— default primary contact —</option>
           <?php foreach ($contacts ?? [] as $cnt): ?>
-            <option value="<?= (int) $cnt['id'] ?>" data-org="<?= (int) $cnt['organisation_id'] ?>"><?= esc($cnt['first_name'] . ' ' . $cnt['last_name'] . ($cnt['designation'] ? ' · ' . $cnt['designation'] : '') . ' (' . $cnt['mobile_number'] . ')') ?></option>
+            <option value="<?= (int) $cnt['id'] ?>" data-org="<?= (int) $cnt['organisation_id'] ?>"><?= esc($cnt['first_name'] . ' ' . $cnt['last_name'] . ($cnt['designation'] ? ' · ' . $cnt['designation'] : '') . ' (' . ($cnt['mobile'] ?? ($cnt['mobile_number'] ?? '')) . ')') ?></option>
           <?php endforeach; ?>
         </select>
       </div>

@@ -204,7 +204,7 @@ final class ApprovalService
         }
 
         $lines = $db->table('crm_quotation_items qi')
-            ->select('qi.*, p.standard_price, p.min_selling_price, p.cost_price')
+            ->select('qi.*, p.standard_price, p.min_price AS min_selling_price, p.cost_price')
             ->join('crm_products p', 'p.id = qi.product_id', 'left')
             ->where('qi.version_id', $versionId)
             ->get()->getResultArray();
@@ -376,7 +376,7 @@ final class ApprovalService
 
         // Quotation item breakdown
         $items = $db->table('crm_quotation_items qi')
-            ->select('qi.*, p.name AS product_name, p.sku, p.standard_price, p.min_selling_price')
+            ->select('qi.*, p.name AS product_name, p.sku, p.standard_price, p.min_price AS min_selling_price')
             ->join('crm_products p', 'p.id = qi.product_id', 'left')
             ->where('qi.version_id', $row['quotation_version_id'])
             ->get()->getResultArray();

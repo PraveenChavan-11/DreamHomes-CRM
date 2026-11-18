@@ -77,12 +77,12 @@ class SearchController extends CrmController
 
             if ($db->tableExists('crm_contacts')) {
                 $contacts = $db->table('crm_contacts c')
-                    ->select('c.id, c.contact_no, c.first_name, c.last_name, c.designation, c.mobile_number, c.organisation_id, o.name as org_name')
+                    ->select('c.id, c.contact_no, c.first_name, c.last_name, c.designation, c.mobile, c.mobile AS mobile_number, c.organisation_id, o.name as org_name')
                     ->join('crm_organisations o', 'o.id = c.organisation_id', 'left')
                     ->groupStart()
                         ->like('c.first_name', $q)
                         ->orLike('c.last_name', $q)
-                        ->orLike('c.mobile_number', $q)
+                        ->orLike('c.mobile', $q)
                         ->orLike('c.contact_no', $q)
                     ->groupEnd()
                     ->limit(5)
@@ -95,7 +95,7 @@ class SearchController extends CrmController
                         'title' => trim($cnt['first_name'] . ' ' . $cnt['last_name']),
                         'category' => 'Contacts',
                         'url' => $cnt['organisation_id'] ? site_url('crm/organisations/' . $cnt['organisation_id'] . '?tab=contacts') : site_url('crm/contacts'),
-                        'sub' => ($cnt['designation'] ?: 'Contact') . ($cnt['org_name'] ? ' · ' . $cnt['org_name'] : '') . ' · ' . $cnt['mobile_number'],
+                        'sub' => ($cnt['designation'] ?: 'Contact') . ($cnt['org_name'] ? ' · ' . $cnt['org_name'] : '') . ' · ' . ($cnt['mobile'] ?? $cnt['mobile_number']),
                     ];
                 }
             }
